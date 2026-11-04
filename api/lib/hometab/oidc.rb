@@ -45,6 +45,8 @@ module Hometab
       raise Invalid, "wrong issuer" unless provider.issuers.include?(claims["iss"])
       raise Invalid, "wrong audience" unless (Array(claims["aud"]) & provider.audiences).any?
       raise Invalid, "expired" if claims["exp"].to_i < now.to_i - 60
+      raise Invalid, "not yet valid" if claims["nbf"] && claims["nbf"].to_i > now.to_i + 60
+      raise Invalid, "issued in the future" if claims["iat"] && claims["iat"].to_i > now.to_i + 300
       raise Invalid, "missing subject" if claims["sub"].to_s.empty?
 
       claims

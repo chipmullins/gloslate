@@ -6,7 +6,8 @@ module Households
 
     def initialize(invite:, user:, member_id: nil)
       @invite, @user = invite, user
-      @member_id = member_id.presence || invite.member_id
+      # An invite made for Alex can only ever claim Alex's spot.
+      @member_id = invite.member_id || member_id.presence
     end
 
     def call

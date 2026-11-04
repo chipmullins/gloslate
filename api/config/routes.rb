@@ -91,7 +91,9 @@ Rails.application.routes.draw do
         get :ledger, on: :member
       end
       resources :audit_events, only: :index
-      resources :staff, only: %i[index create update]
+      resources :staff, only: %i[index create update] do
+        post :reset_otp, on: :member
+      end
     end
   end
 end

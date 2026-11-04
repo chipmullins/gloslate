@@ -35,6 +35,7 @@ export default function BillCycleScreen() {
   if (!c) return <Screen><ErrorNote message={error} /></Screen>;
   const variableWaiting = c.kind === 'variable' && c.status !== 'posted' && c.status !== 'skipped';
   const done = c.status === 'posted' || c.status === 'skipped';
+  const payerName = home?.members.find((m) => m.id === c.payer_id)?.first_name ?? 'The payer';
 
   return (
     <Screen maxWidth={HT.maxWidth.form} scroll={false}>
@@ -44,7 +45,13 @@ export default function BillCycleScreen() {
           <T v="heading" accessibilityRole="header">{c.name} · {shortDate(c.due_on)}</T>
           <View style={{ width: 44 }} />
         </View>
-        {done ? (
+        {!done && !c.can_manage ? (
+          <View style={{ alignItems: 'center', gap: 10, paddingTop: 40 }}>
+            <T v="title">{c.kind === 'variable' && c.status === 'waiting' ? 'Waiting on the amount' : 'Coming up'}</T>
+            {c.amount_cents ? <Money cents={c.amount_cents} size={40} /> : null}
+            <T v="muted" style={{ textAlign: 'center' }}>{payerName} pays this bill, so they enter the amount or change a month. You'll get your share as soon as it posts.</T>
+          </View>
+        ) : done ? (
           <View style={{ alignItems: 'center', gap: 10, paddingTop: 40 }}>
             <T v="title">{c.status === 'posted' ? 'Posted' : 'Skipped this month'}</T>
             {c.amount_cents ? <Money cents={c.amount_cents} size={40} /> : null}

@@ -2,12 +2,18 @@ module V1
   class ExpensesController < BaseController
     before_action :load_from_household, only: %i[index create preview]
     before_action :load_expense, only: %i[show update destroy restore flag receipt upload_receipt]
+    SLOW_DOWN = -> { render json: { error: "That's a lot at once. Try again in a bit." }, status: :too_many_requests }
+    rate_limit to: 20, within: 1.hour, only: :flag, by: -> { current_user.id }, with: SLOW_DOWN
+    rate_limit to: 120, within: 1.minute, only: %i[create update], by: -> { current_user.id }, with: SLOW_DOWN
 
     # GET /v1/households/:household_id/expenses?before=<iso time>&limit=30
     def index
       limit = params.fetch(:limit, 30).to_i.clamp(1, 100)
       scope = @household.expenses.active.includes(:shares).order(created_at: :desc)
-      scope = scope.where(created_at: ...Time.iso8601(params[:before])) if params[:before].present?
+      if params[:before].present?
+        before = Time.iso8601(params[:before]) rescue raise(Hometab::Error, "Bad page cursor")
+        scope = scope.where(created_at: ...before)
+      end
       rows = scope.limit(limit + 1).to_a
       render json: { data: rows.first(limit).map { |e| Expenses::Serializer.call(e, me: @me) },
                      meta: { next_before: rows.size > limit ? rows[limit - 1].created_at.iso8601(6) : nil } }
@@ -101,14 +107,14 @@ module V1
       args = {}
       if p.key?(:amount_cents)
         cents = p[:amount_cents]
-        raise Hometab::Error, "Amount must be whole cents" unless cents.to_s.match?(/\A\d+\z/)
+        raise Hometab::Error, "Amount must be whole cents" unless cents.to_s.match?(/\A\d{1,10}\z/)
         args[:amount_cents] = cents.to_i
       end
       args[:payer] = @household.members.find(p[:payer_id]) if p[:payer_id]
       args[:participants] = @household.members.where(id: p[:participant_ids]).to_a if p.key?(:participant_ids)
       if p[:split_weights]
         args[:split_weights] = p[:split_weights].to_h.transform_values do |v|
-          raise Hometab::Error, "Split amounts must be whole numbers" unless v.to_s.match?(/\A\d+\z/)
+          raise Hometab::Error, "Split amounts must be whole numbers" unless v.to_s.match?(/\A\d{1,10}\z/)
           v.to_i
         end
       end

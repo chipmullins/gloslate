@@ -5,9 +5,10 @@ module Payments
   class Mark
     def self.call(...) = new(...).call
 
-    def initialize(household:, actor:, from:, to:, amount_cents:, method: "other", note: nil, allocations: {})
+    def initialize(household:, actor:, from:, to:, amount_cents:, method: "other", note: nil, allocations: {}, auto_confirm: true)
       @household, @actor, @from, @to = household, actor, from, to
       @amount_cents, @method, @note, @allocations = amount_cents, method.to_s, note, allocations
+      @auto_confirm = auto_confirm
     end
 
     def call
@@ -18,6 +19,9 @@ module Payments
         raise Hometab::Forbidden, "Only the payer or the person paid can record this"
       end
       raise Hometab::Error, "Amount must be whole cents" unless @amount_cents.is_a?(Integer) && @amount_cents.positive?
+      raise Hometab::Error, "That amount is too large" if @amount_cents >= Expense::MAX_CENTS
+      raise Hometab::Error, "Pick how it was paid" unless (Payment::METHODS - ["forgiven"]).include?(@method)
+      raise Hometab::Error, "#{@to.first_name} has left this home" if @to.former? && @actor.id != @to.id
       if @allocations.values.sum > @amount_cents
         raise Hometab::Error, "Items picked add up to more than the payment"
       end
@@ -30,7 +34,8 @@ module Payments
           method: @method, note: @note, marked_at: now,
           status: by_receiver ? "confirmed" : "pending",
           confirmed_at: (now if by_receiver),
-          auto_confirm_at: (now + Payment::AUTO_CONFIRM_AFTER unless by_receiver)
+          # Silence counts as yes only if the receiver can actually say no.
+          auto_confirm_at: (now + Payment::AUTO_CONFIRM_AFTER if !by_receiver && @auto_confirm && @to.user_id && !@to.former?)
         )
         @allocations.each do |expense_id, cents|
           raise Hometab::Error, "That item isn't in this home" unless @household.expenses.exists?(id: expense_id)

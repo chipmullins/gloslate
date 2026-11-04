@@ -8,27 +8,22 @@ class AdminApiTest < ActionDispatch::IntegrationTest
   end
 
   def staff_sign_in(staff)
-    post "/admin/v1/session", params: { email: staff.email, password: PASSWORD }
-    secret = json["otp_secret"] || staff.reload.otp_secret
-    travel 31.seconds if staff.reload.last_otp_step # fresh code window
+    secret = staff.reload.otp_secret
+    travel 31.seconds if staff.last_otp_step # fresh code window
     post "/admin/v1/session", params: { email: staff.email, password: PASSWORD,
                                         otp: Hometab::Totp.code_at(secret, Time.now.to_i / 30) }
     assert_response :success
     json["token"]
   end
 
-  test "first staff sign-in enrolls 2-step, and password alone never signs in" do
+  test "password alone never signs in and never reveals the 2-step secret" do
     staff = make_staff
     post "/admin/v1/session", params: { email: staff.email, password: PASSWORD }
-    assert_response :accepted
-    assert_equal "enroll_otp", json["status"]
-    assert_match "otpauth://totp/", json["otp_uri"]
+    assert_response :unauthorized
+    refute_includes response.body, staff.otp_secret
 
     token = staff_sign_in(staff)
     assert staff.reload.otp_enabled?
-
-    post "/admin/v1/session", params: { email: staff.email, password: PASSWORD }
-    assert_response :unauthorized, "after enrollment, a code is required"
 
     get "/admin/v1/session", headers: auth(token)
     assert_equal "support", json["role"]
@@ -107,11 +102,28 @@ class AdminApiTest < ActionDispatch::IntegrationTest
     refute(json["data"].any? { |e| e["params"].to_s.include?(PASSWORD) }, "passwords are redacted")
   end
 
+  test "wrong 2-step codes lock the account too" do
+    staff = make_staff
+    10.times { post "/admin/v1/session", params: { email: staff.email, password: PASSWORD, otp: "000000" } }
+    assert staff.reload.locked_at
+  end
+
+  test "admin creates staff and gets the authenticator link once; can reset it" do
+    admin = staff_sign_in(make_staff("admin"))
+    post "/admin/v1/staff", params: { email: "new@harborworks.test", name: "New", role: "viewer", password: PASSWORD }, headers: auth(admin)
+    assert_match "otpauth://totp/", json["otp_uri"]
+    id = json["data"]["id"]
+    post "/admin/v1/staff/#{id}/reset_otp", params: { reason: "lost phone" }, headers: auth(admin)
+    assert_match "otpauth://totp/", json["otp_uri"]
+    patch "/admin/v1/staff/#{id}", params: { disabled: "false" }, headers: auth(admin)
+    refute json["data"]["disabled"]
+  end
+
   test "staff accounts lock after 10 wrong passwords" do
     staff = make_staff
     10.times { post "/admin/v1/session", params: { email: staff.email, password: "wrong wrong wrong" } }
     assert staff.reload.locked_at
     post "/admin/v1/session", params: { email: staff.email, password: PASSWORD }
-    assert_response :unauthorized
+    assert_includes [401, 429], response.status, "locked (or rate limited) either way"
   end
 end

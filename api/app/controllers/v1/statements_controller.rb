@@ -9,6 +9,7 @@ module V1
     def show
       s = Statement.find(params[:id])
       me = current_user.members.find_by!(household_id: s.household_id)
+      raise ActiveRecord::RecordNotFound if me.former? && s.period_start > me.left_at.to_date
       if params[:format] == "pdf"
         send_data Statements::Pdf.render(s), type: "application/pdf", filename: "HomeTab-#{s.period_start.strftime('%Y-%m')}.pdf"
       else

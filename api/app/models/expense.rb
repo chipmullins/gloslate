@@ -1,5 +1,6 @@
 class Expense < ApplicationRecord
   CATEGORIES = %w[food groceries household rent utilities internet other].freeze
+  MAX_CENTS = 1_000_000_00 # $1M ceiling per item: stops absurd values and bigint overflow
 
   belongs_to :household
   belongs_to :payer, class_name: "Member"
@@ -12,7 +13,7 @@ class Expense < ApplicationRecord
 
   scope :active, -> { where(deleted_at: nil) }
 
-  validates :amount_cents, numericality: { only_integer: true, greater_than: 0 }
+  validates :amount_cents, numericality: { only_integer: true, greater_than: 0, less_than: MAX_CENTS }
   validates :urgency, inclusion: { in: %w[soon tab] }
   validates :category, inclusion: { in: CATEGORIES }
   validates :split_kind, inclusion: { in: Hometab::Ledger::Split::KINDS.map(&:to_s) }

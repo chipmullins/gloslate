@@ -1,6 +1,9 @@
 module V1
   class InvitesController < BaseController
     skip_before_action :authenticate!, only: :show
+    SLOW_DOWN = -> { render json: { error: "That's a lot at once. Try again in a bit." }, status: :too_many_requests }
+    rate_limit to: 20, within: 1.hour, only: :create, by: -> { current_user.id }, with: SLOW_DOWN
+    rate_limit to: 30, within: 1.minute, only: :show, with: SLOW_DOWN
 
     # POST /v1/households/:household_id/invites { member_id? }
     def create

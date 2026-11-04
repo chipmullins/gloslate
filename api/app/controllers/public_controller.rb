@@ -4,6 +4,11 @@ class PublicController < ActionController::Base
   skip_forgery_protection # no sessions in this app; the "I paid" form only creates a pending payment the requester must confirm
   helper_method :money
 
+  PUBLIC_METHODS = %w[venmo cashapp zelle cash other].freeze
+  rate_limit to: 5, within: 10.minutes, only: :mark_paid, by: -> { "#{request.remote_ip}:#{params[:token]}" },
+             with: -> { redirect_to "/r/#{params[:token]}", status: :see_other }
+  rate_limit to: 60, within: 1.minute, only: %i[request_page request_image invite]
+
   def money(cents) = Hometab::Money.format(cents)
 
   def request_page
@@ -25,11 +30,17 @@ class PublicController < ActionController::Base
   # "Already paid? Let Chip know" — works without an account.
   def mark_paid
     req = PaymentRequest.find_by!(token: params[:token])
-    cents = Hometab::Money.parse(params[:amount].to_s) || req.amount_cents
-    method = Payment::METHODS.include?(params[:method]) ? params[:method] : "other"
+    owed = [req.current_cents, 0].max
+    cents = Hometab::Money.parse(params[:amount].to_s) || owed
+    cents = [cents, owed].min # can't mark more than is actually owed
+    return redirect_to("/r/#{req.token}", status: :see_other) unless cents.positive?
+
+    method = PUBLIC_METHODS.include?(params[:method]) ? params[:method] : "other"
     unless req.household.payments.pending.where(from_member: req.recipient, to_member: req.requester).where(marked_at: 10.minutes.ago..).exists?
+      # Anyone with the link could submit this, so it waits for the requester:
+      # it never confirms itself.
       Payments::Mark.call(household: req.household, actor: req.recipient, from: req.recipient, to: req.requester,
-                          amount_cents: cents, method:, note: "Marked from the request page")
+                          amount_cents: cents, method:, note: "Marked from the request page", auto_confirm: false)
       req.update!(paid_marked_at: Time.current)
     end
     redirect_to "/r/#{req.token}?marked=1", status: :see_other
@@ -40,7 +51,8 @@ class PublicController < ActionController::Base
   def request_image
     req = PaymentRequest.includes(:requester, :recipient).find_by!(token: params[:token])
     expires_in 1.day, public: true
-    send_data Requests::Image.png(req), type: "image/png", disposition: "inline"
+    png = Rails.cache.fetch(["request-image", req.id, req.updated_at.to_i], expires_in: 1.day) { Requests::Image.png(req) }
+    send_data png, type: "image/png", disposition: "inline"
   end
 
   def invite

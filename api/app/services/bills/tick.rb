@@ -7,7 +7,12 @@ module Bills
     module_function
 
     def run(today = Date.current)
-      Bill.active.includes(:household, :payer).find_each { |bill| tick_bill(bill, today) }
+      Bill.active.includes(:household, :payer).find_each do |bill|
+        tick_bill(bill, today)
+      rescue StandardError => e
+        # One broken bill must never stop posting for everyone else.
+        Rails.logger.error("[bills] tick failed bill=#{bill.id} #{e.class}: #{e.message}")
+      end
     end
 
     def tick_bill(bill, today)

@@ -5,6 +5,17 @@ class StaffUser < ApplicationRecord
 
   has_many :staff_sessions, dependent: :destroy
 
+  # The 2-step secret exists from the start and is shown only to whoever
+  # creates the account (rake task or an admin) — never by the sign-in API.
+  before_validation(on: :create) { self.otp_secret ||= Hometab::Totp.new_secret }
+
+  def otp_uri = Hometab::Totp.provisioning_uri(otp_secret, account: email)
+
+  def reset_otp!
+    update!(otp_secret: Hometab::Totp.new_secret, otp_enabled_at: nil, last_otp_step: nil)
+    staff_sessions.update_all(revoked_at: Time.current)
+  end
+
   validates :email, presence: true, uniqueness: true
   validates :name, presence: true
   validates :role, inclusion: { in: ROLES }

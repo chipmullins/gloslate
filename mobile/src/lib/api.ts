@@ -144,12 +144,12 @@ export const categoryLabel = (k: string) => CATEGORIES.find((c) => c.key === k)?
 
 export type Bill = {
   id: string; name: string; kind: 'fixed' | 'variable'; amount_cents: number | null; due_day: number;
-  post_days_early: number; category: string; payer_id: string; you_pay: boolean; participant_ids: string[];
+  post_days_early: number; category: string; payer_id: string; you_pay: boolean; can_manage: boolean; participant_ids: string[];
 };
 export type BillCycle = {
   id: string; bill_id: string; name: string; kind: 'fixed' | 'variable'; due_on: string;
   status: 'upcoming' | 'waiting' | 'posted' | 'skipped'; amount_cents: number | null; payer_id: string;
-  you_pay: boolean; missing: boolean; hint_cents: number | null; overridden: boolean;
+  you_pay: boolean; can_manage: boolean; missing: boolean; hint_cents: number | null; overridden: boolean;
 };
 export type Payment = {
   id: string; from_member_id: string; to_member_id: string; amount_cents: number; method: string;

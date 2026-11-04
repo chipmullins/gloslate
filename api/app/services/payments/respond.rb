@@ -1,6 +1,7 @@
 module Payments
   # Receiver confirms or disputes a pending payment. System auto-confirms after 3 days.
   class Respond
+    DISPUTE_WINDOW = 30.days
     def notify(status, note, auto)
       amount = Hometab::Money.format(@payment.amount_cents)
       from, to = @payment.from_member, @payment.to_member
@@ -31,6 +32,10 @@ module Payments
       Payment.transaction do
         @payment.lock!
         return @payment unless @payment.status == "pending" || (status == "disputed" && @payment.status == "confirmed")
+        if status == "disputed" && @payment.status == "confirmed" && @payment.confirmed_at < DISPUTE_WINDOW.ago
+          raise Hometab::Error, "Payments can be questioned for #{DISPUTE_WINDOW.in_days.to_i} days after they're confirmed"
+        end
+        raise Hometab::Error, "This one was forgiven and can't be questioned" if @payment.method == "forgiven"
 
         unless auto
           allowed = status == "confirmed" ? [@payment.to_member_id] : [@payment.to_member_id, @payment.from_member_id]

@@ -1,5 +1,7 @@
 module V1
   class RequestsController < BaseController
+    SLOW_DOWN = -> { render json: { error: "That's a lot at once. Try again in a bit." }, status: :too_many_requests }
+    rate_limit to: 10, within: 1.hour, by: -> { current_user.id }, with: SLOW_DOWN
     # POST /v1/households/:household_id/requests { member_id }
     def create
       me = current_user.members.current.find_by!(household_id: params[:household_id])

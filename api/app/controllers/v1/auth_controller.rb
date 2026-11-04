@@ -3,6 +3,11 @@ module V1
   class AuthController < BaseController
     skip_before_action :authenticate!
 
+    TOO_MANY = -> { render json: { error: "Too many tries. Wait a minute and try again." }, status: :too_many_requests }
+    rate_limit to: 10, within: 1.minute, only: :request_code, with: TOO_MANY
+    rate_limit to: 40, within: 1.hour, only: :request_code, with: TOO_MANY, name: "codes-hourly"
+    rate_limit to: 20, within: 1.minute, only: %i[verify_code provider], with: TOO_MANY
+
     # POST /v1/auth/codes { destination }
     def request_code
       render json: Auth::RequestCode.call(destination: params.require(:destination), ip: request.remote_ip), status: :accepted

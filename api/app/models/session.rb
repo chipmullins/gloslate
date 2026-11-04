@@ -1,7 +1,8 @@
 # A signed-in device. The app holds the token; we keep only its digest.
 class Session < ApplicationRecord
   belongs_to :user
-  scope :live, -> { where(revoked_at: nil) }
+  IDLE_LIMIT = 180.days
+  scope :live, -> { where(revoked_at: nil).where("last_seen_at IS NULL OR last_seen_at > ?", IDLE_LIMIT.ago) }
 
   def self.issue!(user:, device_name: nil, platform: nil, app_version: nil, ip: nil)
     token = Hometab::SecureToken.generate("ht")

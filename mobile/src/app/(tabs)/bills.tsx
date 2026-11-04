@@ -84,13 +84,14 @@ export default function Bills() {
       ) : (
         <Card style={{ paddingVertical: 4 }}>
           {(bills ?? []).map((b, i, arr) => (
-            <Pressable key={b.id} accessibilityRole="button" accessibilityLabel={`Edit ${b.name}`} onPress={() => router.push(`/bill-edit?id=${b.id}` as Href)}
+            <Pressable key={b.id} accessibilityRole="button" accessibilityLabel={b.can_manage ? `Edit ${b.name}` : b.name} disabled={!b.can_manage}
+              onPress={() => router.push(`/bill-edit?id=${b.id}` as Href)}
               style={{ flexDirection: 'row', alignItems: 'center', minHeight: 60, gap: 12, borderBottomWidth: i < arr.length - 1 ? 1 : 0, borderBottomColor: HT.color.hairline }}>
               <View style={{ flex: 1 }}>
                 <T v="strong">{b.name}</T>
                 <T v="small">{b.kind === 'fixed' ? `${formatCents(b.amount_cents ?? 0)} on the ${ordinal(b.due_day)}` : `Varies · around the ${ordinal(b.due_day)}`} · {nameOf(b.payer_id)} pay{b.you_pay ? '' : 's'} it</T>
               </View>
-              <ChevronIcon size={18} color={HT.color.muted} />
+              {b.can_manage ? <ChevronIcon size={18} color={HT.color.muted} /> : null}
             </Pressable>
           ))}
         </Card>

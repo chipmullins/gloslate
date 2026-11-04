@@ -24,6 +24,8 @@ module V1
     end
 
     def update
+      raise Hometab::Forbidden, "Only #{@bill.payer.first_name} can change this bill" unless @bill.manageable_by?(@me)
+
       before = @bill.as_api_json
       @bill.update!(bill_attrs)
       LedgerEvent.record!(household: @household, kind: "bill.updated", subject: @bill, actor: @me,
@@ -33,6 +35,8 @@ module V1
     end
 
     def destroy
+      raise Hometab::Forbidden, "Only #{@bill.payer.first_name} can remove this bill" unless @bill.manageable_by?(@me)
+
       @bill.update!(active: false)
       @bill.cycles.where(status: %w[upcoming waiting]).update_all(status: "skipped")
       LedgerEvent.record!(household: @household, kind: "bill.removed", subject: @bill, actor: @me, data: { name: @bill.name })

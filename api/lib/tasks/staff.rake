@@ -7,6 +7,8 @@ namespace :staff do
     password = ENV["PASSWORD"] || $stdin.noecho(&:gets).to_s.chomp
     puts
     staff = StaffUser.create!(email:, name: ENV.fetch("NAME", email), role: ENV.fetch("ROLE", "admin"), password:)
-    puts "Created #{staff.role} #{staff.email}. 2-step setup happens on first sign-in."
+    puts "Created #{staff.role} #{staff.email}."
+    puts "Add this to your authenticator app now (it isn't shown again):"
+    puts staff.otp_uri
   end
 end

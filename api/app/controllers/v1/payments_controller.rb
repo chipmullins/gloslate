@@ -2,6 +2,8 @@ module V1
   class PaymentsController < BaseController
     before_action :load_from_household, only: %i[index create breakdown pay_info]
     before_action :load_payment, only: %i[show confirm dispute note]
+    SLOW_DOWN = -> { render json: { error: "That's a lot at once. Try again in a bit." }, status: :too_many_requests }
+    rate_limit to: 30, within: 1.hour, only: %i[note create], by: -> { current_user.id }, with: SLOW_DOWN
 
     # GET /v1/households/:household_id/payments?status=pending
     def index

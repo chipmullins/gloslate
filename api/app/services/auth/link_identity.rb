@@ -20,12 +20,7 @@ module Auth
 
     def from_code(user:, destination:, code:)
       channel, dest = Destination.parse(destination)
-      record = SignInCode.usable.where(destination: dest).order(created_at: :desc).first
-      unless record && OpenSSL.fixed_length_secure_compare(record.code_digest, SignInCode.digest(dest, code.to_s.gsub(/\D/, "")))
-        record&.increment!(:attempts)
-        raise Hometab::Error, "That code isn't right"
-      end
-      record.update!(consumed_at: Time.current)
+      SignInCode.redeem!(dest, code)
       identity = attach!(user, channel, dest, email: (dest if channel == "email"), email_verified: channel == "email")
       user.update!(channel == "email" ? { email: dest } : { phone: dest }) if user.public_send(channel == "email" ? :email : :phone).blank?
       identity

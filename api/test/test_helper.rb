@@ -24,6 +24,7 @@ ENV["GOOGLE_CLIENT_IDS"] ||= "google-test-client"
 
 class ActionDispatch::IntegrationTest
   setup do
+    Rails.cache.clear # rate-limit counters and cached keys start fresh per test
     Auth::Sms.deliveries.clear
     Rails.cache.write("oidc:jwks:apple", OidcTestKeys.jwks)
     Rails.cache.write("oidc:jwks:google", OidcTestKeys.jwks)

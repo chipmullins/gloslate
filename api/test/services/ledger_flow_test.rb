@@ -46,6 +46,7 @@ class LedgerFlowTest < ActiveSupport::TestCase
 
   test "auto-confirms after 3 days" do
     home, chip, alex = make_home("Chip", "Alex")
+    chip.update!(user: User.create!(first_name: "Chip")) # the receiver can respond, so silence counts as yes
     log!(home, chip, 1000)
     p = Payments::Mark.call(household: home, actor: alex, from: alex, to: chip, amount_cents: 500)
     assert_equal 0, Payments::Respond.auto_confirm_due!(2.days.from_now)

@@ -8,7 +8,8 @@ module Payments
         auto_confirm_at: p.auto_confirm_at, auto_confirmed: p.auto_confirmed,
         you_sent: p.from_member_id == me.id, you_received: p.to_member_id == me.id,
         can_confirm: p.status == "pending" && p.to_member_id == me.id,
-        can_dispute: p.status != "disputed" && [p.from_member_id, p.to_member_id].include?(me.id) }
+        can_dispute: [p.from_member_id, p.to_member_id].include?(me.id) && p.method != "forgiven" &&
+                     (p.status == "pending" || (p.status == "confirmed" && p.confirmed_at > Payments::Respond::DISPUTE_WINDOW.ago)) }
     end
   end
 end
