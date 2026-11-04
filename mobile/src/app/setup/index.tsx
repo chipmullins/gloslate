@@ -28,7 +28,7 @@ export default function WhoDoYouLiveWith() {
       if (needsName) await api('/v1/me', { method: 'PATCH', body: { first_name: myName.trim() } });
       const res = await api<{ data: Household }>('/v1/households', { body: { roommates: filled } });
       await refresh();
-      router.replace({ pathname: '/setup/handles', params: { householdId: res.data.id, memberId: res.data.me.id } });
+      router.replace({ pathname: '/setup/bills', params: { householdId: res.data.id, memberId: res.data.me.id } });
     } catch (e) {
       setError(e instanceof ApiError ? e.message : 'Something went wrong.');
     } finally {
@@ -39,7 +39,7 @@ export default function WhoDoYouLiveWith() {
   return (
     <Screen maxWidth={HT.maxWidth.form} footer={<Button title="Continue" onPress={create} loading={busy} disabled={!canContinue} />}>
       <View style={{ gap: 22, paddingTop: 8 }}>
-        <Steps total={2} current={1} />
+        <Steps total={3} current={1} />
         <View style={{ gap: 8 }}>
           <T v="display" accessibilityRole="header">Who do you live with?</T>
           <T v="muted">Just their first name. They can join later; you can start logging right away.</T>

@@ -24,8 +24,9 @@ class Member < ApplicationRecord
   def handles = { venmo: venmo_handle, cashapp: cashtag, zelle: zelle_contact }.compact_blank
 
   def as_api_json(viewer: nil)
-    { id:, display_name:, first_name:, placeholder: placeholder?, former: former?, you: viewer&.id == id,
-      moved_in_on:, moved_out_on:, handles: }
+    base = { id:, display_name:, first_name:, placeholder: placeholder?, former: former?, you: viewer&.id == id,
+             moved_in_on:, moved_out_on:, handles: }
+    viewer&.id == id ? base.merge(auto_remind:, remind_threshold_cents:, remind_after_days:) : base
   end
 
   private

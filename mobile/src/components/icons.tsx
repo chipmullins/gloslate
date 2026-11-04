@@ -41,3 +41,13 @@ export function HouseMark({ size = 32, inverted = false }: { size?: number; inve
 export const BackspaceIcon = (p: IconProps) => <Stroke {...p} strokeWidth={p.strokeWidth ?? 2} d="M21 5H8l-6 7 6 7h13zM12 9l6 6M18 9l-6 6" />;
 export const FlagIcon = (p: IconProps) => <Stroke {...p} d="M5 21V4M5 4h11l-2 4 2 4H5" />;
 export const PencilIcon = (p: IconProps) => <Stroke {...p} d="M4 20h4L19 9l-4-4L4 16v4zM14 6l4 4" />;
+export const HouseIcon = (p: IconProps) => <Stroke {...p} strokeWidth={p.strokeWidth ?? 2} d="M4 11l8-7 8 7v9a1 1 0 01-1 1h-4v-6h-6v6H5a1 1 0 01-1-1z" />;
+export const ActivityIcon = (p: IconProps) => <Stroke {...p} strokeWidth={p.strokeWidth ?? 2} d="M8 6h12M8 12h12M8 18h12M4 6h.01M4 12h.01M4 18h.01" />;
+export const CalendarIcon = (p: IconProps) => <Stroke {...p} strokeWidth={p.strokeWidth ?? 2} d="M4 7a2 2 0 012-2h12a2 2 0 012 2v12a2 2 0 01-2 2H6a2 2 0 01-2-2zM4 10h16M8 3v4M16 3v4" />;
+export const PersonIcon = (p: IconProps) => <Stroke {...p} strokeWidth={p.strokeWidth ?? 2} d="M12 12a4 4 0 100-8 4 4 0 000 8zM4 21a8 8 0 0116 0" />;
+export const BellIcon = (p: IconProps) => <Stroke {...p} strokeWidth={p.strokeWidth ?? 2} d="M6 16V11a6 6 0 1112 0v5l2 2H4zM10 21h4" />;
+export const ChevronIcon = (p: IconProps) => <Stroke {...p} d="M9 5l7 7-7 7" />;
+export const CameraIcon = (p: IconProps) => <Stroke {...p} strokeWidth={p.strokeWidth ?? 2} d="M4 8h3l2-3h6l2 3h3v11H4zM12 17a4 4 0 100-8 4 4 0 000 8z" />;
+export const CopyIcon = (p: IconProps) => <Stroke {...p} strokeWidth={p.strokeWidth ?? 2} d="M9 9h11v11H9zM5 15H4V4h11v1" />;
+export const SearchIcon = (p: IconProps) => <Stroke {...p} strokeWidth={p.strokeWidth ?? 2} d="M11 18a7 7 0 100-14 7 7 0 000 14zM21 21l-5-5" />;
+export const DownloadIcon = (p: IconProps) => <Stroke {...p} strokeWidth={p.strokeWidth ?? 2} d="M12 4v12M7 11l5 5 5-5M5 20h14" />;

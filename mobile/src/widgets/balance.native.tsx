@@ -1,0 +1,49 @@
+import { Platform } from 'react-native';
+import { Button, HStack, Spacer, Text, VStack } from '@expo/ui/swift-ui';
+import { containerBackground, font, foregroundStyle, minimumScaleFactor, monospacedDigit, padding, widgetURL } from '@expo/ui/swift-ui/modifiers';
+import { createWidget, type WidgetEnvironment } from 'expo-widgets';
+
+import type { Household } from '@/lib/api';
+import { balanceWidgetProps, type BalanceWidgetProps } from '@/widgets/balance-model';
+
+/**
+ * Home screen widget. Small: the one number. Medium: the number plus Add.
+ * Tapping opens the balance; Add opens the keypad. The app pushes a fresh
+ * snapshot every time Home loads (widgets never call the network).
+ */
+const BalanceWidget = createWidget<BalanceWidgetProps>(
+  'BalanceWidget',
+  (props: BalanceWidgetProps, env: WidgetEnvironment) => {
+    'widget';
+    const color = props.tone === 'owed' ? '#1C6A4C' : props.tone === 'owe' ? '#B0440C' : '#15201A';
+    const number = (
+      <VStack alignment="leading" spacing={4}>
+        <Text modifiers={[font({ size: 13, weight: 'semibold' }), foregroundStyle('#56625B')]}>{props.headline}</Text>
+        <Text modifiers={[font({ size: 30, weight: 'semibold', design: 'monospaced' }), monospacedDigit(), minimumScaleFactor(0.5), foregroundStyle(color)]}>{props.amount}</Text>
+        <Text modifiers={[font({ size: 11, weight: 'medium' }), foregroundStyle('#56625B')]}>{props.home}</Text>
+      </VStack>
+    );
+    if (env.widgetFamily === 'systemMedium') {
+      return (
+        <HStack modifiers={[containerBackground('#F3F4EF', 'widget'), padding({ all: 4 }), widgetURL('hometab://home')]}>
+          {number}
+          <Spacer />
+          <Button target="add" modifiers={[widgetURL('hometab://add')]}>
+            <Text modifiers={[font({ size: 16, weight: 'heavy' }), foregroundStyle('#FFFFFF')]}>+ Add</Text>
+          </Button>
+        </HStack>
+      );
+    }
+    return <VStack alignment="leading" modifiers={[containerBackground('#F3F4EF', 'widget'), widgetURL('hometab://home')]}>{number}<Spacer /></VStack>;
+  },
+  { headline: 'Open HomeTab', amount: '$0.00', home: '', tone: 'even' },
+);
+
+export function updateBalanceWidget(home: Household) {
+  if (Platform.OS !== 'ios' && Platform.OS !== 'android') return;
+  try {
+    BalanceWidget.updateSnapshot(balanceWidgetProps(home));
+  } catch {
+    // Not available in Expo Go or before the widget extension is built.
+  }
+}

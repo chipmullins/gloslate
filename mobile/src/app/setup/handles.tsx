@@ -42,7 +42,7 @@ export default function PaymentHandles() {
         </View>
       }>
       <View style={{ gap: 22, paddingTop: 8 }}>
-        <Steps total={2} current={2} />
+        <Steps total={3} current={3} />
         <View style={{ gap: 8 }}>
           <T v="display" accessibilityRole="header">How should people pay you?</T>
           <T v="muted">These fill in the Pay buttons when someone settles up with you. HomeTab never touches the money.</T>

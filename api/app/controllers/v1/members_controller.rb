@@ -14,6 +14,7 @@ module V1
       m = @household.members.find(params[:id])
       allowed = %i[display_name moved_in_on moved_out_on]
       allowed += %i[venmo_handle cashtag zelle_contact] if m.id == @me.id || m.placeholder?
+      allowed += %i[auto_remind remind_threshold_cents remind_after_days] if m.id == @me.id
       attrs = params.permit(*allowed)
       before = m.slice(*attrs.keys)
       m.update!(attrs)

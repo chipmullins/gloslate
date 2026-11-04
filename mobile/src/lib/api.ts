@@ -59,6 +59,11 @@ export type Handles = { venmo?: string; cashapp?: string; zelle?: string };
 export type Member = {
   id: string;
   display_name: string;
+  moved_in_on?: string | null;
+  moved_out_on?: string | null;
+  auto_remind?: boolean;
+  remind_threshold_cents?: number;
+  remind_after_days?: number;
   first_name: string;
   placeholder: boolean;
   former: boolean;
@@ -80,8 +85,14 @@ export type Household = HouseholdSummary & {
 export type User = {
   id: string;
   first_name: string;
+  last_name?: string | null;
   email: string | null;
   phone: string | null;
+  time_zone: string;
+  quiet_start_hour: number;
+  quiet_end_hour: number;
+  face_id_lock: boolean;
+  notification_prefs: Record<string, 'on' | 'off' | 'daily'>;
   identities: { id: string; provider: string }[];
 };
 
@@ -114,6 +125,8 @@ export type Expense = {
   effect_for_me_cents: number;
   edited: boolean;
   deleted: boolean;
+  has_receipt?: boolean;
+  itemization?: { items: { name: string; cents: number; member_ids: string[] }[]; tax_cents: number; tip_cents: number } | null;
   can_edit: boolean;
   created_at: string;
   history?: { kind: string; actor_member_id: string | null; at: string; data: Record<string, any> }[];
@@ -128,3 +141,44 @@ export const CATEGORIES: { key: string; label: string }[] = [
   { key: 'other', label: 'Other' },
 ];
 export const categoryLabel = (k: string) => CATEGORIES.find((c) => c.key === k)?.label ?? 'Other';
+
+export type Bill = {
+  id: string; name: string; kind: 'fixed' | 'variable'; amount_cents: number | null; due_day: number;
+  post_days_early: number; category: string; payer_id: string; you_pay: boolean; participant_ids: string[];
+};
+export type BillCycle = {
+  id: string; bill_id: string; name: string; kind: 'fixed' | 'variable'; due_on: string;
+  status: 'upcoming' | 'waiting' | 'posted' | 'skipped'; amount_cents: number | null; payer_id: string;
+  you_pay: boolean; missing: boolean; hint_cents: number | null; overridden: boolean;
+};
+export type Payment = {
+  id: string; from_member_id: string; to_member_id: string; amount_cents: number; method: string;
+  status: 'pending' | 'confirmed' | 'disputed'; note: string | null; marked_at: string; confirmed_at: string | null;
+  auto_confirm_at: string | null; auto_confirmed: boolean; you_sent: boolean; you_received: boolean;
+  can_confirm: boolean; can_dispute: boolean;
+  thread?: { kind: string; actor_member_id: string | null; at: string; note: string | null }[];
+};
+export type BreakdownItem = {
+  expense_id: string; description: string; category: string; spent_on: string; payer_id: string;
+  cents: number; paid_cents: number; status: 'open' | 'partial' | 'paid';
+};
+export type Breakdown = { net_cents: number; credit_cents: { theirs: number; mine: number }; items: BreakdownItem[]; payments: Payment[] };
+export type PayInfo = {
+  amount_cents: number; dollars: string; memo: string; to_first_name: string;
+  links: { venmo?: { app: string; web: string }; cashapp?: { app: string; web: string }; zelle?: { copy: string; amount: string } };
+};
+export type StatementSummary = { id: string; title: string; period_start: string; period_end: string; summary: string };
+export type Statement = StatementSummary & {
+  you: string;
+  data: {
+    names: Record<string, string>;
+    expenses: { id: string; description: string; category: string; spent_on: string; amount_cents: number; payer_id: string; shares: Record<string, number> }[];
+    payments: { id: string; from: string; to: string; amount_cents: number; method: string; confirmed_at: string }[];
+    adjustments: { expense_id: string; kind: string; description: string; before_cents: number | null; after_cents: number | null }[];
+    totals: { spent_cents: number; paid_by: Record<string, number>; share_of: Record<string, number>; settled_cents: number };
+    transfers: { from: string; to: string; cents: number }[];
+  };
+};
+export type NotificationItem = { id: string; kind: string; title: string; body: string; data: { route?: string }; created_at: string; read: boolean };
+
+export const API_BASE = process.env.EXPO_PUBLIC_API_URL ?? 'http://localhost:3000';
