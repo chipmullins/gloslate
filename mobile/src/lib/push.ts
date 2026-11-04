@@ -29,6 +29,7 @@ export async function registerDevice() {
 
 /** Every notification deep-links to the exact screen. */
 export function listenForTaps() {
+  if (Platform.OS === 'web') return () => {};
   const open = (route?: unknown) => { if (typeof route === 'string' && route.startsWith('/')) router.push(route as Href); };
   const last = Notifications.getLastNotificationResponse();
   if (last) open(last.notification.request.content.data?.route);

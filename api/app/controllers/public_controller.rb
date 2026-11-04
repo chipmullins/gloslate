@@ -75,6 +75,6 @@ class PublicController < ActionController::Base
 
   def icon
     expires_in 1.week, public: true
-    render inline: render_to_string(partial: "public/mark", locals: { size: 100 }), content_type: "image/svg+xml"
+    render plain: render_to_string(partial: "public/mark", formats: [:html], locals: { size: 100 }), content_type: "image/svg+xml"
   end
 end

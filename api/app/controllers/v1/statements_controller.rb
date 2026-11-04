@@ -9,9 +9,10 @@ module V1
     def show
       s = Statement.find(params[:id])
       me = current_user.members.find_by!(household_id: s.household_id)
-      respond_to do |f|
-        f.json { render json: { data: s.as_api_json(me:) } }
-        f.pdf { send_data Statements::Pdf.render(s), type: "application/pdf", filename: "HomeTab-#{s.period_start.strftime('%Y-%m')}.pdf" }
+      if params[:format] == "pdf"
+        send_data Statements::Pdf.render(s), type: "application/pdf", filename: "HomeTab-#{s.period_start.strftime('%Y-%m')}.pdf"
+      else
+        render json: { data: s.as_api_json(me:) }
       end
     end
 

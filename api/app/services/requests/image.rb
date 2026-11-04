@@ -31,7 +31,10 @@ module Requests
           <rect width="#{W}" height="#{H}" fill="#1C6A4C"/>
           <g transform="translate(80,84)">
             <rect width="72" height="72" rx="20" fill="#FFFFFF"/>
-            <path transform="translate(8,8) scale(0.56)" d="M27 47L50 27L73 47V77L67.25 72.5L61.5 77L55.75 72.5L50 77L44.25 72.5L38.5 77L32.75 72.5L27 77Z" fill="#1C6A4C"/>
+            <g transform="scale(0.72)">
+              <path d="M27 47L50 27L73 47V77L67.25 72.5L61.5 77L55.75 72.5L50 77L44.25 72.5L38.5 77L32.75 72.5L27 77Z" fill="#1C6A4C" stroke="#1C6A4C" stroke-width="2" stroke-linejoin="round"/>
+              <path d="M39 54H61M39 62H54" stroke="#FFFFFF" stroke-width="4.5" stroke-linecap="round"/>
+            </g>
             <text x="96" y="50" font-family="Manrope" font-weight="800" font-size="40" fill="#FFFFFF">HomeTab</text>
           </g>
           <path d="M80,240 H1000 V1180 #{zig.sub(/\AL/, 'L')} L80,1180 Z" fill="#FFFFFF"/>

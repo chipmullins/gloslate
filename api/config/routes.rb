@@ -8,6 +8,7 @@ Rails.application.routes.draw do
   get "r/:token/image.png", to: "public#request_image"
   get "i/:token", to: "public#invite"
   get "icon.svg", to: "public#icon"
+  get "favicon.ico", to: redirect("/icon.svg")
   get ".well-known/apple-app-site-association", to: "public#apple_app_site_association"
   get ".well-known/assetlinks.json", to: "public#asset_links"
   get "fonts/:name", to: "public#font", constraints: { name: /[\w-]+\.ttf/ }

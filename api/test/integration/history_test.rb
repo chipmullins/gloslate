@@ -22,5 +22,17 @@ class HistoryTest < ActionDispatch::IntegrationTest
     assert_includes response.body, "Costco run"
     get "/v1/households/#{h}/statements", headers: auth(t)
     assert_equal [], json["data"]
+
+    s = Statements::Generate.build(Household.find(h), Date.current.beginning_of_month, Date.current.end_of_month)
+    get "/v1/statements/#{s.id}", headers: auth(t)
+    assert_response :success
+    assert_equal s.title, json["data"]["title"]
+    get "/v1/statements/#{s.id}.pdf", headers: auth(t)
+    assert_equal "application/pdf", response.media_type
+    other = sign_in_by_phone("8595550999")["token"]
+    get "/v1/statements/#{s.id}", headers: auth(other)
+    assert_response :not_found
+    get "/icon.svg"
+    assert_equal "image/svg+xml", response.media_type
   end
 end
