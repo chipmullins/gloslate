@@ -10,6 +10,20 @@ SET client_min_messages = warning;
 SET row_security = off;
 
 --
+-- Name: citext; Type: EXTENSION; Schema: -; Owner: -
+--
+
+CREATE EXTENSION IF NOT EXISTS citext WITH SCHEMA public;
+
+
+--
+-- Name: EXTENSION citext; Type: COMMENT; Schema: -; Owner: -
+--
+
+COMMENT ON EXTENSION citext IS 'data type for case-insensitive character strings';
+
+
+--
 -- Name: pgcrypto; Type: EXTENSION; Schema: -; Owner: -
 --
 
@@ -39,6 +53,38 @@ $$;
 SET default_tablespace = '';
 
 SET default_table_access_method = heap;
+
+--
+-- Name: admin_audit_events; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.admin_audit_events (
+    id uuid DEFAULT gen_random_uuid() NOT NULL,
+    staff_user_id uuid,
+    action character varying NOT NULL,
+    target_type character varying,
+    target_id uuid,
+    reason character varying,
+    params jsonb DEFAULT '{}'::jsonb NOT NULL,
+    ip character varying,
+    user_agent character varying,
+    created_at timestamp(6) without time zone NOT NULL
+);
+
+
+--
+-- Name: analytics_events; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.analytics_events (
+    id uuid DEFAULT gen_random_uuid() NOT NULL,
+    name character varying NOT NULL,
+    user_id uuid,
+    household_id uuid,
+    props jsonb DEFAULT '{}'::jsonb NOT NULL,
+    created_at timestamp(6) without time zone NOT NULL
+);
+
 
 --
 -- Name: ar_internal_metadata; Type: TABLE; Schema: public; Owner: -
@@ -109,6 +155,23 @@ CREATE TABLE public.households (
     created_at timestamp(6) without time zone NOT NULL,
     updated_at timestamp(6) without time zone NOT NULL,
     CONSTRAINT statement_day_range CHECK (((statement_day >= 1) AND (statement_day <= 28)))
+);
+
+
+--
+-- Name: identities; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.identities (
+    id uuid DEFAULT gen_random_uuid() NOT NULL,
+    user_id uuid NOT NULL,
+    provider character varying NOT NULL,
+    provider_uid character varying NOT NULL,
+    email public.citext,
+    email_verified boolean DEFAULT false NOT NULL,
+    last_used_at timestamp(6) without time zone,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL
 );
 
 
@@ -204,6 +267,119 @@ CREATE TABLE public.schema_migrations (
 
 
 --
+-- Name: sessions; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.sessions (
+    id uuid DEFAULT gen_random_uuid() NOT NULL,
+    user_id uuid NOT NULL,
+    token_digest character varying NOT NULL,
+    device_name character varying,
+    platform character varying,
+    app_version character varying,
+    push_token character varying,
+    ip character varying,
+    last_seen_at timestamp(6) without time zone,
+    revoked_at timestamp(6) without time zone,
+    revoked_reason character varying,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL
+);
+
+
+--
+-- Name: sign_in_codes; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.sign_in_codes (
+    id uuid DEFAULT gen_random_uuid() NOT NULL,
+    channel character varying NOT NULL,
+    destination character varying NOT NULL,
+    code_digest character varying NOT NULL,
+    attempts integer DEFAULT 0 NOT NULL,
+    expires_at timestamp(6) without time zone NOT NULL,
+    consumed_at timestamp(6) without time zone,
+    requested_ip character varying,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL
+);
+
+
+--
+-- Name: staff_sessions; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.staff_sessions (
+    id uuid DEFAULT gen_random_uuid() NOT NULL,
+    staff_user_id uuid NOT NULL,
+    token_digest character varying NOT NULL,
+    ip character varying,
+    user_agent character varying,
+    expires_at timestamp(6) without time zone NOT NULL,
+    revoked_at timestamp(6) without time zone,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL
+);
+
+
+--
+-- Name: staff_users; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.staff_users (
+    id uuid DEFAULT gen_random_uuid() NOT NULL,
+    email public.citext NOT NULL,
+    name character varying NOT NULL,
+    role character varying DEFAULT 'viewer'::character varying NOT NULL,
+    password_digest character varying NOT NULL,
+    otp_secret character varying,
+    otp_enabled_at timestamp(6) without time zone,
+    last_otp_step integer,
+    failed_attempts integer DEFAULT 0 NOT NULL,
+    locked_at timestamp(6) without time zone,
+    disabled_at timestamp(6) without time zone,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL,
+    CONSTRAINT staff_role_values CHECK (((role)::text = ANY ((ARRAY['viewer'::character varying, 'support'::character varying, 'admin'::character varying])::text[])))
+);
+
+
+--
+-- Name: users; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.users (
+    id uuid DEFAULT gen_random_uuid() NOT NULL,
+    first_name character varying DEFAULT ''::character varying NOT NULL,
+    last_name character varying,
+    email public.citext,
+    phone character varying,
+    locked_at timestamp(6) without time zone,
+    locked_reason character varying,
+    deleted_at timestamp(6) without time zone,
+    last_active_at timestamp(6) without time zone,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL
+);
+
+
+--
+-- Name: admin_audit_events admin_audit_events_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.admin_audit_events
+    ADD CONSTRAINT admin_audit_events_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: analytics_events analytics_events_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.analytics_events
+    ADD CONSTRAINT analytics_events_pkey PRIMARY KEY (id);
+
+
+--
 -- Name: ar_internal_metadata ar_internal_metadata_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -233,6 +409,14 @@ ALTER TABLE ONLY public.expenses
 
 ALTER TABLE ONLY public.households
     ADD CONSTRAINT households_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: identities identities_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.identities
+    ADD CONSTRAINT identities_pkey PRIMARY KEY (id);
 
 
 --
@@ -273,6 +457,67 @@ ALTER TABLE ONLY public.payments
 
 ALTER TABLE ONLY public.schema_migrations
     ADD CONSTRAINT schema_migrations_pkey PRIMARY KEY (version);
+
+
+--
+-- Name: sessions sessions_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.sessions
+    ADD CONSTRAINT sessions_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: sign_in_codes sign_in_codes_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.sign_in_codes
+    ADD CONSTRAINT sign_in_codes_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: staff_sessions staff_sessions_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.staff_sessions
+    ADD CONSTRAINT staff_sessions_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: staff_users staff_users_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.staff_users
+    ADD CONSTRAINT staff_users_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: users users_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.users
+    ADD CONSTRAINT users_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: index_admin_audit_events_on_staff_user_id_and_created_at; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_admin_audit_events_on_staff_user_id_and_created_at ON public.admin_audit_events USING btree (staff_user_id, created_at);
+
+
+--
+-- Name: index_admin_audit_events_on_target_type_and_target_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_admin_audit_events_on_target_type_and_target_id ON public.admin_audit_events USING btree (target_type, target_id);
+
+
+--
+-- Name: index_analytics_events_on_name_and_created_at; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_analytics_events_on_name_and_created_at ON public.analytics_events USING btree (name, created_at);
 
 
 --
@@ -322,6 +567,20 @@ CREATE INDEX index_expenses_on_household_id_and_spent_on ON public.expenses USIN
 --
 
 CREATE INDEX index_expenses_on_payer_id ON public.expenses USING btree (payer_id);
+
+
+--
+-- Name: index_identities_on_provider_and_provider_uid; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX index_identities_on_provider_and_provider_uid ON public.identities USING btree (provider, provider_uid);
+
+
+--
+-- Name: index_identities_on_user_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_identities_on_user_id ON public.identities USING btree (user_id);
 
 
 --
@@ -409,6 +668,62 @@ CREATE INDEX index_payments_on_to_member_id ON public.payments USING btree (to_m
 
 
 --
+-- Name: index_sessions_on_token_digest; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX index_sessions_on_token_digest ON public.sessions USING btree (token_digest);
+
+
+--
+-- Name: index_sessions_on_user_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_sessions_on_user_id ON public.sessions USING btree (user_id);
+
+
+--
+-- Name: index_sign_in_codes_on_destination_and_created_at; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_sign_in_codes_on_destination_and_created_at ON public.sign_in_codes USING btree (destination, created_at);
+
+
+--
+-- Name: index_staff_sessions_on_staff_user_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_staff_sessions_on_staff_user_id ON public.staff_sessions USING btree (staff_user_id);
+
+
+--
+-- Name: index_staff_sessions_on_token_digest; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX index_staff_sessions_on_token_digest ON public.staff_sessions USING btree (token_digest);
+
+
+--
+-- Name: index_staff_users_on_email; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX index_staff_users_on_email ON public.staff_users USING btree (email);
+
+
+--
+-- Name: index_users_on_email; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX index_users_on_email ON public.users USING btree (email) WHERE ((email IS NOT NULL) AND (deleted_at IS NULL));
+
+
+--
+-- Name: index_users_on_phone; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX index_users_on_phone ON public.users USING btree (phone) WHERE ((phone IS NOT NULL) AND (deleted_at IS NULL));
+
+
+--
 -- Name: ledger_events ledger_events_no_update_delete; Type: TRIGGER; Schema: public; Owner: -
 --
 
@@ -432,6 +747,14 @@ ALTER TABLE ONLY public.payments
 
 
 --
+-- Name: members fk_rails_2e88fb7ce9; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.members
+    ADD CONSTRAINT fk_rails_2e88fb7ce9 FOREIGN KEY (user_id) REFERENCES public.users(id);
+
+
+--
 -- Name: payments fk_rails_2ffe474959; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -440,11 +763,35 @@ ALTER TABLE ONLY public.payments
 
 
 --
+-- Name: identities fk_rails_5373344100; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.identities
+    ADD CONSTRAINT fk_rails_5373344100 FOREIGN KEY (user_id) REFERENCES public.users(id);
+
+
+--
+-- Name: sessions fk_rails_758836b4f0; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.sessions
+    ADD CONSTRAINT fk_rails_758836b4f0 FOREIGN KEY (user_id) REFERENCES public.users(id);
+
+
+--
 -- Name: payments fk_rails_872d859cfb; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.payments
     ADD CONSTRAINT fk_rails_872d859cfb FOREIGN KEY (recorded_by_id) REFERENCES public.members(id);
+
+
+--
+-- Name: staff_sessions fk_rails_999e6e7559; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.staff_sessions
+    ADD CONSTRAINT fk_rails_999e6e7559 FOREIGN KEY (staff_user_id) REFERENCES public.staff_users(id);
 
 
 --
@@ -526,6 +873,8 @@ ALTER TABLE ONLY public.expenses
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
+('20261104180100'),
+('20261104180000'),
 ('20261104170300'),
 ('20261104170200'),
 ('20261104170100'),

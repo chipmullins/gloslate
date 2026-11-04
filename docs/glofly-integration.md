@@ -13,7 +13,8 @@ Do **not** modify the Glofly repo or backend from HomeTab work. This file lists 
 ## HomeTab side (already designed for it)
 
 - `identities` table with `provider = 'glofly'` — no schema change
-- OmniAuth-style pluggable strategy
+- Pluggable OIDC verifier (`api/lib/hometab/oidc.rb`): add a `glofly` entry with issuer, JWKS URL and client IDs, and a `/v1/auth/glofly` route. The mobile app gets an ID token from Glofly (authorization code + PKCE) and posts it, same as Apple/Google.
+- Glofly must issue RS256-signed ID tokens with `sub`, `email`, `email_verified`, `aud` = HomeTab's client id
 
 ## Later
 

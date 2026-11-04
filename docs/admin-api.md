@@ -2,6 +2,12 @@
 
 Built from day one so a staff console can connect later. Today there is no console; the API is the contract. It is designed so a future **HarborWorks Control** can front both Glofly and HomeTab with the same patterns.
 
+## Status
+
+Built (Nov 4, 2026): sign-in, roles, audit log, dashboard, user search/detail, revoke sessions, lock/unlock, send sign-in code, add/remove identity, household detail + read-only ledger, audit log, staff management. Still to come: activity feed, data export/delete via staff, job health, analytics rollups.
+
+Create the first admin on the server: `bin/rails staff:create EMAIL=you@example.com NAME="Chip"`. The first sign-in returns a 2-step secret (`otpauth://` link) to add to an authenticator app; every sign-in after needs the code.
+
 ## Principles
 
 - **Separate realm.** Staff are `staff_users`, not app `users`. Separate tokens, separate routes (`/admin/v1/*`), separate host in production (`admin-api.hometab.app`), never reachable from the mobile app's auth.
