@@ -17,7 +17,6 @@ Rails 8 API + Postgres + Solid Queue; Expo/TypeScript/expo-router; integer cents
 
 ## Status
 
-- [x] Step 1 (partial): Expo skeleton, CLAUDE.md, docs
-- [ ] Step 1: Rails skeleton — workspace can't reach rubygems.org; Rails app will be hand-written and installed/tested by GitHub Actions
-- [x] CI: GitHub Actions runs the money engine tests on every push
-- [~] Step 2: split (equal/%/exact/shares), per-pair balances, payments/credit, simplify debts — done in plain Ruby (api/lib/hometab/ledger), 17 tests incl. randomized checks. Next: ledger event models in Rails
+- [x] Step 1: repo, CLAUDE.md, Expo skeleton, Rails 8 app (bootstrapped by GitHub Actions; gems vendored in api/vendor/cache so the build workspace installs offline), CI on every push
+- [x] Step 2: money engine (api/lib/hometab/ledger) + households, members, expenses, shares, payments, allocations, append-only ledger_events (DB trigger blocks UPDATE/DELETE). Services: Expenses::Create/Update/Destroy/Restore, Payments::Mark/Respond (confirm, dispute, 3-day auto-confirm, receiver-recorded cash). 31 tests.
+- [ ] Step 3: auth (email/phone code, Apple, Google) via identities; staff realm for the admin API
