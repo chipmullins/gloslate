@@ -97,3 +97,34 @@ export type InvitePreview = {
   spots: { id: string; first_name: string }[];
   members: string[];
 };
+
+export type Expense = {
+  id: string;
+  amount_cents: number;
+  description: string;
+  category: string;
+  spent_on: string;
+  payer_id: string;
+  created_by_id: string;
+  split_kind: 'equal' | 'percent' | 'exact' | 'shares';
+  split_weights: Record<string, number>;
+  urgency: 'soon' | 'tab';
+  note: string | null;
+  shares: { member_id: string; cents: number }[];
+  effect_for_me_cents: number;
+  edited: boolean;
+  deleted: boolean;
+  can_edit: boolean;
+  created_at: string;
+  history?: { kind: string; actor_member_id: string | null; at: string; data: Record<string, any> }[];
+};
+
+export const CATEGORIES: { key: string; label: string }[] = [
+  { key: 'food', label: 'Food' },
+  { key: 'groceries', label: 'Groceries' },
+  { key: 'household', label: 'Household' },
+  { key: 'utilities', label: 'Utilities' },
+  { key: 'rent', label: 'Rent' },
+  { key: 'other', label: 'Other' },
+];
+export const categoryLabel = (k: string) => CATEGORIES.find((c) => c.key === k)?.label ?? 'Other';

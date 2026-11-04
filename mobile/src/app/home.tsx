@@ -1,14 +1,18 @@
-import { useFocusEffect } from 'expo-router';
-import { useCallback, useState } from 'react';
+import { router, useFocusEffect, type Href } from 'expo-router';
+import { useCallback, useEffect, useState } from 'react';
 import { Pressable, RefreshControl, ScrollView, Share, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import Svg, { Defs, LinearGradient, Rect, Stop } from 'react-native-svg';
 
+import { ExpenseRow } from '@/components/expense-row';
 import { HouseMark, PlusIcon, ShareIcon } from '@/components/icons';
+import { ToastHost } from '@/components/toast-host';
 import { Avatar, Card, Money, T } from '@/components/ui';
 import { HT } from '@/constants/theme';
 import { useLayout } from '@/hooks/use-layout';
-import { api, ApiError, type Household, type Member } from '@/lib/api';
+import { api, ApiError, type Expense, type Household, type Member } from '@/lib/api';
 import { useSession } from '@/lib/session';
+import { toast } from '@/lib/toast';
 
 function names(members: Member[]) {
   const others = members.filter((m) => !m.you && !m.former).map((m) => m.first_name);
@@ -21,6 +25,7 @@ export default function Home() {
   const { households } = useSession();
   const { wide, gutter } = useLayout();
   const [home, setHome] = useState<Household | null>(null);
+  const [recentItems, setRecentItems] = useState<Expense[] | null>(null);
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const id = households[0]?.id;
@@ -28,8 +33,12 @@ export default function Home() {
   const load = useCallback(async () => {
     if (!id) return;
     try {
-      const res = await api<{ data: Household }>(`/v1/households/${id}`);
+      const [res, items] = await Promise.all([
+        api<{ data: Household }>(`/v1/households/${id}`),
+        api<{ data: Expense[] }>(`/v1/households/${id}/expenses?limit=8`),
+      ]);
       setHome(res.data);
+      setRecentItems(items.data);
       setError(null);
     } catch (e) {
       setError(e instanceof ApiError ? e.message : 'Something went wrong.');
@@ -37,6 +46,7 @@ export default function Home() {
   }, [id]);
 
   useFocusEffect(useCallback(() => { load(); }, [load]));
+  useEffect(() => toast.subscribe((t) => { if (t && !t.action) setTimeout(load, 300); }), [load]);
 
   async function invite(member?: Member) {
     if (!home) return;
@@ -115,10 +125,19 @@ export default function Home() {
   const recent = (
     <View style={{ gap: 8 }}>
       <T v="heading">Recent</T>
-      <Card style={{ alignItems: 'center', gap: 6, paddingVertical: 28 }}>
-        <T v="strong">Nothing logged yet</T>
-        <T v="muted" style={{ textAlign: 'center', maxWidth: 320 }}>Add the rent, tonight's dinner, or the last grocery run. Three taps.</T>
-      </Card>
+      {recentItems && recentItems.length > 0 ? (
+        <Card style={{ paddingVertical: 4 }}>
+          {recentItems.map((e, i) => (
+            <ExpenseRow key={e.id} e={e} members={home.members} last={i === recentItems.length - 1}
+              onPress={() => router.push(`/expense/${e.id}` as Href)} />
+          ))}
+        </Card>
+      ) : (
+        <Card style={{ alignItems: 'center', gap: 6, paddingVertical: 28 }}>
+          <T v="strong">Nothing logged yet</T>
+          <T v="muted" style={{ textAlign: 'center', maxWidth: 320 }}>Add the rent, tonight's dinner, or the last grocery run. Three taps.</T>
+        </Card>
+      )}
     </View>
   );
 
@@ -181,6 +200,25 @@ export default function Home() {
           )}
         </View>
       </ScrollView>
+      <ToastHost bottom={104} />
+      <View pointerEvents="box-none" style={{ position: 'absolute', left: 0, right: 0, bottom: 0, paddingBottom: 28, paddingTop: 36, alignItems: 'center' }}>
+        <Svg pointerEvents="none" style={{ position: 'absolute', left: 0, right: 0, top: 0, bottom: 0 }} width="100%" height="100%" preserveAspectRatio="none">
+          <Defs>
+            <LinearGradient id="fade" x1="0" y1="0" x2="0" y2="1">
+              <Stop offset="0" stopColor={HT.color.ground} stopOpacity={0} />
+              <Stop offset="0.45" stopColor={HT.color.ground} stopOpacity={1} />
+            </LinearGradient>
+          </Defs>
+          <Rect x="0" y="0" width="100%" height="100%" fill="url(#fade)" />
+        </Svg>
+        <Pressable accessibilityRole="button" accessibilityLabel="Add an expense" onPress={() => router.push('/add' as Href)}
+          style={({ pressed }) => ({ minHeight: 58, paddingHorizontal: 36, borderRadius: HT.radius.pill, backgroundColor: HT.color.brand,
+            flexDirection: 'row', alignItems: 'center', gap: 10, transform: [{ scale: pressed ? 0.97 : 1 }],
+            shadowColor: HT.color.brand, shadowOpacity: 0.3, shadowRadius: 18, shadowOffset: { width: 0, height: 6 }, elevation: 6 })}>
+          <PlusIcon size={20} color="#FFFFFF" />
+          <T v="strong" style={{ color: '#FFFFFF', fontSize: 16, fontFamily: HT.font.extrabold }}>Add</T>
+        </Pressable>
+      </View>
     </SafeAreaView>
   );
 }
