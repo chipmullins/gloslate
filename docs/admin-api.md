@@ -11,7 +11,7 @@ Create the first admin on the server: `bin/rails staff:create EMAIL=you@example.
 ## Principles
 
 - **Separate realm.** Staff are `staff_users`, not app `users`. Separate tokens, separate routes (`/admin/v1/*`), separate host in production (`admin-api.hometab.app`), never reachable from the mobile app's auth.
-- **Strong sign-in.** Staff sign in with email + password **and** TOTP (2-step) required. Short-lived access tokens (15 min) + refresh tokens; all revocable.
+- **Strong sign-in.** Staff sign in with email + password **and** TOTP (2-step) required. Staff sessions last 12 hours, then sign in again; all revocable. Accounts lock after 10 wrong passwords.
 - **Roles.** `viewer` (read-only, money amounts visible, contact details masked), `support` (account actions), `admin` (everything incl. staff management). Enforced per endpoint.
 - **Everything audited.** Every staff request that reads personal data or changes anything writes an `admin_audit_events` row: staff id, action, target, params (redacted), reason, IP, user agent. Account actions require a `reason` string.
 - **Never touches the ledger directly.** Staff can't edit balances. Corrections go through the same append-only events as users, flagged `actor_type: staff`, and are visible to the household.
