@@ -6,8 +6,9 @@ module Expenses
 
     def initialize(household:, actor:, amount_cents:, payer:, participants: nil, split_kind: nil,
                    split_weights: nil, description: "", category: "other", spent_on: Date.current,
-                   urgency: "tab", note: nil, client_id: nil)
+                   urgency: "tab", note: nil, client_id: nil, system: false)
       @household, @actor, @payer = household, actor, payer
+      @system = system # bill auto-posts: may include people who moved out mid-cycle (proration)
       @amount_cents = amount_cents
       @spent_on = spent_on
       @participants = participants || household.members.current.select { |m| m.active_on?(spent_on) }
@@ -21,7 +22,7 @@ module Expenses
         return existing # retried request: same expense, not a duplicate
       end
 
-      Validation.check!(@household, @actor, @payer, @participants, @spent_on)
+      Validation.check!(@household, @actor, @payer, @participants, @spent_on) unless @system
       shares = Validation.compute_shares(@amount_cents, @payer, @participants, @split_kind, @split_weights)
 
       Expense.transaction do
@@ -30,7 +31,8 @@ module Expenses
           split_kind: @split_kind, split_weights: @split_weights, **@attrs
         )
         shares.each { |member_id, cents| expense.shares.create!(member_id:, share_cents: cents) }
-        LedgerEvent.record!(household: @household, kind: "expense.created", subject: expense, actor: @actor,
+        LedgerEvent.record!(household: @household, kind: "expense.created", subject: expense,
+                            actor: (@actor unless @system), actor_type: (@system ? "system" : nil),
                             data: { after: expense.reload.snapshot })
         learn_usual_split!(expense)
         expense

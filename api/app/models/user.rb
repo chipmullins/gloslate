@@ -3,6 +3,7 @@ class User < ApplicationRecord
   has_many :sessions, dependent: :destroy
   has_many :members
   has_many :households, through: :members
+  has_many :notifications, dependent: :delete_all
 
   scope :active, -> { where(deleted_at: nil) }
 

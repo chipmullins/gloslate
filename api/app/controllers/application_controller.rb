@@ -3,6 +3,7 @@ class ApplicationController < ActionController::API
   rescue_from Hometab::Error do |e| render json: { error: e.message }, status: :unprocessable_content end
   rescue_from Hometab::Forbidden do |e| render json: { error: e.message }, status: :forbidden end
   rescue_from ActiveRecord::RecordNotFound do render json: { error: "Not found" }, status: :not_found end
+  rescue_from ActiveRecord::RecordInvalid do |e| render json: { error: e.record.errors.full_messages.first }, status: :unprocessable_content end
   rescue_from ActionController::ParameterMissing do |e| render json: { error: e.message }, status: :bad_request end
 
   private

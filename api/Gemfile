@@ -47,3 +47,9 @@ group :development, :test do
   # Omakase Ruby styling [https://github.com/rails/rubocop-rails-omakase/]
   gem "rubocop-rails-omakase", require: false
 end
+
+# PDF statements, S3 storage, CSV (vendored by vendor-gems workflow)
+gem "prawn", "~> 2.5"
+gem "prawn-table", "~> 0.2"
+gem "aws-sdk-s3", "~> 1.170", require: false
+gem "csv"

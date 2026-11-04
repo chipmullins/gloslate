@@ -99,6 +99,59 @@ CREATE TABLE public.ar_internal_metadata (
 
 
 --
+-- Name: bill_cycles; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.bill_cycles (
+    id uuid DEFAULT gen_random_uuid() NOT NULL,
+    bill_id uuid NOT NULL,
+    household_id uuid NOT NULL,
+    due_on date NOT NULL,
+    status character varying DEFAULT 'upcoming'::character varying NOT NULL,
+    amount_override_cents bigint,
+    expense_id uuid,
+    waiting_since date,
+    amount_entered_on date,
+    reminders_sent integer DEFAULT 0 NOT NULL,
+    last_reminded_at timestamp(6) without time zone,
+    posted_at timestamp(6) without time zone,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL,
+    CONSTRAINT cycle_status_values CHECK (((status)::text = ANY ((ARRAY['upcoming'::character varying, 'waiting'::character varying, 'posted'::character varying, 'skipped'::character varying])::text[])))
+);
+
+
+--
+-- Name: bills; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.bills (
+    id uuid DEFAULT gen_random_uuid() NOT NULL,
+    household_id uuid NOT NULL,
+    payer_id uuid NOT NULL,
+    created_by_id uuid NOT NULL,
+    name character varying NOT NULL,
+    kind character varying DEFAULT 'fixed'::character varying NOT NULL,
+    amount_cents bigint,
+    due_day integer NOT NULL,
+    post_days_early integer DEFAULT 0 NOT NULL,
+    usual_arrival_day integer,
+    category character varying DEFAULT 'utilities'::character varying NOT NULL,
+    split_kind character varying DEFAULT 'equal'::character varying NOT NULL,
+    split_weights jsonb DEFAULT '{}'::jsonb NOT NULL,
+    participant_ids uuid[] DEFAULT '{}'::uuid[] NOT NULL,
+    active boolean DEFAULT true NOT NULL,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL,
+    starts_on date DEFAULT CURRENT_DATE NOT NULL,
+    CONSTRAINT bill_due_day_range CHECK (((due_day >= 1) AND (due_day <= 28))),
+    CONSTRAINT bill_early_range CHECK (((post_days_early >= 0) AND (post_days_early <= 7))),
+    CONSTRAINT bill_kind_values CHECK (((kind)::text = ANY ((ARRAY['fixed'::character varying, 'variable'::character varying])::text[]))),
+    CONSTRAINT fixed_bill_has_amount CHECK ((((kind)::text = 'variable'::text) OR (amount_cents > 0)))
+);
+
+
+--
 -- Name: expense_shares; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -231,7 +284,34 @@ CREATE TABLE public.members (
     left_at timestamp(6) without time zone,
     created_at timestamp(6) without time zone NOT NULL,
     updated_at timestamp(6) without time zone NOT NULL,
+    auto_remind boolean DEFAULT true NOT NULL,
+    remind_threshold_cents bigint DEFAULT 4000 NOT NULL,
+    remind_after_days integer DEFAULT 7 NOT NULL,
     CONSTRAINT move_dates_order CHECK (((moved_out_on IS NULL) OR (moved_in_on IS NULL) OR (moved_out_on >= moved_in_on)))
+);
+
+
+--
+-- Name: notifications; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.notifications (
+    id uuid DEFAULT gen_random_uuid() NOT NULL,
+    user_id uuid NOT NULL,
+    household_id uuid,
+    kind character varying NOT NULL,
+    title character varying NOT NULL,
+    body character varying NOT NULL,
+    data jsonb DEFAULT '{}'::jsonb NOT NULL,
+    group_key character varying,
+    group_count integer DEFAULT 1 NOT NULL,
+    group_cents bigint DEFAULT 0 NOT NULL,
+    deliver_after timestamp(6) without time zone NOT NULL,
+    sent_at timestamp(6) without time zone,
+    read_at timestamp(6) without time zone,
+    skipped_reason character varying,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL
 );
 
 
@@ -379,7 +459,12 @@ CREATE TABLE public.users (
     deleted_at timestamp(6) without time zone,
     last_active_at timestamp(6) without time zone,
     created_at timestamp(6) without time zone NOT NULL,
-    updated_at timestamp(6) without time zone NOT NULL
+    updated_at timestamp(6) without time zone NOT NULL,
+    time_zone character varying DEFAULT 'America/New_York'::character varying NOT NULL,
+    quiet_start_hour integer DEFAULT 22 NOT NULL,
+    quiet_end_hour integer DEFAULT 8 NOT NULL,
+    notification_prefs jsonb DEFAULT '{}'::jsonb NOT NULL,
+    face_id_lock boolean DEFAULT false NOT NULL
 );
 
 
@@ -405,6 +490,22 @@ ALTER TABLE ONLY public.analytics_events
 
 ALTER TABLE ONLY public.ar_internal_metadata
     ADD CONSTRAINT ar_internal_metadata_pkey PRIMARY KEY (key);
+
+
+--
+-- Name: bill_cycles bill_cycles_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.bill_cycles
+    ADD CONSTRAINT bill_cycles_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: bills bills_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.bills
+    ADD CONSTRAINT bills_pkey PRIMARY KEY (id);
 
 
 --
@@ -461,6 +562,14 @@ ALTER TABLE ONLY public.ledger_events
 
 ALTER TABLE ONLY public.members
     ADD CONSTRAINT members_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: notifications notifications_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.notifications
+    ADD CONSTRAINT notifications_pkey PRIMARY KEY (id);
 
 
 --
@@ -546,6 +655,55 @@ CREATE INDEX index_admin_audit_events_on_target_type_and_target_id ON public.adm
 --
 
 CREATE INDEX index_analytics_events_on_name_and_created_at ON public.analytics_events USING btree (name, created_at);
+
+
+--
+-- Name: index_bill_cycles_on_bill_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_bill_cycles_on_bill_id ON public.bill_cycles USING btree (bill_id);
+
+
+--
+-- Name: index_bill_cycles_on_bill_id_and_due_on; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX index_bill_cycles_on_bill_id_and_due_on ON public.bill_cycles USING btree (bill_id, due_on);
+
+
+--
+-- Name: index_bill_cycles_on_expense_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_bill_cycles_on_expense_id ON public.bill_cycles USING btree (expense_id);
+
+
+--
+-- Name: index_bill_cycles_on_household_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_bill_cycles_on_household_id ON public.bill_cycles USING btree (household_id);
+
+
+--
+-- Name: index_bills_on_created_by_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_bills_on_created_by_id ON public.bills USING btree (created_by_id);
+
+
+--
+-- Name: index_bills_on_household_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_bills_on_household_id ON public.bills USING btree (household_id);
+
+
+--
+-- Name: index_bills_on_payer_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_bills_on_payer_id ON public.bills USING btree (payer_id);
 
 
 --
@@ -682,6 +840,41 @@ CREATE UNIQUE INDEX index_members_on_household_id_and_user_id ON public.members 
 
 
 --
+-- Name: index_notifications_on_group_key; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX index_notifications_on_group_key ON public.notifications USING btree (group_key) WHERE ((group_key IS NOT NULL) AND (sent_at IS NULL));
+
+
+--
+-- Name: index_notifications_on_household_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_notifications_on_household_id ON public.notifications USING btree (household_id);
+
+
+--
+-- Name: index_notifications_on_sent_at_and_deliver_after; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_notifications_on_sent_at_and_deliver_after ON public.notifications USING btree (sent_at, deliver_after);
+
+
+--
+-- Name: index_notifications_on_user_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_notifications_on_user_id ON public.notifications USING btree (user_id);
+
+
+--
+-- Name: index_notifications_on_user_id_and_created_at; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_notifications_on_user_id_and_created_at ON public.notifications USING btree (user_id, created_at);
+
+
+--
 -- Name: index_payment_allocations_on_expense_id; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -810,6 +1003,22 @@ ALTER TABLE ONLY public.payments
 
 
 --
+-- Name: bills fk_rails_2309d98731; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.bills
+    ADD CONSTRAINT fk_rails_2309d98731 FOREIGN KEY (household_id) REFERENCES public.households(id);
+
+
+--
+-- Name: bill_cycles fk_rails_2aafedff0a; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.bill_cycles
+    ADD CONSTRAINT fk_rails_2aafedff0a FOREIGN KEY (household_id) REFERENCES public.households(id);
+
+
+--
 -- Name: members fk_rails_2e88fb7ce9; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -826,11 +1035,35 @@ ALTER TABLE ONLY public.payments
 
 
 --
+-- Name: bills fk_rails_343f72700f; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.bills
+    ADD CONSTRAINT fk_rails_343f72700f FOREIGN KEY (payer_id) REFERENCES public.members(id);
+
+
+--
 -- Name: identities fk_rails_5373344100; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.identities
     ADD CONSTRAINT fk_rails_5373344100 FOREIGN KEY (user_id) REFERENCES public.users(id);
+
+
+--
+-- Name: notifications fk_rails_5c22549406; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.notifications
+    ADD CONSTRAINT fk_rails_5c22549406 FOREIGN KEY (household_id) REFERENCES public.households(id);
+
+
+--
+-- Name: bill_cycles fk_rails_73d495125c; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.bill_cycles
+    ADD CONSTRAINT fk_rails_73d495125c FOREIGN KEY (expense_id) REFERENCES public.expenses(id);
 
 
 --
@@ -850,11 +1083,27 @@ ALTER TABLE ONLY public.payments
 
 
 --
+-- Name: bill_cycles fk_rails_90eae61202; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.bill_cycles
+    ADD CONSTRAINT fk_rails_90eae61202 FOREIGN KEY (bill_id) REFERENCES public.bills(id);
+
+
+--
 -- Name: staff_sessions fk_rails_999e6e7559; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.staff_sessions
     ADD CONSTRAINT fk_rails_999e6e7559 FOREIGN KEY (staff_user_id) REFERENCES public.staff_users(id);
+
+
+--
+-- Name: bills fk_rails_9b100a5025; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.bills
+    ADD CONSTRAINT fk_rails_9b100a5025 FOREIGN KEY (created_by_id) REFERENCES public.members(id);
 
 
 --
@@ -879,6 +1128,14 @@ ALTER TABLE ONLY public.invites
 
 ALTER TABLE ONLY public.payments
     ADD CONSTRAINT fk_rails_ad7b600208 FOREIGN KEY (from_member_id) REFERENCES public.members(id);
+
+
+--
+-- Name: notifications fk_rails_b080fb4855; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.notifications
+    ADD CONSTRAINT fk_rails_b080fb4855 FOREIGN KEY (user_id) REFERENCES public.users(id);
 
 
 --
@@ -960,6 +1217,8 @@ ALTER TABLE ONLY public.expenses
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
+('20261105000100'),
+('20261105000000'),
 ('20261104210000'),
 ('20261104190000'),
 ('20261104180100'),

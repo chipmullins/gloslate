@@ -16,6 +16,16 @@ Rails.application.routes.draw do
       resources :expenses, only: %i[index create] do
         post :preview, on: :collection
       end
+      resources :bills, only: %i[index create] do
+        get :presets, on: :collection
+      end
+    end
+    resources :bills, only: %i[update destroy]
+    resources :bill_cycles, only: %i[show update] do
+      member do
+        post :amount
+        post :skip
+      end
     end
     resources :expenses, only: %i[show update destroy] do
       member do

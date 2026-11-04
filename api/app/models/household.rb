@@ -5,6 +5,8 @@ class Household < ApplicationRecord
   has_many :expenses, dependent: :restrict_with_exception
   has_many :payments, dependent: :restrict_with_exception
   has_many :ledger_events
+  has_many :bills, dependent: :destroy
+  has_many :bill_cycles
 
   validates :name, presence: true, length: { maximum: 60 }
   validates :currency, inclusion: { in: %w[USD] }
