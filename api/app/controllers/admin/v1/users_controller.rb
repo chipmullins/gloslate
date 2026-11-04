@@ -79,6 +79,20 @@ module Admin
         render json: { id: identity.id, provider: identity.provider }, status: :created
       end
 
+      # Same deletion as the user's own (support request); admin only.
+      def destroy_account
+        require_role!(:admin)
+        reason = require_reason!
+        Accounts::Delete.call(@user, reason: "staff:#{reason}")
+        audit!("users.delete_account", target: @user, reason:)
+        head :no_content
+      end
+
+      def export
+        audit!("users.export", target: @user, reason: require_reason!)
+        render json: Accounts::Export.call(@user)
+      end
+
       def remove_identity
         reason = require_reason!
         identity = @user.identities.find(params[:identity_id])

@@ -16,8 +16,13 @@ Rails.application.routes.draw do
     post "auth/:provider", to: "auth#provider", constraints: { provider: /apple|google/ }
 
     resource :session, only: %i[update destroy]
-    resource :me, controller: "me", only: %i[show update]
+    resource :me, controller: "me", only: %i[show update destroy] do
+      get :export
+    end
     resources :identities, only: %i[create destroy]
+    resources :notifications, only: :index do
+      post :read, on: :collection
+    end
 
     resources :households, only: %i[index show create update] do
       resources :members, only: %i[create update destroy]
@@ -55,6 +60,8 @@ Rails.application.routes.draw do
       member do
         post :restore
         post :flag
+        get :receipt
+        post :receipt, action: :upload_receipt
       end
     end
     get "invites/:token", to: "invites#show"
@@ -71,6 +78,8 @@ Rails.application.routes.draw do
           post :lock
           post :unlock
           post :send_sign_in_code
+          post :export
+          post :delete_account, action: :destroy_account
           post :identities, action: :add_identity
           delete "identities/:identity_id", action: :remove_identity
         end

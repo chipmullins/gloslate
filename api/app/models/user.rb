@@ -15,7 +15,8 @@ class User < ApplicationRecord
   end
 
   def as_api_json
-    { id:, first_name:, last_name:, email:, phone:,
+    { id:, first_name:, last_name:, email:, phone:, time_zone:, quiet_start_hour:, quiet_end_hour:, face_id_lock:,
+      notification_prefs:,
       identities: identities.map { |i| { id: i.id, provider: i.provider, email: i.email } } }
   end
 end

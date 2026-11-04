@@ -18,6 +18,7 @@ module Expenses
         spent_on: expense.spent_on, payer_id: expense.payer_id, created_by_id: expense.created_by_id,
         split_kind: expense.split_kind, split_weights: expense.split_weights, urgency: expense.urgency, note: expense.note,
         shares: shares.map { |m, c| { member_id: m, cents: c } }, effect_for_me_cents: effect(me.id, expense.payer_id, shares),
+        has_receipt: expense.receipt.attached?, itemization: expense.itemization,
         version: expense.version, edited: expense.version > 1, deleted: expense.deleted?, can_edit: expense.created_by_id == me.id,
         created_at: expense.created_at }
     end

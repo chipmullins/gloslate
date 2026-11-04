@@ -5,6 +5,10 @@ class Expense < ApplicationRecord
   belongs_to :payer, class_name: "Member"
   belongs_to :created_by, class_name: "Member"
   has_many :shares, class_name: "ExpenseShare", dependent: :destroy
+  has_one_attached :receipt
+
+  RECEIPT_TYPES = %w[image/jpeg image/png image/heic image/heif application/pdf].freeze
+  RECEIPT_MAX = 15.megabytes
 
   scope :active, -> { where(deleted_at: nil) }
 

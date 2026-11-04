@@ -6,7 +6,7 @@ module Expenses
 
     def initialize(household:, actor:, amount_cents:, payer:, participants: nil, split_kind: nil,
                    split_weights: nil, description: "", category: "other", spent_on: Date.current,
-                   urgency: "tab", note: nil, client_id: nil, system: false)
+                   urgency: "tab", note: nil, client_id: nil, system: false, itemization: nil)
       @household, @actor, @payer = household, actor, payer
       @system = system # bill auto-posts: may include people who moved out mid-cycle (proration)
       @amount_cents = amount_cents
@@ -14,7 +14,7 @@ module Expenses
       @participants = participants || household.members.current.select { |m| m.active_on?(spent_on) }
       @split_kind = (split_kind || household.default_split_kind).to_s
       @split_weights = split_weights || (split_kind ? {} : household.default_split_weights)
-      @attrs = { description:, category:, urgency:, note:, client_id: client_id.presence }
+      @attrs = { description:, category:, urgency:, note:, client_id: client_id.presence, itemization: }
     end
 
     def call

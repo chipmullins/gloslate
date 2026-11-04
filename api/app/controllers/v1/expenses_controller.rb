@@ -1,7 +1,7 @@
 module V1
   class ExpensesController < BaseController
     before_action :load_from_household, only: %i[index create preview]
-    before_action :load_expense, only: %i[show update destroy restore flag]
+    before_action :load_expense, only: %i[show update destroy restore flag receipt upload_receipt]
 
     # GET /v1/households/:household_id/expenses?before=<iso time>&limit=30
     def index
@@ -46,6 +46,25 @@ module V1
       render json: { data: Expenses::Serializer.call(@expense.reload, me: @me), balance: @household.balance_for(@me) }
     end
 
+    # GET — short-lived link to the receipt photo (never a permanent public URL).
+    def receipt
+      return head(:not_found) unless @expense.receipt.attached?
+
+      ActiveStorage::Current.url_options = { host: request.base_url }
+      redirect_to @expense.receipt.url(expires_in: 5.minutes, disposition: :inline), allow_other_host: true
+    end
+
+    # POST multipart { file } — anyone in the expense can attach the receipt photo.
+    def upload_receipt
+      file = params.require(:file)
+      raise Hometab::Error, "Receipts can be a photo or a PDF" unless Expense::RECEIPT_TYPES.include?(file.content_type)
+      raise Hometab::Error, "That file is too big (15 MB max)" if file.size > Expense::RECEIPT_MAX
+
+      @expense.receipt.attach(file)
+      LedgerEvent.record!(household: @household, kind: "expense.receipt_added", subject: @expense, actor: @me, data: {})
+      render json: { data: Expenses::Serializer.call(@expense, me: @me) }
+    end
+
     def flag
       Expenses::Flag.call(expense: @expense, actor: @me, note: params[:note])
       head :no_content
@@ -62,6 +81,18 @@ module V1
       @expense = Expense.find(params[:id])
       @me = current_user.members.current.find_by!(household_id: @expense.household_id)
       @household = @expense.household
+    end
+
+    def sanitize_itemization(raw)
+      return nil if raw.blank?
+
+      data = raw.respond_to?(:permit) ? raw.permit(:tax_cents, :tip_cents, items: [:name, :cents, { member_ids: [] }]).to_h : {}
+      items = Array(data["items"]).first(100).map do |i|
+        { "name" => i["name"].to_s[0, 60], "cents" => Integer(i["cents"].to_s), "member_ids" => Array(i["member_ids"]).map(&:to_s) }
+      end
+      { "items" => items, "tax_cents" => Integer(data.fetch("tax_cents", 0).to_s), "tip_cents" => Integer(data.fetch("tip_cents", 0).to_s) }
+    rescue ArgumentError
+      raise Hometab::Error, "Receipt items need whole-cent amounts"
     end
 
     def expense_args
@@ -82,6 +113,7 @@ module V1
         end
       end
       %i[split_kind description category urgency note].each { |k| args[k] = p[k] if p.key?(k) }
+      args[:itemization] = sanitize_itemization(params[:itemization]) if params.key?(:itemization)
       args[:spent_on] = Date.iso8601(p[:spent_on]) if p[:spent_on].present?
       args
     rescue Date::Error

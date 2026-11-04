@@ -3,7 +3,7 @@ module Expenses
   # snapshot goes into the ledger; balances recompute (lowering an expense
   # someone already paid for turns the difference into credit automatically).
   class Update
-    EDITABLE = %i[amount_cents payer participants split_kind split_weights description category spent_on urgency note].freeze
+    EDITABLE = %i[amount_cents payer participants split_kind split_weights description category spent_on urgency note itemization].freeze
 
     def self.call(...) = new(...).call
 
