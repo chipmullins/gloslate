@@ -4,12 +4,17 @@ require "rails/test_help"
 
 module ActiveSupport
   class TestCase
-    # Run tests in parallel with specified workers
     parallelize(workers: :number_of_processors)
 
-    # Setup all fixtures in test/fixtures/*.yml for all tests in alphabetical order.
-    fixtures :all
+    def make_home(*names, **attrs)
+      home = Household.create!(name: "Maple St", **attrs)
+      names.map { |n| home.members.create!(display_name: n) }.then { |ms| [home, *ms] }
+    end
 
-    # Add more helper methods to be used by all tests here...
+    def log!(home, payer, cents, actor: payer, **opts)
+      Expenses::Create.call(household: home, actor:, payer:, amount_cents: cents, **opts)
+    end
+
+    def net(home, member) = home.balance_for(member)[:net_cents]
   end
 end
