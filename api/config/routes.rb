@@ -13,6 +13,15 @@ Rails.application.routes.draw do
     resources :households, only: %i[index show create update] do
       resources :members, only: %i[create update destroy]
       resources :invites, only: :create
+      resources :expenses, only: %i[index create] do
+        post :preview, on: :collection
+      end
+    end
+    resources :expenses, only: %i[show update destroy] do
+      member do
+        post :restore
+        post :flag
+      end
     end
     get "invites/:token", to: "invites#show"
     post "invites/:token/accept", to: "invites#accept"
