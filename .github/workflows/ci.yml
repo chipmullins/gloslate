@@ -2,13 +2,30 @@ name: CI
 on: [push, pull_request]
 
 jobs:
-  money-engine:
+  api:
     runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: hometab
+          POSTGRES_PASSWORD: hometab
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd pg_isready --health-interval 5s --health-timeout 5s --health-retries 10
+    env:
+      RAILS_ENV: test
+      DATABASE_URL: postgres://hometab:hometab@localhost:5432/hometab_test
+    defaults:
+      run:
+        working-directory: api
     steps:
       - uses: actions/checkout@v4
       - uses: ruby/setup-ruby@v1
         with:
-          ruby-version: "3.3"
-      - name: Money engine tests (plain Ruby)
-        working-directory: api
-        run: ruby -Ilib test/lib/ledger_test.rb
+          ruby-version: "3.3.6"
+          bundler-cache: true
+          working-directory: api
+      - run: bin/rails db:create db:schema:load
+      - run: bin/rails zeitwerk:check
+      - run: bin/rails test
