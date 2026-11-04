@@ -38,3 +38,6 @@ export function HouseMark({ size = 32, inverted = false }: { size?: number; inve
     </Svg>
   );
 }
+export const BackspaceIcon = (p: IconProps) => <Stroke {...p} strokeWidth={p.strokeWidth ?? 2} d="M21 5H8l-6 7 6 7h13zM12 9l6 6M18 9l-6 6" />;
+export const FlagIcon = (p: IconProps) => <Stroke {...p} d="M5 21V4M5 4h11l-2 4 2 4H5" />;
+export const PencilIcon = (p: IconProps) => <Stroke {...p} d="M4 20h4L19 9l-4-4L4 16v4zM14 6l4 4" />;
