@@ -30,9 +30,13 @@ Rails.application.routes.draw do
       end
       resources :payments, only: %i[index create]
       resources :requests, only: :create
+      resources :statements, only: :index
+      get :history, to: "statements#history"
+      get "export", to: "statements#export", defaults: { format: :csv }
       get "balances/:member_id", to: "payments#breakdown"
       get "pay/:member_id", to: "payments#pay_info"
     end
+    resources :statements, only: :show
     resources :payments, only: :show do
       member do
         post :confirm

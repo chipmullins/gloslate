@@ -50,6 +50,19 @@ END;
 $$;
 
 
+--
+-- Name: statements_frozen(); Type: FUNCTION; Schema: public; Owner: -
+--
+
+CREATE FUNCTION public.statements_frozen() RETURNS trigger
+    LANGUAGE plpgsql
+    AS $$
+BEGIN
+  RAISE EXCEPTION 'statements are frozen once generated';
+END;
+$$;
+
+
 SET default_tablespace = '';
 
 SET default_table_access_method = heap;
@@ -468,6 +481,22 @@ CREATE TABLE public.staff_users (
 
 
 --
+-- Name: statements; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.statements (
+    id uuid DEFAULT gen_random_uuid() NOT NULL,
+    household_id uuid NOT NULL,
+    period_start date NOT NULL,
+    period_end date NOT NULL,
+    generated_at timestamp(6) without time zone NOT NULL,
+    data jsonb DEFAULT '{}'::jsonb NOT NULL,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL
+);
+
+
+--
 -- Name: users; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -657,6 +686,14 @@ ALTER TABLE ONLY public.staff_sessions
 
 ALTER TABLE ONLY public.staff_users
     ADD CONSTRAINT staff_users_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: statements statements_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.statements
+    ADD CONSTRAINT statements_pkey PRIMARY KEY (id);
 
 
 --
@@ -1025,6 +1062,20 @@ CREATE UNIQUE INDEX index_staff_users_on_email ON public.staff_users USING btree
 
 
 --
+-- Name: index_statements_on_household_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_statements_on_household_id ON public.statements USING btree (household_id);
+
+
+--
+-- Name: index_statements_on_household_id_and_period_end; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX index_statements_on_household_id_and_period_end ON public.statements USING btree (household_id, period_end);
+
+
+--
 -- Name: index_users_on_email; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -1043,6 +1094,13 @@ CREATE UNIQUE INDEX index_users_on_phone ON public.users USING btree (phone) WHE
 --
 
 CREATE TRIGGER ledger_events_no_update_delete BEFORE DELETE OR UPDATE ON public.ledger_events FOR EACH ROW EXECUTE FUNCTION public.ledger_events_append_only();
+
+
+--
+-- Name: statements statements_no_update; Type: TRIGGER; Schema: public; Owner: -
+--
+
+CREATE TRIGGER statements_no_update BEFORE UPDATE ON public.statements FOR EACH ROW EXECUTE FUNCTION public.statements_frozen();
 
 
 --
@@ -1075,6 +1133,14 @@ ALTER TABLE ONLY public.payment_requests
 
 ALTER TABLE ONLY public.bills
     ADD CONSTRAINT fk_rails_2309d98731 FOREIGN KEY (household_id) REFERENCES public.households(id);
+
+
+--
+-- Name: statements fk_rails_283515f435; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.statements
+    ADD CONSTRAINT fk_rails_283515f435 FOREIGN KEY (household_id) REFERENCES public.households(id);
 
 
 --
@@ -1300,6 +1366,7 @@ ALTER TABLE ONLY public.expenses
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
+('20261105030000'),
 ('20261105020000'),
 ('20261105010000'),
 ('20261105000100'),

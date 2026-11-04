@@ -7,6 +7,7 @@ class Household < ApplicationRecord
   has_many :ledger_events
   has_many :bills, dependent: :destroy
   has_many :bill_cycles
+  has_many :statements
 
   validates :name, presence: true, length: { maximum: 60 }
   validates :currency, inclusion: { in: %w[USD] }
