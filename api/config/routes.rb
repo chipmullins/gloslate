@@ -9,6 +9,13 @@ Rails.application.routes.draw do
     resource :session, only: %i[update destroy]
     resource :me, controller: "me", only: %i[show update]
     resources :identities, only: %i[create destroy]
+
+    resources :households, only: %i[index show create update] do
+      resources :members, only: %i[create update destroy]
+      resources :invites, only: :create
+    end
+    get "invites/:token", to: "invites#show"
+    post "invites/:token/accept", to: "invites#accept"
   end
 
   namespace :admin do
