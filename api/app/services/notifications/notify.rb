@@ -6,7 +6,7 @@ module Notifications
     BATCH_WINDOW = 1.hour
 
     # Kinds a person can turn off ("Can be turned off" column in the spec).
-    OPTIONAL = %w[expense_added bill_posted payment_confirmed statement_ready reminder].freeze
+    OPTIONAL = %w[expense_added bill_posted payment_confirmed statement_ready].freeze # reminders: only the requester can turn them off
 
     module_function
 

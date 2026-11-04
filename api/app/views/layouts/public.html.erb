@@ -1,0 +1,16 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title><%= content_for?(:title) ? yield(:title) : "HomeTab" %></title>
+  <meta name="theme-color" content="<%= content_for?(:theme) ? yield(:theme) : '#F3F4EF' %>">
+  <%= yield :head %>
+  <link rel="icon" href="/icon.svg" type="image/svg+xml">
+  <style><%= raw File.read(Rails.root.join("app/assets/stylesheets/tokens.css")) %></style>
+  <%= yield :styles %>
+</head>
+<body<%= raw(%( class="#{yield(:body_class)}")) if content_for?(:body_class) %>>
+  <%= yield %>
+</body>
+</html>

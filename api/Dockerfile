@@ -16,7 +16,7 @@ WORKDIR /rails
 
 # Install base packages
 RUN apt-get update -qq && \
-    apt-get install --no-install-recommends -y curl libjemalloc2 libvips postgresql-client && \
+    apt-get install --no-install-recommends -y curl libjemalloc2 libvips librsvg2-2 fontconfig postgresql-client && \
     ln -s /usr/lib/$(uname -m)-linux-gnu/libjemalloc.so.2 /usr/local/lib/libjemalloc.so && \
     rm -rf /var/lib/apt/lists /var/cache/apt/archives
 
@@ -56,6 +56,10 @@ RUN bundle exec bootsnap precompile -j 1 app/ lib/
 
 # Final stage for app image
 FROM base
+
+# Brand fonts for server-rendered share images (SVG -> PNG via libvips)
+COPY app/assets/fonts/*.ttf /usr/local/share/fonts/hometab/
+RUN fc-cache -f
 
 # Run and own only the runtime files as a non-root user for security
 RUN groupadd --system --gid 1000 rails && \

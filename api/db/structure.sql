@@ -331,6 +331,28 @@ CREATE TABLE public.payment_allocations (
 
 
 --
+-- Name: payment_requests; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.payment_requests (
+    id uuid DEFAULT gen_random_uuid() NOT NULL,
+    household_id uuid NOT NULL,
+    requester_id uuid NOT NULL,
+    recipient_id uuid NOT NULL,
+    token character varying NOT NULL,
+    amount_cents bigint NOT NULL,
+    breakdown jsonb DEFAULT '[]'::jsonb NOT NULL,
+    pay_methods jsonb DEFAULT '{}'::jsonb NOT NULL,
+    first_viewed_at timestamp(6) without time zone,
+    views integer DEFAULT 0 NOT NULL,
+    paid_marked_at timestamp(6) without time zone,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL,
+    CONSTRAINT request_positive CHECK ((amount_cents > 0))
+);
+
+
+--
 -- Name: payments; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -579,6 +601,14 @@ ALTER TABLE ONLY public.notifications
 
 ALTER TABLE ONLY public.payment_allocations
     ADD CONSTRAINT payment_allocations_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: payment_requests payment_requests_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.payment_requests
+    ADD CONSTRAINT payment_requests_pkey PRIMARY KEY (id);
 
 
 --
@@ -890,6 +920,34 @@ CREATE INDEX index_payment_allocations_on_payment_id ON public.payment_allocatio
 
 
 --
+-- Name: index_payment_requests_on_household_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_payment_requests_on_household_id ON public.payment_requests USING btree (household_id);
+
+
+--
+-- Name: index_payment_requests_on_recipient_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_payment_requests_on_recipient_id ON public.payment_requests USING btree (recipient_id);
+
+
+--
+-- Name: index_payment_requests_on_requester_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_payment_requests_on_requester_id ON public.payment_requests USING btree (requester_id);
+
+
+--
+-- Name: index_payment_requests_on_token; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX index_payment_requests_on_token ON public.payment_requests USING btree (token);
+
+
+--
 -- Name: index_payments_on_from_member_id; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -1004,6 +1062,14 @@ ALTER TABLE ONLY public.payments
 
 
 --
+-- Name: payment_requests fk_rails_1b565f11f3; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.payment_requests
+    ADD CONSTRAINT fk_rails_1b565f11f3 FOREIGN KEY (recipient_id) REFERENCES public.members(id);
+
+
+--
 -- Name: bills fk_rails_2309d98731; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -1017,6 +1083,14 @@ ALTER TABLE ONLY public.bills
 
 ALTER TABLE ONLY public.bill_cycles
     ADD CONSTRAINT fk_rails_2aafedff0a FOREIGN KEY (household_id) REFERENCES public.households(id);
+
+
+--
+-- Name: payment_requests fk_rails_2e2d643cec; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.payment_requests
+    ADD CONSTRAINT fk_rails_2e2d643cec FOREIGN KEY (household_id) REFERENCES public.households(id);
 
 
 --
@@ -1148,6 +1222,14 @@ ALTER TABLE ONLY public.invites
 
 
 --
+-- Name: payment_requests fk_rails_c939717654; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.payment_requests
+    ADD CONSTRAINT fk_rails_c939717654 FOREIGN KEY (requester_id) REFERENCES public.members(id);
+
+
+--
 -- Name: expense_shares fk_rails_d579d2fb80; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -1218,6 +1300,7 @@ ALTER TABLE ONLY public.expenses
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
+('20261105020000'),
 ('20261105010000'),
 ('20261105000100'),
 ('20261105000000'),

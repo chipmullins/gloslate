@@ -1,6 +1,15 @@
 Rails.application.routes.draw do
   get "up" => "rails/health#show", as: :rails_health_check
 
+  # Public pages (server-rendered)
+  root "public#home"
+  get "r/:token", to: "public#request_page", as: :public_request
+  post "r/:token/paid", to: "public#mark_paid"
+  get "r/:token/image.png", to: "public#request_image"
+  get "i/:token", to: "public#invite"
+  get "icon.svg", to: "public#icon"
+  get "fonts/:name", to: "public#font", constraints: { name: /[\w-]+\.ttf/ }
+
   namespace :v1 do
     post "auth/codes", to: "auth#request_code"
     post "auth/codes/verify", to: "auth#verify_code"
@@ -20,6 +29,7 @@ Rails.application.routes.draw do
         get :presets, on: :collection
       end
       resources :payments, only: %i[index create]
+      resources :requests, only: :create
       get "balances/:member_id", to: "payments#breakdown"
       get "pay/:member_id", to: "payments#pay_info"
     end
