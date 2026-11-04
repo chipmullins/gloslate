@@ -39,6 +39,9 @@ docs/     decisions, admin API, Glofly integration, runbooks
 - Colors: ground `#F3F4EF`, ink `#15201A`, muted `#56625B`, brand green `#1C6A4C`, green tint `#E3EFE8`, owed-to-you `#1C6A4C`, you-owe `#B0440C`, hairline `#E1E4DC`, chip border `#D5D9CF`, dark card `#15201A`
 - Radii: cards 24, tiles 14, buttons 15–16, pill FAB 29
 - Touch targets ≥ 44pt. Icons: stroke SVG, no emoji.
+- **Every screen adapts** to iPhone, iPad, Android phones/tablets and foldables via `useLayout()` (`mobile/src/hooks/use-layout.ts`): ≥700dp wide = two columns / side-by-side; content capped (`HT.maxWidth`); rotation, iPad split view and fold changes re-render. Check phone (390), small Android (360), unfolded foldable (~884) and iPad portrait/landscape.
+- Android: custom fonts need one family per weight (`HT.font.*`), never `fontWeight`.
+- Expo installs: this workspace can't reach Expo's version API, so install with npm using versions from `node_modules/expo/bundledNativeModules.json`.
 - Tokens live in `mobile/src/constants/theme.ts`; the Rails views mirror them in `api/app/assets/stylesheets/tokens.css`.
 
 ## Build sequence
