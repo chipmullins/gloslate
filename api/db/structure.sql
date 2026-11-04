@@ -134,6 +134,7 @@ CREATE TABLE public.expenses (
     deleted_at timestamp(6) without time zone,
     created_at timestamp(6) without time zone NOT NULL,
     updated_at timestamp(6) without time zone NOT NULL,
+    client_id character varying,
     CONSTRAINT amount_positive CHECK ((amount_cents > 0)),
     CONSTRAINT split_kind_values CHECK (((split_kind)::text = ANY ((ARRAY['equal'::character varying, 'percent'::character varying, 'exact'::character varying, 'shares'::character varying])::text[]))),
     CONSTRAINT urgency_values CHECK (((urgency)::text = ANY ((ARRAY['soon'::character varying, 'tab'::character varying])::text[])))
@@ -583,6 +584,13 @@ CREATE INDEX index_expenses_on_household_id ON public.expenses USING btree (hous
 
 
 --
+-- Name: index_expenses_on_household_id_and_client_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX index_expenses_on_household_id_and_client_id ON public.expenses USING btree (household_id, client_id) WHERE (client_id IS NOT NULL);
+
+
+--
 -- Name: index_expenses_on_household_id_and_spent_on; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -952,6 +960,7 @@ ALTER TABLE ONLY public.expenses
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
+('20261104210000'),
 ('20261104190000'),
 ('20261104180100'),
 ('20261104180000'),
