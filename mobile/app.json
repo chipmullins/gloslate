@@ -3,13 +3,14 @@
     "name": "HomeTab",
     "slug": "hometab",
     "version": "1.0.0",
-    "orientation": "portrait",
+    "orientation": "default",
     "icon": "./assets/images/icon.png",
     "scheme": "hometab",
-    "userInterfaceStyle": "automatic",
+    "userInterfaceStyle": "light",
     "ios": {
-      "icon": "./assets/expo.icon",
-      "bundleIdentifier": "app.hometab"
+      "bundleIdentifier": "app.hometab",
+      "supportsTablet": true,
+      "usesAppleSignIn": true
     },
     "android": {
       "adaptiveIcon": {
@@ -22,7 +23,7 @@
       "package": "app.hometab"
     },
     "web": {
-      "output": "server",
+      "output": "single",
       "favicon": "./assets/images/favicon.png"
     },
     "plugins": [
@@ -34,7 +35,9 @@
           "image": "./assets/images/splash-icon.png",
           "imageWidth": 76
         }
-      ]
+      ],
+      "expo-apple-authentication",
+      "expo-secure-store"
     ],
     "experiments": {
       "typedRoutes": true,
