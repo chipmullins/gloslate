@@ -1,15 +1,17 @@
-import { router, Stack, useLocalSearchParams } from 'expo-router';
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { router, Stack, useFocusEffect, useLocalSearchParams, type Href } from 'expo-router';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Pressable, ScrollView, Text, TextInput, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-import { CheckIcon, CloseIcon } from '@/components/icons';
+import { CameraIcon, CheckIcon, CloseIcon } from '@/components/icons';
 import { applyKey, Keypad } from '@/components/keypad';
 import { Avatar, Button, ErrorNote, IconButton, T } from '@/components/ui';
 import { HT } from '@/constants/theme';
 import { useHousehold } from '@/hooks/use-household';
 import { useLayout } from '@/hooks/use-layout';
-import { api, ApiError, CATEGORIES, type Expense, type Member } from '@/lib/api';
+import { api, ApiError, CATEGORIES, uploadReceipt, type Expense, type Member } from '@/lib/api';
+import { receiptDraft } from '@/lib/draft';
+import { scanReceipt } from '@/lib/receipt-scan';
 import { formatCents, parseCents } from '@/lib/money';
 import { effectFor, equalSplit, newClientId } from '@/lib/split';
 import { toast } from '@/lib/toast';
@@ -46,6 +48,41 @@ export default function Add() {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const clientId = useRef(newClientId());
+  const [photoUri, setPhotoUri] = useState<string | null>(null);
+  const [itemization, setItemization] = useState<object | null>(null);
+  const [scanItems, setScanItems] = useState(0);
+
+  // Coming back from Itemize: use its exact split.
+  useFocusEffect(useCallback(() => {
+    const d = receiptDraft.get();
+    if (!d?.result) return;
+    setAmount(`${Math.floor(d.result.amountCents / 100)}.${String(d.result.amountCents % 100).padStart(2, '0')}`);
+    setKind('exact');
+    setIncluded(d.result.participantIds);
+    setInputs(Object.fromEntries(Object.entries(d.result.weights).map(([k, v]) => [k, `${Math.floor(v / 100)}.${String(v % 100).padStart(2, '0')}`])));
+    setItemization({ items: d.items.map((i) => ({ name: i.name, cents: i.cents, member_ids: i.memberIds })), tax_cents: d.taxCents, tip_cents: d.tipCents });
+    setShowSplit(true);
+    receiptDraft.patch({ result: undefined });
+  }, []));
+
+  async function scan(source: 'camera' | 'library') {
+    setError(null);
+    try {
+      const r = await scanReceipt(source);
+      if (!r) return;
+      setPhotoUri(r.uri);
+      receiptDraft.set({ photoUri: r.uri, items: (r.parsed?.items ?? []).map((i) => ({ ...i, memberIds: [] })), taxCents: r.parsed?.taxCents ?? 0,
+        tipCents: r.parsed?.tipCents ?? 0, totalCents: r.parsed?.totalCents ?? null });
+      if (r.parsed?.totalCents) {
+        const t = r.parsed.totalCents;
+        setAmount(`${Math.floor(t / 100)}.${String(t % 100).padStart(2, '0')}`);
+      }
+      setScanItems(r.parsed?.items.length ?? 0);
+      if (!r.parsed) toast.show({ text: 'Photo attached. Type the total on the keypad.' });
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Couldn't scan that receipt.");
+    }
+  }
 
   const members: (Member & { index: number })[] = useMemo(
     () => (home?.members ?? []).map((m, index) => ({ ...m, index })).filter((m) => !m.former),
@@ -131,6 +168,7 @@ export default function Add() {
     const body = {
       amount_cents: cents, payer_id: payer, participant_ids: ids, split_kind: kind, split_weights: weights ?? {},
       category, description: description.trim(), urgency: payer === me?.id ? urgency : 'tab',
+      ...(itemization && kind === 'exact' ? { itemization } : {}),
     };
     try {
       if (editing) {
@@ -139,6 +177,8 @@ export default function Add() {
         toast.show({ text: 'Saved. Everyone in it can see the change.' });
       } else {
         const res = await api<{ data: Expense }>(`/v1/households/${home.id}/expenses`, { body: { ...body, client_id: clientId.current } });
+        if (photoUri) uploadReceipt(res.data.id, photoUri).catch(() => toast.show({ text: "Saved, but the receipt photo didn't upload." }));
+        receiptDraft.set(null);
         router.back();
         const what = res.data.description || CATEGORIES.find((c) => c.key === category)?.label || 'Expense';
         toast.show({
@@ -182,6 +222,24 @@ export default function Add() {
       <TextInput value={description} onChangeText={setDescription} placeholder="What was it? (optional)" placeholderTextColor={HT.color.faint}
         accessibilityLabel="What was it" maxLength={60} returnKeyType="done"
         style={{ marginTop: 6, minHeight: 44, minWidth: 220, textAlign: 'center', fontFamily: HT.font.semibold, fontSize: 15, color: HT.color.ink }} />
+      {!editing ? (
+        <View style={{ flexDirection: 'row', gap: 8, flexWrap: 'wrap', justifyContent: 'center' }}>
+          <Pressable accessibilityRole="button" accessibilityLabel={photoUri ? 'Retake receipt photo' : 'Scan a receipt'} onPress={() => scan('camera')}
+            onLongPress={() => scan('library')} accessibilityHint="Hold to pick a photo instead"
+            style={({ pressed }) => ({ minHeight: 36, paddingHorizontal: 12, borderRadius: 18, flexDirection: 'row', alignItems: 'center', gap: 6,
+              backgroundColor: photoUri ? HT.color.brandTint : HT.color.surface, borderWidth: 1, borderColor: photoUri ? HT.color.brand : HT.color.chipBorder, opacity: pressed ? 0.7 : 1 })}>
+            {photoUri ? <CheckIcon size={15} color={HT.color.brand} /> : <CameraIcon size={16} />}
+            <T v="strong" style={{ fontSize: 13, color: photoUri ? HT.color.brand : HT.color.ink }}>{photoUri ? 'Receipt attached' : 'Scan receipt'}</T>
+          </Pressable>
+          {photoUri && (scanItems > 1 || members.length > 2) ? (
+            <Pressable accessibilityRole="button" onPress={() => router.push(`/itemize?payerId=${payer}` as Href)}
+              style={({ pressed }) => ({ minHeight: 36, paddingHorizontal: 12, borderRadius: 18, justifyContent: 'center', backgroundColor: HT.color.surface,
+                borderWidth: 1, borderColor: HT.color.chipBorder, opacity: pressed ? 0.7 : 1 })}>
+              <T v="strong" style={{ fontSize: 13 }}>{itemization ? 'Edit items' : 'Who had what'}</T>
+            </Pressable>
+          ) : null}
+        </View>
+      ) : null}
     </View>
   );
 

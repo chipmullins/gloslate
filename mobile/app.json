@@ -10,7 +10,13 @@
     "ios": {
       "bundleIdentifier": "app.hometab",
       "supportsTablet": true,
-      "usesAppleSignIn": true
+      "usesAppleSignIn": true,
+      "associatedDomains": [
+        "applinks:hometab.app"
+      ],
+      "infoPlist": {
+        "ITSAppUsesNonExemptEncryption": false
+      }
     },
     "android": {
       "adaptiveIcon": {
@@ -20,7 +26,29 @@
         "monochromeImage": "./assets/images/android-icon-monochrome.png"
       },
       "predictiveBackGestureEnabled": false,
-      "package": "app.hometab"
+      "package": "app.hometab",
+      "intentFilters": [
+        {
+          "action": "VIEW",
+          "autoVerify": true,
+          "data": [
+            {
+              "scheme": "https",
+              "host": "hometab.app",
+              "pathPrefix": "/i/"
+            }
+          ],
+          "category": [
+            "BROWSABLE",
+            "DEFAULT"
+          ]
+        }
+      ],
+      "permissions": [
+        "CAMERA",
+        "USE_BIOMETRIC",
+        "POST_NOTIFICATIONS"
+      ]
     },
     "web": {
       "output": "single",
@@ -37,11 +65,60 @@
         }
       ],
       "expo-apple-authentication",
-      "expo-secure-store"
+      "expo-secure-store",
+      "expo-localization",
+      [
+        "expo-notifications",
+        {
+          "color": "#1C6A4C"
+        }
+      ],
+      [
+        "expo-local-authentication",
+        {
+          "faceIDPermission": "HomeTab uses Face ID to lock the app so only you can see your balances."
+        }
+      ],
+      [
+        "expo-image-picker",
+        {
+          "cameraPermission": "HomeTab uses the camera to scan receipts. The text is read on your phone.",
+          "photosPermission": "HomeTab lets you attach a receipt photo from your library."
+        }
+      ],
+      [
+        "expo-widgets",
+        {
+          "enableAndroid": true,
+          "widgets": [
+            {
+              "name": "BalanceWidget",
+              "displayName": "HomeTab balance",
+              "description": "Who owes who, at a glance.",
+              "supportedFamilies": [
+                "systemSmall",
+                "systemMedium"
+              ],
+              "android": {
+                "minWidth": 110,
+                "minHeight": 110,
+                "targetCellWidth": 2,
+                "targetCellHeight": 2,
+                "resizeMode": "both"
+              }
+            }
+          ]
+        }
+      ]
     ],
     "experiments": {
       "typedRoutes": true,
       "reactCompiler": true
+    },
+    "extra": {
+      "eas": {
+        "projectId": ""
+      }
     }
   }
 }

@@ -182,3 +182,14 @@ export type Statement = StatementSummary & {
 export type NotificationItem = { id: string; kind: string; title: string; body: string; data: { route?: string }; created_at: string; read: boolean };
 
 export const API_BASE = process.env.EXPO_PUBLIC_API_URL ?? 'http://localhost:3000';
+
+/** Attaches a receipt photo to an expense (multipart upload). */
+export async function uploadReceipt(expenseId: string, uri: string) {
+  const token = await tokenStore.get();
+  const form = new FormData();
+  const name = uri.split('/').pop() || 'receipt.jpg';
+  const type = name.toLowerCase().endsWith('.png') ? 'image/png' : name.toLowerCase().match(/\.hei[cf]$/) ? 'image/heic' : 'image/jpeg';
+  form.append('file', { uri, name, type } as unknown as Blob);
+  const res = await fetch(`${API_BASE}/v1/expenses/${expenseId}/receipt`, { method: 'POST', headers: { Authorization: `Bearer ${token}` }, body: form });
+  if (!res.ok) throw new ApiError(res.status, (await res.json().catch(() => ({}))).error ?? "Couldn't upload the receipt.");
+}

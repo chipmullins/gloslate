@@ -14,6 +14,8 @@ import { useEffect } from 'react';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 
 import { HT } from '@/constants/theme';
+import { LockGate } from '@/components/lock-gate';
+import { listenForTaps, registerDevice } from '@/lib/push';
 import { SessionProvider, useSession } from '@/lib/session';
 
 SplashScreen.preventAutoHideAsync().catch(() => {});
@@ -21,18 +23,26 @@ SplashScreen.preventAutoHideAsync().catch(() => {});
 function Root() {
   const [manrope] = useManropeFonts({ Manrope_400Regular, Manrope_500Medium, Manrope_600SemiBold, Manrope_700Bold, Manrope_800ExtraBold });
   const [plex] = usePlexFonts({ IBMPlexMono_500Medium, IBMPlexMono_600SemiBold });
-  const { ready } = useSession();
+  const { ready, user } = useSession();
   const loaded = manrope && plex && ready;
 
   useEffect(() => {
     if (loaded) SplashScreen.hideAsync().catch(() => {});
   }, [loaded]);
 
+  useEffect(() => {
+    if (!user) return;
+    registerDevice();
+    return listenForTaps();
+  }, [user?.id]); // eslint-disable-line react-hooks/exhaustive-deps
+
   if (!loaded) return null;
   return (
     <>
       <StatusBar style="dark" />
-      <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: HT.color.ground }, animation: 'slide_from_right' }} />
+      <LockGate enabled={!!user?.face_id_lock}>
+        <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: HT.color.ground }, animation: 'slide_from_right' }} />
+      </LockGate>
     </>
   );
 }

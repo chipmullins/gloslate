@@ -50,6 +50,22 @@ class PublicController < ActionController::Base
 
   def home; end
 
+  # Universal links: invites (/i/...) open the app when it's installed.
+  def apple_app_site_association
+    team = ENV["APPLE_TEAM_ID"]
+    return head(:not_found) if team.blank?
+
+    render json: { applinks: { details: [{ appIDs: ["#{team}.app.hometab"], components: [{ "/" => "/i/*" }] }] } }
+  end
+
+  def asset_links
+    sha = ENV["ANDROID_CERT_SHA256"]
+    return head(:not_found) if sha.blank?
+
+    render json: [{ relation: ["delegate_permission/common.handle_all_urls"],
+                    target: { namespace: "android_app", package_name: "app.hometab", sha256_cert_fingerprints: sha.split(",") } }]
+  end
+
   FONTS = Dir[Rails.root.join("app/assets/fonts/*.ttf")].to_h { [File.basename(_1), _1] }.freeze
   def font
     path = FONTS[params[:name]] or return head(:not_found)
