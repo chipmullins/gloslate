@@ -1,6 +1,6 @@
 class Payment < ApplicationRecord
   AUTO_CONFIRM_AFTER = 3.days
-  METHODS = %w[venmo cashapp zelle cash other].freeze
+  METHODS = %w[venmo cashapp zelle cash other forgiven].freeze  # forgiven: balance cleared when someone leaves
 
   belongs_to :household
   belongs_to :from_member, class_name: "Member"

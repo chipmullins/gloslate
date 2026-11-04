@@ -176,6 +176,25 @@ CREATE TABLE public.identities (
 
 
 --
+-- Name: invites; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.invites (
+    id uuid DEFAULT gen_random_uuid() NOT NULL,
+    household_id uuid NOT NULL,
+    created_by_id uuid NOT NULL,
+    member_id uuid,
+    token character varying NOT NULL,
+    expires_at timestamp(6) without time zone NOT NULL,
+    accepted_at timestamp(6) without time zone,
+    accepted_by_user_id uuid,
+    revoked_at timestamp(6) without time zone,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL
+);
+
+
+--
 -- Name: ledger_events; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -420,6 +439,14 @@ ALTER TABLE ONLY public.identities
 
 
 --
+-- Name: invites invites_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.invites
+    ADD CONSTRAINT invites_pkey PRIMARY KEY (id);
+
+
+--
 -- Name: ledger_events ledger_events_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -581,6 +608,34 @@ CREATE UNIQUE INDEX index_identities_on_provider_and_provider_uid ON public.iden
 --
 
 CREATE INDEX index_identities_on_user_id ON public.identities USING btree (user_id);
+
+
+--
+-- Name: index_invites_on_created_by_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_invites_on_created_by_id ON public.invites USING btree (created_by_id);
+
+
+--
+-- Name: index_invites_on_household_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_invites_on_household_id ON public.invites USING btree (household_id);
+
+
+--
+-- Name: index_invites_on_member_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_invites_on_member_id ON public.invites USING btree (member_id);
+
+
+--
+-- Name: index_invites_on_token; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX index_invites_on_token ON public.invites USING btree (token);
 
 
 --
@@ -803,11 +858,27 @@ ALTER TABLE ONLY public.ledger_events
 
 
 --
+-- Name: invites fk_rails_ad14834a80; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.invites
+    ADD CONSTRAINT fk_rails_ad14834a80 FOREIGN KEY (household_id) REFERENCES public.households(id);
+
+
+--
 -- Name: payments fk_rails_ad7b600208; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.payments
     ADD CONSTRAINT fk_rails_ad7b600208 FOREIGN KEY (from_member_id) REFERENCES public.members(id);
+
+
+--
+-- Name: invites fk_rails_b52eeab183; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.invites
+    ADD CONSTRAINT fk_rails_b52eeab183 FOREIGN KEY (created_by_id) REFERENCES public.members(id);
 
 
 --
@@ -832,6 +903,14 @@ ALTER TABLE ONLY public.expenses
 
 ALTER TABLE ONLY public.payment_allocations
     ADD CONSTRAINT fk_rails_d8766ea65a FOREIGN KEY (expense_id) REFERENCES public.expenses(id);
+
+
+--
+-- Name: invites fk_rails_dff58bdd03; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.invites
+    ADD CONSTRAINT fk_rails_dff58bdd03 FOREIGN KEY (member_id) REFERENCES public.members(id);
 
 
 --
@@ -873,6 +952,7 @@ ALTER TABLE ONLY public.expenses
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
+('20261104190000'),
 ('20261104180100'),
 ('20261104180000'),
 ('20261104170300'),
