@@ -14,6 +14,7 @@ module Expenses
       @participants = participants || household.members.current.select { |m| m.active_on?(spent_on) }
       @split_kind = (split_kind || household.default_split_kind).to_s
       @split_weights = split_weights || (split_kind ? {} : household.default_split_weights)
+      use_equal_if_usual_split_misfits! unless split_kind
       @attrs = { description:, category:, urgency:, note:, client_id: client_id.presence, itemization: }
     end
 
@@ -44,9 +45,20 @@ module Expenses
 
     private
 
+    # The home's usual split was learned for the people who lived here then. If it
+    # doesn't cover today's participants (someone new moved in), split evenly.
+    def use_equal_if_usual_split_misfits!
+      return if @split_kind == "equal"
+
+      Hometab::Ledger::Split.call(amount_cents: 10_000, payer_id: @payer.id, participant_ids: @participants.map(&:id),
+                                  kind: @split_kind.to_sym, weights: @split_weights)
+    rescue Hometab::Ledger::Split::Invalid
+      @split_kind, @split_weights = "equal", {}
+    end
+
     # "Saved per household as usual split if used twice in a row."
     def learn_usual_split!(expense)
-      return if expense.split_kind == "equal"
+      return if %w[equal exact].include?(expense.split_kind) # exact amounts only fit one bill
 
       previous = @household.expenses.active.where.not(id: expense.id).order(created_at: :desc).first
       return unless previous && previous.split_kind == expense.split_kind && previous.split_weights == expense.split_weights

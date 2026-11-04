@@ -13,7 +13,7 @@ module Bills
       expense = Post.call(cycle, amount_cents:)
       bill = cycle.bill
       days = bill.cycles.where.not(amount_entered_on: nil).order(due_on: :desc).limit(3).pluck(:amount_entered_on).map(&:day).sort
-      bill.update!(usual_arrival_day: [days[days.size / 2], 28].min, amount_cents:)
+      bill.update_columns(usual_arrival_day: [days[days.size / 2], 28].min, amount_cents:)
       expense
     end
   end

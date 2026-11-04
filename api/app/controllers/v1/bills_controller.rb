@@ -37,7 +37,7 @@ module V1
     def destroy
       raise Hometab::Forbidden, "Only #{@bill.payer.first_name} can remove this bill" unless @bill.manageable_by?(@me)
 
-      @bill.update!(active: false)
+      @bill.update_columns(active: false, updated_at: Time.current)
       @bill.cycles.where(status: %w[upcoming waiting]).update_all(status: "skipped")
       LedgerEvent.record!(household: @household, kind: "bill.removed", subject: @bill, actor: @me, data: { name: @bill.name })
       head :no_content

@@ -5,9 +5,9 @@ class PublicController < ActionController::Base
   helper_method :money
 
   PUBLIC_METHODS = %w[venmo cashapp zelle cash other].freeze
-  rate_limit to: 5, within: 10.minutes, only: :mark_paid, by: -> { "#{request.remote_ip}:#{params[:token]}" },
+  rate_limit to: 5, within: 10.minutes, only: :mark_paid, name: "mark-paid", by: -> { "#{request.remote_ip}:#{params[:token]}" },
              with: -> { redirect_to "/r/#{params[:token]}", status: :see_other }
-  rate_limit to: 60, within: 1.minute, only: %i[request_page request_image invite]
+  rate_limit to: 60, within: 1.minute, only: %i[request_page request_image invite], name: "pages"
 
   def money(cents) = Hometab::Money.format(cents)
 

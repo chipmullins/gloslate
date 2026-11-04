@@ -2,6 +2,7 @@ class StaffUser < ApplicationRecord
   ROLES = %w[viewer support admin].freeze
   RANK = ROLES.each_with_index.to_h
   MAX_FAILED = 10
+  LOCK_FOR = 15.minutes # a lock clears itself, so nobody can lock staff out for good
 
   has_many :staff_sessions, dependent: :destroy
 
@@ -26,11 +27,24 @@ class StaffUser < ApplicationRecord
 
   def authenticate_password(plain) = Hometab::Password.verify(plain, password_digest)
   def otp_enabled? = otp_enabled_at.present?
-  def active? = disabled_at.nil? && locked_at.nil?
+  def locked? = locked_at.present? && locked_at > LOCK_FOR.ago
+  def active? = disabled_at.nil? && !locked?
+
+  # Called on each sign-in try: an expired lock starts a fresh count.
+  def clear_expired_lock!
+    update!(locked_at: nil, failed_attempts: 0) if locked_at.present? && !locked?
+  end
+
+  def record_failed_sign_in!
+    increment!(:failed_attempts)
+    update!(locked_at: Time.current) if failed_attempts >= MAX_FAILED
+  end
   def at_least?(role) = RANK.fetch(self.role) >= RANK.fetch(role.to_s)
 
   # Accepts each code once (blocks replay within the 30s window).
   def verify_otp!(code)
+    return false if otp_secret.blank?
+
     step = Hometab::Totp.verify(otp_secret, code, after_step: last_otp_step)
     update_columns(last_otp_step: step) if step
     step.present?

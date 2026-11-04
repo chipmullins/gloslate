@@ -9,23 +9,20 @@ module Admin
 
       def create
         staff = StaffUser.find_by(email: params.require(:email))
+        staff&.clear_expired_lock!
         unless staff&.active? && staff.authenticate_password(params.require(:password))
-          if staff
-            staff.increment!(:failed_attempts)
-            staff.update!(locked_at: Time.current) if staff.failed_attempts >= StaffUser::MAX_FAILED
-          end
+          staff&.record_failed_sign_in! unless staff&.locked?
           audit!("session.failed", staff: nil)
           return render json: { error: "Wrong email, password or code" }, status: :unauthorized
         end
 
         unless staff.verify_otp!(params[:otp])
-          staff.increment!(:failed_attempts)
-          staff.update!(locked_at: Time.current) if staff.failed_attempts >= StaffUser::MAX_FAILED
+          staff.record_failed_sign_in!
           audit!("session.failed_otp", staff:)
           return render json: { error: "Wrong email, password or code" }, status: :unauthorized
         end
 
-        staff.update!(failed_attempts: 0, otp_enabled_at: staff.otp_enabled_at || Time.current)
+        staff.update!(failed_attempts: 0, locked_at: nil, otp_enabled_at: staff.otp_enabled_at || Time.current)
         token = StaffSession.issue!(staff_user: staff, ip: request.remote_ip, user_agent: request.user_agent.to_s[0, 255])
         audit!("session.created", staff:)
         render json: { status: "signed_in", token:, expires_in: StaffSession::TTL.to_i, staff: staff.as_admin_json }

@@ -10,26 +10,33 @@ module Requests
 
     def run(now = Time.current)
       Household.find_each do |h|
-        h.debts.each do |d|
-          creditor = h.members.find(d.creditor)
-          debtor = h.members.find(d.debtor)
-          next unless creditor.auto_remind && debtor.user_id && !debtor.former?
-          next if h.payments.pending.where(from_member: debtor, to_member: creditor).exists?
-          next if recently_reminded?(debtor, creditor, now)
+        remind_household(h, now)
+      rescue StandardError => e
+        Rails.logger.error("[reminders] household=#{h.id} #{e.class}: #{e.message}")
+        Rails.error.report(e, handled: true)
+      end
+    end
 
-          oldest = h.expenses.active.where(payer: creditor).joins(:shares).where(expense_shares: { member_id: debtor.id })
-                    .where("expense_shares.share_cents > 0").minimum(:spent_on)
-          soon = h.expenses.active.where(payer: creditor, urgency: "soon").where(created_at: ..(now - EVERY))
-                  .joins(:shares).where(expense_shares: { member_id: debtor.id }).exists?
-          over_amount = d.cents >= creditor.remind_threshold_cents
-          over_days = oldest && (now.to_date - oldest).to_i >= creditor.remind_after_days
-          next unless over_amount || over_days || soon
+    def remind_household(h, now)
+      h.debts.each do |d|
+        creditor = h.members.find(d.creditor)
+        debtor = h.members.find(d.debtor)
+        next unless creditor.auto_remind && debtor.user_id && !debtor.former?
+        next if h.payments.pending.where(from_member: debtor, to_member: creditor).exists?
+        next if recently_reminded?(debtor, creditor, now)
 
-          Notifications::Notify.call(member: debtor, kind: "reminder",
-                                     title: "Quick nudge from HomeTab", body: "You owe #{creditor.first_name} #{Hometab::Money.format(d.cents)}. Settle up anytime.",
-                                     route: "/settle/#{creditor.id}").tap do |n|
-            n&.update!(data: n.data.merge("creditor_member_id" => creditor.id))
-          end
+        oldest = h.expenses.active.where(payer: creditor).joins(:shares).where(expense_shares: { member_id: debtor.id })
+                  .where("expense_shares.share_cents > 0").minimum(:spent_on)
+        soon = h.expenses.active.where(payer: creditor, urgency: "soon").where(created_at: ..(now - EVERY))
+                .joins(:shares).where(expense_shares: { member_id: debtor.id }).exists?
+        over_amount = d.cents >= creditor.remind_threshold_cents
+        over_days = oldest && (now.to_date - oldest).to_i >= creditor.remind_after_days
+        next unless over_amount || over_days || soon
+
+        Notifications::Notify.call(member: debtor, kind: "reminder",
+                                   title: "Quick nudge from HomeTab", body: "You owe #{creditor.first_name} #{Hometab::Money.format(d.cents)}. Settle up anytime.",
+                                   route: "/settle/#{creditor.id}").tap do |n|
+          n&.update!(data: n.data.merge("creditor_member_id" => creditor.id))
         end
       end
     end

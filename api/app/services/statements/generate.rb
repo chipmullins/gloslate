@@ -5,7 +5,12 @@ module Statements
     module_function
 
     def run(today = Date.current)
-      Household.find_each { |h| generate_due(h, today) }
+      Household.find_each do |h|
+        generate_due(h, today)
+      rescue StandardError => e
+        Rails.logger.error("[statements] household=#{h.id} #{e.class}: #{e.message}")
+        Rails.error.report(e, handled: true)
+      end
     end
 
     def generate_due(household, today)

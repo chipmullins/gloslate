@@ -12,7 +12,18 @@ class Household < ApplicationRecord
   validates :name, presence: true, length: { maximum: 60 }
   validates :currency, inclusion: { in: %w[USD] }
   validates :statement_day, inclusion: { in: 1..28 }
-  validates :default_split_kind, inclusion: { in: Hometab::Ledger::Split::KINDS.map(&:to_s) }
+  validates :default_split_kind, inclusion: { in: %w[equal percent shares] }
+  validate :usual_split_is_valid, if: -> { will_save_change_to_default_split_kind? || will_save_change_to_default_split_weights? }
+
+  # A usual split must work for the people who live here now.
+  def usual_split_is_valid
+    return if default_split_kind == "equal" || new_record?
+
+    w = default_split_weights
+    ok = w.is_a?(Hash) && w.any? && w.values.all?(Integer) && w.values.none?(&:negative?) && w.values.sum.positive? &&
+         members.where(id: w.keys).count == w.size && (default_split_kind != "percent" || w.values.sum == 10_000)
+    errors.add(:base, "That usual split doesn't add up") unless ok
+  end
 
   # Ledger entries in the shape the money engine expects. Balances are always
   # computed from here; nothing stores a balance.

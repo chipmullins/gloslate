@@ -14,7 +14,7 @@ module Bills
         cycle.lock!
         return cycle.expense if cycle.status == "posted"
 
-        pool = bill.participant_ids.any? ? household.members.where(id: bill.participant_ids) : household.members
+        pool = household.members.where(id: bill.pool_ids(household.members))
         period = cycle.period
         days = pool.to_a.to_h { |m| [m, days_lived(m, period)] }.select { |_, d| d.positive? }
         raise Hometab::Error, "Nobody lived here during this bill's period" if days.empty?
@@ -24,6 +24,8 @@ module Bills
         if partial && kind == "equal"
           kind = "shares"
           weights = days.to_h { |m, d| [m.id, d] }
+        elsif partial && kind == "shares"
+          weights = days.to_h { |m, d| [m.id, Integer(bill.split_weights[m.id.to_s] || 0) * d] }
         end
 
         expense = Expenses::Create.call(

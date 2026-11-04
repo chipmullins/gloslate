@@ -3,8 +3,8 @@ module V1
     before_action :load_from_household, only: %i[index create preview]
     before_action :load_expense, only: %i[show update destroy restore flag receipt upload_receipt]
     SLOW_DOWN = -> { render json: { error: "That's a lot at once. Try again in a bit." }, status: :too_many_requests }
-    rate_limit to: 20, within: 1.hour, only: :flag, by: -> { current_user.id }, with: SLOW_DOWN
-    rate_limit to: 120, within: 1.minute, only: %i[create update], by: -> { current_user.id }, with: SLOW_DOWN
+    rate_limit to: 20, within: 1.hour, only: :flag, name: "flags", by: -> { current_user.id }, with: SLOW_DOWN
+    rate_limit to: 120, within: 1.minute, only: %i[create update], name: "writes", by: -> { current_user.id }, with: SLOW_DOWN
 
     # GET /v1/households/:household_id/expenses?before=<iso time>&limit=30
     def index
