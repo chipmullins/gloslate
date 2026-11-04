@@ -15,6 +15,7 @@ class Expense < ApplicationRecord
   validates :spent_on, presence: true
 
   def deleted? = deleted_at.present?
+  def self.human_category(c) = c.to_s.capitalize
 
   def snapshot
     { amount_cents:, payer_id:, description:, category:, spent_on: spent_on.iso8601, split_kind:,

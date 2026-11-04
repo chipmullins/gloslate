@@ -32,11 +32,24 @@ module Payments
           confirmed_at: (now if by_receiver),
           auto_confirm_at: (now + Payment::AUTO_CONFIRM_AFTER unless by_receiver)
         )
-        @allocations.each { |expense_id, cents| payment.allocations.create!(expense_id:, cents:) }
+        @allocations.each do |expense_id, cents|
+          raise Hometab::Error, "That item isn't in this home" unless @household.expenses.exists?(id: expense_id)
+          payment.allocations.create!(expense_id:, cents:)
+        end
         LedgerEvent.record!(household: @household, kind: by_receiver ? "payment.recorded" : "payment.marked",
                             subject: payment, actor: @actor,
                             data: { from: @from.id, to: @to.id, amount_cents: @amount_cents, method: @method })
         payment
+      end.tap do |payment|
+        amount = Hometab::Money.format(@amount_cents)
+        if by_receiver
+          Notifications::Notify.call(member: @from, kind: "payment_confirmed", title: "#{@to.first_name} recorded your #{amount}",
+                                     body: "Marked as paid by #{@to.first_name}.", route: "/payments/#{payment.id}")
+        else
+          Notifications::Notify.call(member: @to, kind: "payment_marked", title: "#{@from.first_name} marked #{amount} paid",
+                                     body: "Confirm?", route: "/payments/#{payment.id}")
+        end
+        AnalyticsEvent.track("payment_marked", user: @actor.user, household: @household)
       end
     end
   end

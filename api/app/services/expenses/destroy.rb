@@ -16,6 +16,7 @@ module Expenses
         LedgerEvent.record!(household: @expense.household, kind: "expense.deleted", subject: @expense,
                             actor: @actor, data: { before: @expense.snapshot })
       end
+      Notify.changed(@expense, @actor, "deleted")
       @expense
     end
   end

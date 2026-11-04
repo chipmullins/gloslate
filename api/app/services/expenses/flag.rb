@@ -9,6 +9,7 @@ module Expenses
       raise Hometab::Error, "Say what looks wrong" if note.to_s.strip.length < 3
 
       LedgerEvent.record!(household: expense.household, kind: "expense.flagged", subject: expense, actor:, data: { note: note.strip })
+      Notify.flagged(expense, actor, note.strip)
     end
   end
 end

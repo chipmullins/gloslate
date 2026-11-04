@@ -351,6 +351,7 @@ CREATE TABLE public.payments (
     auto_confirmed boolean DEFAULT false NOT NULL,
     created_at timestamp(6) without time zone NOT NULL,
     updated_at timestamp(6) without time zone NOT NULL,
+    reminded_at timestamp(6) without time zone,
     CONSTRAINT payment_distinct_members CHECK ((from_member_id <> to_member_id)),
     CONSTRAINT payment_positive CHECK ((amount_cents > 0)),
     CONSTRAINT payment_status_values CHECK (((status)::text = ANY ((ARRAY['pending'::character varying, 'confirmed'::character varying, 'disputed'::character varying])::text[])))
@@ -1217,6 +1218,7 @@ ALTER TABLE ONLY public.expenses
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
+('20261105010000'),
 ('20261105000100'),
 ('20261105000000'),
 ('20261104210000'),

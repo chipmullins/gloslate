@@ -36,7 +36,10 @@ module Expenses
                             data: { after: expense.reload.snapshot })
         learn_usual_split!(expense)
         expense
-      end.tap { |e| AnalyticsEvent.track("expense_added", user: @actor.user, household: @household, split: e.split_kind) }
+      end.tap do |e|
+        AnalyticsEvent.track("expense_added", user: @actor.user, household: @household, split: e.split_kind) unless @system
+        Notify.added(e, @actor) unless @system # bill posts send their own "Rent posted" note
+      end
     end
 
     private

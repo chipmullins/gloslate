@@ -19,6 +19,16 @@ Rails.application.routes.draw do
       resources :bills, only: %i[index create] do
         get :presets, on: :collection
       end
+      resources :payments, only: %i[index create]
+      get "balances/:member_id", to: "payments#breakdown"
+      get "pay/:member_id", to: "payments#pay_info"
+    end
+    resources :payments, only: :show do
+      member do
+        post :confirm
+        post :dispute
+        post :note
+      end
     end
     resources :bills, only: %i[update destroy]
     resources :bill_cycles, only: %i[show update] do

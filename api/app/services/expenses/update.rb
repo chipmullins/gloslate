@@ -37,6 +37,7 @@ module Expenses
         LedgerEvent.record!(household:, kind: "expense.edited", subject: @expense, actor: @actor,
                             data: { before:, after: @expense.reload.snapshot })
       end
+      Notify.changed(@expense, @actor, "edited")
       @expense
     end
   end
