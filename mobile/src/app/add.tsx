@@ -44,7 +44,7 @@ export default function Add() {
   const [kind, setKind] = useState<Kind>('equal');
   const [inputs, setInputs] = useState<Record<string, string>>({});
   const [showSplit, setShowSplit] = useState(false);
-  const [preview, setPreview] = useState<number | null>(null);
+  const [preview, setPreview] = useState<{ key: string; cents: number } | null>(null);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const clientId = useRef(newClientId());
@@ -136,17 +136,22 @@ export default function Add() {
   })();
 
   // Equal splits compute instantly; other splits ask the server (debounced).
+  const previewable = kind !== 'equal' && !splitIssue && cents > 0 && !!home;
+  const idsKey = ids.join(',');
+  const weightsKey = JSON.stringify(weights);
+  const homeId = home?.id;
   useEffect(() => {
-    if (kind === 'equal' || splitIssue || cents <= 0 || !home) { setPreview(null); return; }
+    if (!previewable || !homeId) return;
     const t = setTimeout(() => {
-      api<{ data: { effect_for_me_cents: number } }>(`/v1/households/${home.id}/expenses/preview`, {
-        body: { amount_cents: cents, payer_id: payer, participant_ids: ids, split_kind: kind, split_weights: weights },
-      }).then((r) => setPreview(r.data.effect_for_me_cents)).catch(() => setPreview(null));
+      api<{ data: { effect_for_me_cents: number } }>(`/v1/households/${homeId}/expenses/preview`, {
+        body: { amount_cents: cents, payer_id: payer, participant_ids: idsKey.split(','), split_kind: kind, split_weights: JSON.parse(weightsKey) },
+      }).then((r) => setPreview({ key: `${cents}|${payer}|${idsKey}|${kind}|${weightsKey}`, cents: r.data.effect_for_me_cents })).catch(() => {});
     }, 300);
     return () => clearTimeout(t);
-  }, [kind, splitIssue, cents, payer, ids.join(','), JSON.stringify(weights), home?.id]);
+  }, [previewable, homeId, cents, payer, idsKey, kind, weightsKey]);
+  const previewCents = previewable && preview?.key === `${cents}|${payer}|${idsKey}|${kind}|${weightsKey}` ? preview.cents : null;
 
-  const effect = kind === 'equal' && me ? effectFor(me.id, payer, equalSplit(cents, payer, ids)) : preview;
+  const effect = kind === 'equal' && me ? effectFor(me.id, payer, equalSplit(cents, payer, ids)) : previewCents;
   const perHead = ids.length ? Math.floor(cents / ids.length) : 0;
   const nameOf = (mid: string) => members.find((m) => m.id === mid)?.first_name ?? '';
 

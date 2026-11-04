@@ -61,7 +61,6 @@ export default function Settle() {
   useFocusEffect(useCallback(() => { load(); }, [load]));
 
   const owedByMe = useMemo(() => (b?.items ?? []).filter((i) => i.cents < 0 && i.status !== 'paid'), [b]);
-  const pickedCents = owedByMe.filter((i) => picked.includes(i.expense_id)).reduce((s, i) => s + (-i.cents - i.paid_cents), 0);
 
   function togglePick(id: string) {
     setPicked((cur) => {

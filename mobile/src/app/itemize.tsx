@@ -1,5 +1,5 @@
 import { router, Stack, useLocalSearchParams } from 'expo-router';
-import { useMemo, useState } from 'react';
+import { useState } from 'react';
 import { Pressable, TextInput, View } from 'react-native';
 
 import { CloseIcon, PlusIcon, TrashIcon } from '@/components/icons';
@@ -34,7 +34,7 @@ export default function Itemize() {
   const taxCents = parseCents(tax) ?? 0;
   const tipCents = parseCents(tip) ?? 0;
   const payer = payerId || home?.me.id || '';
-  const split = useMemo(() => itemize(items, taxCents, tipCents, payer), [JSON.stringify(items), taxCents, tipCents, payer]); // eslint-disable-line react-hooks/exhaustive-deps
+  const split = itemize(items, taxCents, tipCents, payer); // cheap; React Compiler memoizes
   const total = Object.values(split).reduce((a, b) => a + b, 0);
   const scanned = draft?.totalCents ?? null;
   const unassigned = items.some((i) => i.cents > 0 && i.memberIds.length === 0);

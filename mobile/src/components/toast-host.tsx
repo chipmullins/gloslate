@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { AccessibilityInfo, Animated, Pressable, View } from 'react-native';
 
 import { T } from '@/components/ui';
@@ -8,7 +8,7 @@ import { toast, type ToastMsg } from '@/lib/toast';
 /** Floating toast ("Added Dinner · Undo"). Lives above the Add button. */
 export function ToastHost({ bottom = 96 }: { bottom?: number }) {
   const [msg, setMsg] = useState<ToastMsg | null>(null);
-  const fade = useRef(new Animated.Value(0)).current;
+  const [fade] = useState(() => new Animated.Value(0));
 
   useEffect(() => toast.subscribe((t) => {
     setMsg(t);

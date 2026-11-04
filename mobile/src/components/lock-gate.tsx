@@ -10,7 +10,8 @@ const RELOCK_AFTER_MS = 30_000;
 
 /** Face ID / fingerprint lock (Settings → Face ID lock). Relocks after 30s in the background. */
 export function LockGate({ enabled, children }: { enabled: boolean; children: ReactNode }) {
-  const [locked, setLocked] = useState(enabled && Platform.OS !== 'web');
+  const [lockedState, setLocked] = useState(true);
+  const locked = enabled && Platform.OS !== 'web' && lockedState;
   const backgroundedAt = useRef<number | null>(null);
 
   const unlock = useCallback(async () => {
@@ -19,8 +20,8 @@ export function LockGate({ enabled, children }: { enabled: boolean; children: Re
   }, []);
 
   useEffect(() => {
-    if (!enabled || Platform.OS === 'web') { setLocked(false); return; }
-    if (locked) unlock();
+    if (!enabled || Platform.OS === 'web') return;
+    Promise.resolve().then(unlock); // prompt right after mount
     const sub = AppState.addEventListener('change', (s) => {
       if (s === 'background') backgroundedAt.current = Date.now();
       if (s === 'active' && backgroundedAt.current && Date.now() - backgroundedAt.current > RELOCK_AFTER_MS) {

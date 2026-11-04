@@ -8,9 +8,9 @@ import { useLayout } from '@/hooks/use-layout';
 /** Four tabs. Home is where almost all daily use happens. */
 export default function TabsLayout() {
   const { wide } = useLayout();
-  const label = (title: string) => ({ focused }: { focused: boolean }) => (
+  const label = (title: string) => function TabLabel({ focused }: { focused: boolean }) { return (
     <Text style={{ fontFamily: focused ? HT.font.extrabold : HT.font.semibold, fontSize: 11.5, color: focused ? HT.color.brand : HT.color.muted }}>{title}</Text>
-  );
+  ); };
   return (
     <Tabs
       screenOptions={{

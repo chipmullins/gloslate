@@ -66,7 +66,7 @@ export default function Welcome() {
         <View style={{ flex: wide ? 1 : undefined, gap: 18, paddingTop: wide ? 0 : 36 }}>
           <HouseMark size={wide ? 88 : 72} />
           <T v="display" style={{ fontSize: wide ? 44 : 36, lineHeight: wide ? 50 : 42 }} accessibilityRole="header">
-            No more{'\n'}"you owe me"{'\n'}texts.
+            No more{'\n'}“you owe me”{'\n'}texts.
           </T>
           <T v="body" style={{ color: HT.color.muted, fontSize: 16.5, lineHeight: 24, maxWidth: 420 }}>
             HomeTab keeps a running tab of rent, bills and groceries, does the math, and tells everyone exactly what to send.
