@@ -1,0 +1,45 @@
+# Adds gems listed in GEMS to api/Gemfile and vendors them (the build
+# workspace can't reach rubygems.org). Runs only on gems/* branches.
+name: Vendor gems
+on:
+  push:
+    branches: ["gems/**"]
+permissions:
+  contents: write
+jobs:
+  vendor:
+    if: "!contains(github.event.head_commit.message, '[vendored]')"
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: api
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: "3.3.6"
+      - name: Add gems
+        run: |
+          cat >> Gemfile <<'GEMS'
+
+          # PDF statements, S3 storage, CSV (vendored by vendor-gems workflow)
+          gem "prawn", "~> 2.5"
+          gem "prawn-table", "~> 0.2"
+          gem "aws-sdk-s3", "~> 1.170", require: false
+          gem "csv"
+          GEMS
+      - name: Lock and vendor
+        run: |
+          bundle config set --local cache_all true
+          bundle lock --add-platform x86_64-linux
+          bundle install
+          bundle cache --all-platforms
+          rm -rf .bundle
+      - name: Commit back
+        run: |
+          cd ..
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A api/Gemfile api/Gemfile.lock api/vendor/cache
+          git commit -m "Vendor prawn, prawn-table, aws-sdk-s3, csv [vendored]"
+          git push origin HEAD:${GITHUB_REF_NAME}
