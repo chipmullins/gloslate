@@ -1,0 +1,38 @@
+# One-time: generates the Rails 8 app in api/ and vendors its gems into
+# api/vendor/cache so the build workspace (no rubygems.org access) can
+# `bundle install --local`. Runs only on the bootstrap/rails branch.
+name: Bootstrap Rails
+on:
+  push:
+    branches: [bootstrap/rails]
+permissions:
+  contents: write
+jobs:
+  generate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: "3.3.6"
+      - name: Install Rails 8
+        run: gem install rails -v '~> 8.0' --no-document
+      - name: Generate app (API mode, Postgres)
+        run: |
+          rails new /tmp/api --api --database=postgresql --skip-git --skip-ci --skip-action-cable
+          rm -f api/README.md
+          rsync -a --ignore-existing /tmp/api/ api/
+      - name: Vendor gems for linux
+        working-directory: api
+        run: |
+          bundle lock --add-platform x86_64-linux
+          bundle config set --local cache_all true
+          bundle cache --all-platforms
+          rm -rf .bundle
+      - name: Commit back
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A api
+          git commit -m "Generate Rails 8 app and vendor gems (bootstrap)"
+          git push origin HEAD:bootstrap/rails
