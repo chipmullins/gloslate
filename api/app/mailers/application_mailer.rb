@@ -1,4 +1,3 @@
 class ApplicationMailer < ActionMailer::Base
-  default from: "from@example.com"
-  layout "mailer"
+  default from: ENV.fetch("MAIL_FROM", "HomeTab <hello@hometab.app>")
 end

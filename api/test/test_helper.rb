@@ -18,3 +18,24 @@ module ActiveSupport
     def net(home, member) = home.balance_for(member)[:net_cents]
   end
 end
+
+require_relative "support_oidc"
+ENV["GOOGLE_CLIENT_IDS"] ||= "google-test-client"
+
+class ActionDispatch::IntegrationTest
+  setup do
+    Auth::Sms.deliveries.clear
+    Rails.cache.write("oidc:jwks:apple", OidcTestKeys.jwks)
+    Rails.cache.write("oidc:jwks:google", OidcTestKeys.jwks)
+  end
+
+  def json = JSON.parse(response.body)
+  def auth(token) = { "Authorization" => "Bearer #{token}" }
+
+  def sign_in_by_phone(phone = "(859) 555-0101")
+    post "/v1/auth/codes", params: { destination: phone }
+    code = Auth::Sms.deliveries.last[:body][/\d{6}/]
+    post "/v1/auth/codes/verify", params: { destination: phone, code:, device_name: "iPhone", platform: "ios" }
+    json
+  end
+end

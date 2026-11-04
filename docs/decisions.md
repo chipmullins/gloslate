@@ -19,4 +19,7 @@ Rails 8 API + Postgres + Solid Queue; Expo/TypeScript/expo-router; integer cents
 
 - [x] Step 1: repo, CLAUDE.md, Expo skeleton, Rails 8 app (bootstrapped by GitHub Actions; gems vendored in api/vendor/cache so the build workspace installs offline), CI on every push
 - [x] Step 2: money engine (api/lib/hometab/ledger) + households, members, expenses, shares, payments, allocations, append-only ledger_events (DB trigger blocks UPDATE/DELETE). Services: Expenses::Create/Update/Destroy/Restore, Payments::Mark/Respond (confirm, dispute, 3-day auto-confirm, receiver-recorded cash). 31 tests.
-- [ ] Step 3: auth (email/phone code, Apple, Google) via identities; staff realm for the admin API
+- [x] Step 3: sign-in by email/phone code, Sign in with Apple, Google (native ID tokens verified against provider keys, stdlib OpenSSL — no extra gems). users → identities (provider, provider_uid); glofly is one more provider config, no schema change. Link offer when a provider's verified email matches an existing account. Opaque device tokens (digest stored), revocable.
+- [x] Admin API realm: staff_users (scrypt password + required TOTP 2-step), 12h staff sessions, roles viewer/support/admin, admin_audit_events on every read of personal data and every action (reason required). Endpoints: dashboard, user search/detail, revoke sessions, lock/unlock, send sign-in code, add/remove identity, household detail + read-only ledger, audit log, staff management. First admin: `bin/rails staff:create EMAIL=... NAME=...`. 53 tests total.
+- [ ] Step 4: households, members, invites by link, placeholders joining (API + mobile)
+- Pending infra: SMS delivery adapter (SNS) and SES email in step 13; until then codes are logged in development.
