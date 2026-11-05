@@ -8,7 +8,7 @@ import { HT } from '@/constants/theme';
 import { useHousehold } from '@/hooks/use-household';
 import { useLayout } from '@/hooks/use-layout';
 import { api, ApiError, type Breakdown } from '@/lib/api';
-import { formatCents, parseCents } from '@/lib/money';
+import { centsFirst, formatCents, parseCents } from '@/lib/money';
 import { equalSplit, newClientId } from '@/lib/split';
 import { toast } from '@/lib/toast';
 
@@ -98,7 +98,7 @@ export default function Counter() {
           </View>
           <View style={{ width: 118 }}>
             <Field label={idx === 0 ? 'Amount' : `Item ${idx + 1} amount`} hideLabel={idx > 0} value={r.amount}
-              onChangeText={(t) => update(r.key, { amount: t })} placeholder="0.00" keyboardType="decimal-pad" style={{ fontFamily: HT.font.mono, textAlign: 'right' }} />
+              onChangeText={(t) => update(r.key, { amount: centsFirst(t) })} placeholder="0.00" keyboardType="number-pad" style={{ fontFamily: HT.font.mono, textAlign: 'right' }} />
           </View>
           {rows.length > 1 ? (
             <IconButton label={`Remove item ${idx + 1}`} onPress={() => setRows((cur) => cur.filter((x) => x.key !== r.key))}><TrashIcon size={18} color={HT.color.muted} /></IconButton>

@@ -25,6 +25,8 @@
   .lines { border-top: 1px dashed #D8CBD4; padding-top: 14px; display: flex; flex-direction: column; gap: 9px; font-size: 14px; }
   .line { display: flex; justify-content: space-between; gap: 12px; } .line .money { white-space: nowrap; }
   .line.credit { color: var(--owed); font-weight: 700; }
+  .line .of { display: block; margin-top: 2px; font-size: 12px; font-weight: 600; color: var(--muted); }
+  .line.credit .of { color: var(--owed); opacity: .8; }
   .line.total { font-weight: 800; border-top: 1px solid var(--hairline); padding-top: 9px; }
   .updated { margin-top: 12px; background: #FBEBDD; color: var(--you-owe); border-radius: 12px; padding: 10px 12px; font-size: 13px; font-weight: 700; }
   .pay { display: flex; flex-direction: column; gap: 10px; }
@@ -35,6 +37,11 @@
   .zelle { display: none; background: var(--brand-deep); color: #fff; border-radius: 14px; padding: 14px 16px; font-size: 14px; }
   .zelle.open { display: block; } .zelle code { font-family: var(--mono); font-size: 15px; }
   details.paid summary { list-style: none; text-align: center; color: #fff; font-weight: 700; font-size: 14px; text-decoration: underline; cursor: pointer; min-height: 44px; display: grid; place-items: center; }
+  details.paid summary.paid-cta { text-decoration: none; min-height: 54px; border-radius: 16px; border: 2px solid rgba(255,255,255,.9); font-size: 16px; font-weight: 800; margin-top: 4px; }
+  details.paid[open] summary.paid-cta { border-color: transparent; }
+  .nudge { background: #fff; color: var(--ink); border-radius: 16px; padding: 14px 16px; font-weight: 700; display: none; margin-top: 10px; }
+  .nudge.show { display: block; animation: nudge .5s ease-out both; }
+  @keyframes nudge { 0% { transform: translateY(8px); opacity: 0 } 100% { transform: none; opacity: 1 } }
   details.paid summary::-webkit-details-marker { display: none; }
   .paidform { background: #fff; border-radius: 18px; padding: 16px; display: flex; flex-direction: column; gap: 10px; }
   .paidform label { font-size: 12.5px; font-weight: 700; color: var(--muted); }
@@ -50,7 +57,7 @@
 <% end %>
 <main class="wrap">
   <div class="top">
-    <span class="brand"><%= render "public/mark", size: 28, inverted: true %>Tabitat</span>
+    <span class="brand"><%= render "public/mark", size: 28, inverted: true %>Tabitat <small style="font-weight:600;font-size:12px;opacity:.75">by Glofly</small></span>
     <small>tabitat.app</small>
   </div>
 
@@ -63,7 +70,14 @@
       <div class="amount"><%= money(@req.amount_cents) %></div>
       <div class="lines">
         <% @req.breakdown.each do |l| %>
-          <div class="line<%= ' credit' if l['cents'].negative? %>"><span><%= l["description"] %></span><span class="money"><%= money(l["cents"]) %></span></div>
+          <div class="line<%= ' credit' if l['cents'].negative? %>">
+            <span><%= l["description"] %>
+              <% if l["total_cents"].to_i > 0 && l["total_cents"].to_i != l["cents"].to_i.abs %>
+                <small class="of"><%= l["cents"].negative? ? "#{@req.recipient.first_name} paid" : "#{@req.requester.first_name} paid" %> <span class="money"><%= money(l["total_cents"]) %></span><%= " · split #{l['split_count']} ways" if l["split_count"].to_i > 1 %></small>
+              <% end %>
+            </span>
+            <span class="money"><%= money(l["cents"]) %></span>
+          </div>
         <% end %>
         <div class="line total"><span>You send <%= @req.requester.first_name %></span><span class="money"><%= money(@req.amount_cents) %></span></div>
       </div>
@@ -99,8 +113,9 @@
       <% end %>
     </div>
 
-    <details class="paid">
-      <summary>Already paid? Let <%= @req.requester.first_name %> know</summary>
+    <div class="nudge" id="nudge" role="status">Sent it? One more step: tap below so <%= @req.requester.first_name %> knows it's on the way.</div>
+    <details class="paid" id="paid">
+      <summary class="paid-cta">I paid. Let <%= @req.requester.first_name %> know</summary>
       <form action="/r/<%= @req.token %>/paid" method="post" class="paidform">
         <label for="amount">Amount you sent</label>
         <input id="amount" name="amount" inputmode="decimal" value="<%= money(@pay_amount).delete('$,') %>" autocomplete="off">
@@ -131,6 +146,17 @@
   });
   var zb = document.getElementById('zelle-btn');
   if (zb) zb.addEventListener('click', function () { var z = document.getElementById('zelle'); z.classList.toggle('open'); zb.setAttribute('aria-expanded', z.classList.contains('open')); });
+  // After someone heads off to pay, bring them back to the "I paid" step.
+  var paid = document.getElementById('paid'), nudge = document.getElementById('nudge'), went = false;
+  function backFromPaying() {
+    if (!went || !paid) return;
+    paid.open = true; nudge && nudge.classList.add('show');
+    paid.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  }
+  document.querySelectorAll('.pay a.primary, .pay a.app, #zelle-copy').forEach(function (el) {
+    el.addEventListener('click', function () { went = true; setTimeout(backFromPaying, 2500); });
+  });
+  document.addEventListener('visibilitychange', function () { if (!document.hidden) backFromPaying(); });
   var zc = document.getElementById('zelle-copy');
   if (zc) zc.addEventListener('click', function () { navigator.clipboard && navigator.clipboard.writeText(document.getElementById('zelle-to').textContent).then(function () { zc.textContent = 'Copied'; }); });
 </script>

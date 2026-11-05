@@ -11,7 +11,7 @@ import { HT } from '@/constants/theme';
 import { useLayout } from '@/hooks/use-layout';
 import { api, ApiError, type Household, type Member } from '@/lib/api';
 import { downloadAndShare } from '@/lib/files';
-import { formatCents, parseCents } from '@/lib/money';
+import { centsFirst, formatCents, parseCents } from '@/lib/money';
 import { useSession } from '@/lib/session';
 import { toast } from '@/lib/toast';
 
@@ -68,7 +68,7 @@ export default function You() {
     setVenmo(r.data.me.handles.venmo ?? '');
     setCashtag(r.data.me.handles.cashapp ?? '');
     setZelle(r.data.me.handles.zelle ?? '');
-    setThreshold(String((r.data.me.remind_threshold_cents ?? 4000) / 100));
+    setThreshold(centsFirst(String(r.data.me.remind_threshold_cents ?? 4000)));
   }, [id]);
   useFocusEffect(useCallback(() => { load().catch(() => {}); }, [load]));
   useEffect(() => {
@@ -139,7 +139,7 @@ export default function You() {
         <Toggle label="Let Tabitat nudge people for you" hint="So nobody has to be the bad guy" value={me.auto_remind ?? true} onChange={(v) => patchMember(me.id, { auto_remind: v })} />
         {me.auto_remind !== false ? (
           <>
-            <Field label="When someone owes you at least" value={threshold} onChangeText={setThreshold} keyboardType="decimal-pad"
+            <Field label="When someone owes you at least" value={threshold} onChangeText={(t) => setThreshold(centsFirst(t))} keyboardType="number-pad"
               onEndEditing={() => { const c = parseCents(threshold); if (c) patchMember(me.id, { remind_threshold_cents: c }, 'Saved'); }} />
             <Stepper label="Or it's been this long" value={me.remind_after_days ?? 7} min={1} max={30} onChange={(v) => patchMember(me.id, { remind_after_days: v })} format={(v) => `${v} day${v > 1 ? 's' : ''}`} />
             <T v="small">At most one nudge every 3 days, never during quiet hours, and it stops the moment a payment is marked.</T>

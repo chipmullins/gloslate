@@ -64,7 +64,13 @@ export default function Welcome() {
       <View style={{ flex: 1, flexDirection: wide ? 'row' : 'column', gap: wide ? 56 : 28, alignItems: wide ? 'center' : 'stretch',
         justifyContent: 'center', paddingVertical: wide ? 40 : 24 }}>
         <View style={{ flex: wide ? 1 : undefined, gap: 18, paddingTop: wide ? 0 : 36 }}>
-          <HouseMark size={wide ? 88 : 72} />
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 14 }}>
+            <HouseMark size={wide ? 72 : 60} />
+            <View>
+              <T v="title" style={{ fontSize: 26, lineHeight: 30 }}>Tabitat</T>
+              <T v="small" style={{ fontFamily: HT.font.semibold }}>by Glofly</T>
+            </View>
+          </View>
           <T v="display" style={{ fontSize: wide ? 44 : 36, lineHeight: wide ? 50 : 42 }} accessibilityRole="header">
             No more{'\n'}“you owe me”{'\n'}texts.
           </T>

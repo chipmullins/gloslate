@@ -35,7 +35,7 @@ module Payments
 
     def items_where(payer:, debtor:)
       ExpenseShare.joins(:expense).merge(@household.expenses.active).where(member: debtor, expenses: { payer_id: payer.id })
-                  .where("share_cents > 0").includes(:expense).order("expenses.spent_on, expenses.created_at")
+                  .where("share_cents > 0").includes(expense: :shares).order("expenses.spent_on, expenses.created_at")
                   .map { |s| Item.new(expense: s.expense, cents: s.share_cents, paid_cents: 0) }
     end
 
@@ -69,6 +69,7 @@ module Payments
       e = item.expense
       { expense_id: e.id, description: e.description.presence || e.category.capitalize, category: e.category,
         spent_on: e.spent_on, created_at: e.created_at, payer_id: e.payer_id, cents: sign * item.cents,
+        total_cents: e.amount_cents, split_count: e.shares.count { _1.share_cents.positive? },
         paid_cents: item.paid_cents, status: item.status }
     end
   end

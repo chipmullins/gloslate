@@ -10,7 +10,7 @@ import { HT } from '@/constants/theme';
 import { useHousehold } from '@/hooks/use-household';
 import { useLayout } from '@/hooks/use-layout';
 import { api, ApiError, type Breakdown, type PayInfo } from '@/lib/api';
-import { formatCents, parseCents } from '@/lib/money';
+import { centsFirst, formatCents, parseCents } from '@/lib/money';
 import { toast } from '@/lib/toast';
 import { sendRequest } from '@/app/(tabs)/home';
 
@@ -159,12 +159,12 @@ export default function Settle() {
         onPress={() => sendRequest(home.id, other.id).catch((e) => setError(e instanceof ApiError ? e.message : "Couldn't send it."))} />
       {recording ? (
         <View style={{ gap: 12 }}>
-          <Field label={`How much did ${other.first_name} pay you?`} value={amount} onChangeText={setAmount} keyboardType="decimal-pad" />
+          <Field label={`How much did ${other.first_name} pay you?`} value={amount} onChangeText={(t) => setAmount(centsFirst(t))} keyboardType="number-pad" />
           {methodChips}
           <Button title={`Record ${amount ? formatCents(parseCents(amount) ?? 0) : ''} from ${other.first_name}`} onPress={() => markPaid(true)} loading={busy} />
         </View>
       ) : (
-        <Button kind="secondary" title={`${other.first_name} paid me another way`} onPress={() => setRecording(true)} />
+        <Button kind="secondary" title={`${other.first_name} paid me: mark it received`} icon={<CheckIcon size={18} color={HT.color.ink} />} onPress={() => setRecording(true)} />
       )}
       <T v="small">Tabitat never moves money. A payment you record counts as confirmed by you.</T>
     </Card>
@@ -173,7 +173,7 @@ export default function Settle() {
       <Button kind="secondary" title="I paid for some things too" icon={<PlusIcon size={16} />}
         accessibilityLabel={`Add things you paid for, to subtract from what you owe ${other.first_name}`}
         onPress={() => router.push(`/counter?memberId=${other.id}` as Href)} />
-      <Field label="Amount" value={amount} onChangeText={(t) => { setAmount(t); setPicked([]); }} keyboardType="decimal-pad"
+      <Field label="Amount" value={amount} onChangeText={(t) => { setAmount(centsFirst(t)); setPicked([]); }} keyboardType="number-pad"
         hint={picked.length ? `For ${picked.length} item${picked.length > 1 ? 's' : ''}` : parseCents(amount) && parseCents(amount)! < -net ? 'Partial payment: applies to the oldest items first' : undefined} />
       <View style={{ gap: 8 }}>
         {pay.links.venmo ? <Button title={`Pay with Venmo`} onPress={() => openApp('venmo')} /> : null}
@@ -213,7 +213,10 @@ export default function Settle() {
                 <T v="strong" numberOfLines={1}>{i.description}</T>
                 <T v="small">{shortDate(i.spent_on)} · {mine ? `${other.first_name} paid` : 'you paid'}{i.status === 'partial' ? ` · ${formatCents(i.paid_cents)} of ${formatCents(total)} paid` : i.status === 'paid' ? ' · paid' : ''}</T>
               </View>
-              <Money cents={i.cents} sign color={mine ? HT.color.youOwe : HT.color.owedToYou} />
+              <View style={{ alignItems: 'flex-end', gap: 1 }}>
+                <T v="small" style={{ color: mine ? HT.color.youOwe : HT.color.owedToYou, fontFamily: HT.font.bold, fontSize: 12 }}>{mine ? `You owe ${other.first_name}` : `${other.first_name} owes you`}</T>
+                <Money cents={Math.abs(i.cents)} color={mine ? HT.color.youOwe : HT.color.owedToYou} />
+              </View>
             </Pressable>
           );
         })}

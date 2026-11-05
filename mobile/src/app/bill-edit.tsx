@@ -9,7 +9,7 @@ import { HT } from '@/constants/theme';
 import { useHousehold } from '@/hooks/use-household';
 import { useLayout } from '@/hooks/use-layout';
 import { api, ApiError, type Bill } from '@/lib/api';
-import { formatCents, parseCents } from '@/lib/money';
+import { centsFirst, formatCents, parseCents } from '@/lib/money';
 import { toast } from '@/lib/toast';
 
 const PRESETS = [
@@ -108,7 +108,7 @@ export default function BillEdit() {
           </View>
         </View>
         {kind === 'fixed' ? (
-          <Field label="Monthly amount" value={amount} onChangeText={setAmount} keyboardType="decimal-pad" placeholder="1800.00"
+          <Field label="Monthly amount" value={amount} onChangeText={(t) => setAmount(centsFirst(t))} keyboardType="number-pad" placeholder="0.00"
             hint={cents ? `${formatCents(cents)} · ${formatCents(Math.floor(cents / Math.max(1, members.length)))} each, split equally` : undefined} />
         ) : (
           <T v="muted">When it arrives, {payer === home?.me.id ? 'you get' : 'they get'} a reminder to type the amount or snap the bill. It posts the moment it's entered.</T>

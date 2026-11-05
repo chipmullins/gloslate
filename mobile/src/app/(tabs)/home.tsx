@@ -27,14 +27,20 @@ export async function sendRequest(householdId: string, memberId: string) {
   await Share.share({ message: res.data.message, url: res.data.url });
 }
 
+type HomeSnapshot = { home: Household | null; recent: Expense[] | null; coming: BillCycle[]; pending: Payment[]; unread: number };
+const EMPTY: HomeSnapshot = { home: null, recent: null, coming: [], pending: [], unread: 0 };
+const homeCache = new Map<string, HomeSnapshot>(); // per home, so another account never sees it
+
 export default function Home() {
   const { households } = useSession();
   const { wide, gutter } = useLayout();
-  const [home, setHome] = useState<Household | null>(null);
-  const [recent, setRecent] = useState<Expense[] | null>(null);
-  const [coming, setComing] = useState<BillCycle[]>([]);
-  const [pending, setPending] = useState<Payment[]>([]);
-  const [unread, setUnread] = useState(0);
+  // Start from what we showed last time (instant when switching tabs or reopening), then refresh.
+  const [snap] = useState(() => homeCache.get(households[0]?.id ?? '') ?? EMPTY);
+  const [home, setHome] = useState<Household | null>(snap.home);
+  const [recent, setRecent] = useState<Expense[] | null>(snap.recent);
+  const [coming, setComing] = useState<BillCycle[]>(snap.coming);
+  const [pending, setPending] = useState<Payment[]>(snap.pending);
+  const [unread, setUnread] = useState(snap.unread);
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const id = households[0]?.id;
@@ -49,10 +55,12 @@ export default function Home() {
         api<{ data: Payment[] }>(`/v1/households/${id}/payments?status=pending`),
         api<{ unread: number }>('/v1/notifications'),
       ]);
+      const mine = pays.data.filter((p) => p.can_confirm);
+      homeCache.set(id, { home: h.data, recent: items.data, coming: bills.coming_up, pending: mine, unread: inbox.unread });
       setHome(h.data);
       setRecent(items.data);
       setComing(bills.coming_up);
-      setPending(pays.data.filter((p) => p.can_confirm));
+      setPending(mine);
       setUnread(inbox.unread);
       setError(null);
       updateBalanceWidget(h.data);
@@ -217,7 +225,7 @@ export default function Home() {
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10, flexShrink: 1 }}>
               <HouseMark size={34} />
               <View style={{ flexShrink: 1 }}>
-                <T v="title" style={{ fontSize: 19, lineHeight: 23 }} accessibilityRole="header">Tabitat</T>
+                <T v="title" style={{ fontSize: 19, lineHeight: 23 }} accessibilityRole="header">Tabitat <T v="small" style={{ fontSize: 12, fontFamily: HT.font.semibold }}>by Glofly</T></T>
                 <T v="small" numberOfLines={1}>{names(home.members)}</T>
               </View>
             </View>
