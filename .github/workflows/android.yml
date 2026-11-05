@@ -1,0 +1,43 @@
+name: Android app
+
+# Builds an installable Tabitat .apk (no Google Play needed). Download it from the
+# run's "Artifacts" section and send it to whoever needs it; they open it on their
+# phone and allow "install unknown apps" once.
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  apk:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    defaults:
+      run:
+        working-directory: mobile
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: mobile/package-lock.json
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17
+      - uses: gradle/actions/setup-gradle@v4
+      - run: npm ci
+      - run: npx expo prebuild --platform android --clean --no-install
+      - name: Build release APK
+        working-directory: mobile/android
+        run: ./gradlew assembleRelease --no-daemon -PreactNativeArchitectures=arm64-v8a,armeabi-v7a
+      - name: Name it
+        run: cp android/app/build/outputs/apk/release/app-release.apk "Tabitat-${GITHUB_SHA::7}.apk"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: Tabitat-android
+          path: mobile/Tabitat-*.apk
+          retention-days: 30
+      - run: echo "Download **Tabitat-android** under Artifacts below, unzip it, and send the .apk to the Android phone." >> "$GITHUB_STEP_SUMMARY"
