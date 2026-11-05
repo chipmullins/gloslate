@@ -36,6 +36,7 @@ Rails.application.routes.draw do
       resources :invites, only: :create
       resources :expenses, only: %i[index create] do
         post :preview, on: :collection
+        post :counter, on: :collection
       end
       resources :bills, only: %i[index create] do
         get :presets, on: :collection

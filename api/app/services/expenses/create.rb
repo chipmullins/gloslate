@@ -6,9 +6,10 @@ module Expenses
 
     def initialize(household:, actor:, amount_cents:, payer:, participants: nil, split_kind: nil,
                    split_weights: nil, description: "", category: "other", spent_on: Date.current,
-                   urgency: "tab", note: nil, client_id: nil, system: false, itemization: nil)
+                   urgency: "tab", note: nil, client_id: nil, system: false, itemization: nil, notify: true)
       @household, @actor, @payer = household, actor, payer
       @system = system # bill auto-posts: may include people who moved out mid-cycle (proration)
+      @notify = notify # false when the caller sends one combined notification (Expenses::Counter)
       @amount_cents = amount_cents
       @spent_on = spent_on
       @participants = participants || household.members.current.select { |m| m.active_on?(spent_on) }
@@ -39,7 +40,7 @@ module Expenses
         expense
       end.tap do |e|
         AnalyticsEvent.track("expense_added", user: @actor.user, household: @household, split: e.split_kind) unless @system
-        Notify.added(e, @actor) unless @system # bill posts send their own "Rent posted" note
+        Notify.added(e, @actor) unless @system || !@notify # bill posts send their own "Rent posted" note
       end
     end
 

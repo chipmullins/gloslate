@@ -111,6 +111,10 @@
         <button type="submit">I paid</button>
       </form>
     </details>
+    <details class="paid">
+      <summary>Paid for some things too?</summary>
+      <p style="margin:10px 0 0;line-height:1.5">Add what you covered in the Tabitat app (on <%= @req.requester.first_name %>'s balance, tap <b>I paid for some things too</b>). It's split between you two and this total updates by itself.</p>
+    </details>
   <% end %>
 
   <div class="spacer"></div>

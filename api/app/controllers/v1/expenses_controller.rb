@@ -1,10 +1,10 @@
 module V1
   class ExpensesController < BaseController
-    before_action :load_from_household, only: %i[index create preview]
+    before_action :load_from_household, only: %i[index create preview counter]
     before_action :load_expense, only: %i[show update destroy restore flag receipt upload_receipt]
     SLOW_DOWN = -> { render json: { error: "That's a lot at once. Try again in a bit." }, status: :too_many_requests }
     rate_limit to: 20, within: 1.hour, only: :flag, name: "flags", by: -> { current_user.id }, with: SLOW_DOWN
-    rate_limit to: 120, within: 1.minute, only: %i[create update], name: "writes", by: -> { current_user.id }, with: SLOW_DOWN
+    rate_limit to: 120, within: 1.minute, only: %i[create update counter], name: "writes", by: -> { current_user.id }, with: SLOW_DOWN
 
     # GET /v1/households/:household_id/expenses?before=<iso time>&limit=30
     def index
@@ -22,6 +22,23 @@ module V1
     def create
       e = Expenses::Create.call(household: @household, actor: @me, client_id: params[:client_id], **expense_args)
       render json: { data: Expenses::Serializer.call(e, me: @me), balance: @household.balance_for(@me) }, status: :created
+    end
+
+    # POST /v1/households/:household_id/expenses/counter
+    #   { member_id, items: [{ description, amount_cents, category?, client_id? }] }
+    # "Actually, I paid for these": the person asked to pay adds what they covered,
+    # each split evenly between the two of them.
+    def counter
+      other = @household.members.find(params.require(:member_id))
+      items = Array(params.require(:items)).map do |i|
+        i = i.permit(:description, :amount_cents, :category, :client_id)
+        raise Hometab::Error, "Amount must be whole cents" unless i[:amount_cents].to_s.match?(/\A\d{1,10}\z/)
+        { description: i[:description], amount_cents: i[:amount_cents].to_i, category: i[:category], client_id: i[:client_id] }
+      end
+      result = Expenses::Counter.call(household: @household, actor: @me, other:, items:)
+      render json: { data: { expenses: result[:expenses].map { |e| Expenses::Serializer.call(e, me: @me) },
+                             before_cents: result[:before_cents], after_cents: result[:after_cents] },
+                     balance: @household.balance_for(@me) }, status: :created
     end
 
     def preview

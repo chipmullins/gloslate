@@ -4,7 +4,7 @@ import { useCallback, useMemo, useState } from 'react';
 import { Linking, Pressable, View } from 'react-native';
 
 import { shortDate } from '@/components/expense-row';
-import { BackIcon, CheckIcon, CopyIcon, SendIcon } from '@/components/icons';
+import { BackIcon, CheckIcon, CopyIcon, PlusIcon, SendIcon } from '@/components/icons';
 import { Avatar, Button, Card, ErrorNote, Field, IconButton, Money, Screen, T } from '@/components/ui';
 import { HT } from '@/constants/theme';
 import { useHousehold } from '@/hooks/use-household';
@@ -170,6 +170,9 @@ export default function Settle() {
     </Card>
   ) : net < 0 && pay ? (
     <Card style={{ gap: 12 }}>
+      <Button kind="secondary" title="I paid for some things too" icon={<PlusIcon size={16} />}
+        accessibilityLabel={`Add things you paid for, to subtract from what you owe ${other.first_name}`}
+        onPress={() => router.push(`/counter?memberId=${other.id}` as Href)} />
       <Field label="Amount" value={amount} onChangeText={(t) => { setAmount(t); setPicked([]); }} keyboardType="decimal-pad"
         hint={picked.length ? `For ${picked.length} item${picked.length > 1 ? 's' : ''}` : parseCents(amount) && parseCents(amount)! < -net ? 'Partial payment: applies to the oldest items first' : undefined} />
       <View style={{ gap: 8 }}>
