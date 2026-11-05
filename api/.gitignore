@@ -1,0 +1,19 @@
+/.bundle
+/vendor/bundle
+/log/*
+/tmp/*
+!/log/.keep
+!/tmp/.keep
+/tmp/pids/*
+!/tmp/pids/.keep
+/storage/*
+!/storage/.keep
+/config/master.key
+/config/credentials/*.key
+/.env*
+!/.env.example
+/coverage
+
+# Ignore key files for decrypting credentials and more.
+/config/*.key
+

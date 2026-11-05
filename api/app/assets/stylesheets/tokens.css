@@ -1,0 +1,18 @@
+/* Tabitat tokens — mirrors mobile/src/constants/theme.ts */
+@font-face { font-family: "Manrope"; font-weight: 500; src: url("/fonts/Manrope_500Medium.ttf") format("truetype"); font-display: swap; }
+@font-face { font-family: "Manrope"; font-weight: 700; src: url("/fonts/Manrope_700Bold.ttf") format("truetype"); font-display: swap; }
+@font-face { font-family: "Manrope"; font-weight: 800; src: url("/fonts/Manrope_800ExtraBold.ttf") format("truetype"); font-display: swap; }
+@font-face { font-family: "IBM Plex Mono"; font-weight: 500; src: url("/fonts/IBMPlexMono_500Medium.ttf") format("truetype"); font-display: swap; }
+@font-face { font-family: "IBM Plex Mono"; font-weight: 600; src: url("/fonts/IBMPlexMono_600SemiBold.ttf") format("truetype"); font-display: swap; }
+:root {
+  --ground: #F6F2F4; --surface: #FFFFFF; --ink: #241A23; --muted: #685A66; --brand: #6B3A63; --brand-deep: #552D4F;
+  --brand-tint: #EFE3EC; --on-brand-muted: #E6D5E2; --owed: #3A7457; --you-owe: #A8441C; --hairline: #E9E0E6; --chip-border: #DCCFD8;
+  --on-dark-owed: #A9D9BD;
+  --ui: "Manrope", system-ui, -apple-system, "Segoe UI", sans-serif; --mono: "IBM Plex Mono", ui-monospace, monospace;
+}
+* { box-sizing: border-box; }
+body { margin: 0; font-family: var(--ui); color: var(--ink); background: var(--ground); -webkit-font-smoothing: antialiased; }
+.money { font-family: var(--mono); font-variant-numeric: tabular-nums; }
+a { color: var(--brand); }
+button, .btn { font: inherit; cursor: pointer; }
+.sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }

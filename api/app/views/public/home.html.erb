@@ -1,0 +1,199 @@
+<%
+  ios = ENV["APP_STORE_URL"].presence
+  android = ENV["PLAY_STORE_URL"].presence
+%>
+<% content_for :title, "Tabitat · Split rent, bills and groceries without the math" %>
+<% content_for :head do %>
+  <meta name="description" content="Tabitat keeps a running tab of rent, bills and every dinner run for couples and roommates, then tells each person exactly what to send. Free. Tabitat never touches your money.">
+  <link rel="canonical" href="<%= ENV.fetch('PUBLIC_URL', 'https://tabitat.app') %>/">
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="Tabitat">
+  <meta property="og:title" content="Tabitat · Stop texting “you owe me.”">
+  <meta property="og:description" content="A running tab for rent, bills and groceries. One number, already netted. Pay in the app you already use.">
+  <meta property="og:image" content="<%= ENV.fetch('PUBLIC_URL', 'https://tabitat.app') %>/site/og-v1.png">
+  <meta name="twitter:card" content="summary_large_image">
+<% end %>
+<% content_for :styles do %><style><%= raw File.read(Rails.root.join("app/assets/stylesheets/site.css")) %></style><% end %>
+
+<%= render "public/site_nav" %>
+
+<main id="main">
+<div class="container">
+
+  <section class="hero" id="get">
+    <div>
+      <div class="eyebrow">For couples and roommates · 2 to 5 people</div>
+      <h1 class="display">Stop texting<br>“you owe me.”</h1>
+      <p class="lede">Tabitat keeps a running tab of rent, bills and every dinner run, does the math, and tells each person exactly what to send. No spreadsheets. No calculator screenshots. No awkward reminders.</p>
+      <div class="stores">
+        <a class="store" href="<%= ios || '#get' %>"><%= render "public/ico", name: :phone, color: "#FFFFFF", size: 20 %><%= ios ? "Get it on iPhone" : "Coming soon to iPhone" %></a>
+        <a class="store alt" href="<%= android || '#get' %>"><%= render "public/ico", name: :phone, color: "var(--ink)", size: 20 %><%= android ? "Get it on Android" : "Coming soon to Android" %></a>
+      </div>
+      <div class="small-print">
+        <span><%= render "public/ico", name: :check, color: "var(--owed)", size: 16, weight: 2.6 %>Free</span>
+        <span><%= render "public/ico", name: :check, color: "var(--owed)", size: 16, weight: 2.6 %>No ads</span>
+        <span><%= render "public/ico", name: :check, color: "var(--owed)", size: 16, weight: 2.6 %>Never touches your money</span>
+      </div>
+    </div>
+    <div class="hero-art">
+      <div class="device back"><img src="/site/app-request-v1.webp" width="390" height="844" alt="A Tabitat payment request page showing the total, the breakdown, and a Pay button"></div>
+      <div class="device front"><img src="/site/app-home-v1.webp" width="390" height="844" alt="The Tabitat home screen showing one balance, Alex owes you $909.15, with a Request button"></div>
+      <div class="bubble one" aria-hidden="true"><%= render "public/ico", name: :check, color: "var(--owed)", size: 18, weight: 2.6 %>Alex paid $909.15</div>
+      <div class="bubble two" aria-hidden="true"><%= render "public/ico", name: :calendar, size: 18 %>Rent posted · your half $900</div>
+    </div>
+  </section>
+
+  <div class="pay-with">
+    <span>Pay each other the way you already do:</span>
+    <span class="chip">Venmo</span><span class="chip">Cash App</span><span class="chip">Zelle</span><span class="chip">Cash</span>
+  </div>
+
+  <section class="block center" id="how">
+    <div class="eyebrow">How it works</div>
+    <h2 class="h2">Log it in three taps. Tabitat does the math.</h2>
+    <p class="lede">Set it up once with the people you live with. After that, the tab keeps itself.</p>
+    <div class="steps">
+      <div class="step"><span class="num">01</span><h3>Set up your bills once</h3><p>Rent, electric, water, internet. Each one posts itself when it's due. When a bill changes every month, Tabitat asks whoever pays it to type the new amount.</p></div>
+      <div class="step"><span class="num">02</span><h3>Add the everyday stuff</h3><p>Groceries, takeout, a pizza for four. Type the amount, pick who paid, done. Everyone sees it right away, with their share already worked out.</p></div>
+      <div class="step"><span class="num">03</span><h3>Settle up anytime</h3><p>One number, already netted both ways. Send a request, they pay in the app they already use, someone confirms, and you're even.</p></div>
+    </div>
+  </section>
+
+  <section id="features">
+    <div class="show">
+      <div class="show-art"><div class="device"><img src="/site/app-settle-v1.webp" width="390" height="844" alt="Settle up screen: Alex owes you $909.15, with the expenses behind it"></div></div>
+      <div>
+        <div class="eyebrow">One number</div>
+        <h2 class="h2">Everything nets out. Nobody does subtraction.</h2>
+        <p class="lede">You covered rent, they covered dinner. Tabitat subtracts both ways and shows one amount, with every line behind it a tap away.</p>
+        <ul class="ticks">
+          <li><%= render "public/ico", name: :check, color: "var(--owed)", weight: 2.6 %><div><b>Fewest payments possible.</b> <span>With three or more people, Tabitat finds the shortest way for everyone to get square.</span></div></li>
+          <li><%= render "public/ico", name: :check, color: "var(--owed)", weight: 2.6 %><div><b>Any split you like.</b> <span>Even, by percentage, by exact amount, or by shares. Your usual split is saved.</span></div></li>
+          <li><%= render "public/ico", name: :check, color: "var(--owed)", weight: 2.6 %><div><b>Every change is kept.</b> <span>Edits and deletions are recorded with what changed, so nothing quietly disappears.</span></div></li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="show flip">
+      <div class="show-art"><div class="device"><img src="/site/app-bills-v1.webp" width="390" height="844" alt="Bills screen listing rent, electric and water, with the electric amount waiting to be entered"></div></div>
+      <div>
+        <div class="eyebrow">Recurring bills</div>
+        <h2 class="h2">Bills that post themselves.</h2>
+        <p class="lede">Rent goes on the tab on the 1st. When the electric bill arrives, whoever pays it types the amount once and Tabitat splits it for everyone.</p>
+        <ul class="ticks">
+          <li><%= render "public/ico", name: :check, color: "var(--owed)", weight: 2.6 %><div><b>Moving in or out mid-month?</b> <span>Bills split by the days each person actually lived there.</span></div></li>
+          <li><%= render "public/ico", name: :check, color: "var(--owed)", weight: 2.6 %><div><b>A gentle nudge</b> <span>if a bill's amount is still missing a few days after it usually arrives.</span></div></li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="show">
+      <div class="show-art"><div class="device"><img src="/site/app-request-v1.webp" width="390" height="844" alt="A payment request page with Venmo and Cash App buttons"></div></div>
+      <div>
+        <div class="eyebrow">Payment requests</div>
+        <h2 class="h2">A link instead of a lecture.</h2>
+        <p class="lede">Every request is a clean page with the total, the breakdown and a Pay button that opens Venmo or Cash App with the amount filled in. It works on any phone, even before your roommate downloads Tabitat.</p>
+        <ul class="ticks">
+          <li><%= render "public/ico", name: :check, color: "var(--owed)", weight: 2.6 %><div><b>Nudges, not nagging.</b> <span>Set a limit like $40 or 7 days and Tabitat sends the reminder, so nobody has to be the bad guy.</span></div></li>
+          <li><%= render "public/ico", name: :check, color: "var(--owed)", weight: 2.6 %><div><b>Paid means paid.</b> <span>One person marks it, the other confirms it arrived, and it's off the list for good.</span></div></li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="show flip">
+      <div class="show-art"><div class="device"><img src="/site/app-statement-v1.webp" width="390" height="844" alt="An October statement: Alex sends you $909.15, with a Download PDF button"></div></div>
+      <div>
+        <div class="eyebrow">Monthly statements</div>
+        <h2 class="h2">A clean record of every month.</h2>
+        <p class="lede">On your statement day Tabitat closes the month: what you spent together, who paid what, and exactly what clears it. Download it as a PDF for a move-out, a landlord or taxes.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="block center">
+    <div class="eyebrow">And the little things</div>
+    <h2 class="h2">Built for real homes.</h2>
+    <div class="grid">
+      <div class="tile"><div class="ico"><%= render "public/ico", name: :scan %></div><h3>Scan a receipt</h3><p>Point your camera at a receipt and the total fills itself in. The text is read on your phone, not on our servers.</p></div>
+      <div class="tile"><div class="ico"><%= render "public/ico", name: :split %></div><h3>Who had what</h3><p>Tap who had each item on a dinner bill. Tax and tip split in proportion, down to the cent.</p></div>
+      <div class="tile"><div class="ico"><%= render "public/ico", name: :people %></div><h3>Two of you or five</h3><p>Couples, roommates, a whole house. Choose who's in on each expense.</p></div>
+      <div class="tile"><div class="ico"><%= render "public/ico", name: :widget %></div><h3>Home screen widget</h3><p>Your balance at a glance on your home screen, on iPhone and Android.</p></div>
+      <div class="tile"><div class="ico"><%= render "public/ico", name: :lock %></div><h3>Face ID lock</h3><p>Keep your balances to yourself with Face ID or your passcode.</p></div>
+      <div class="tile"><div class="ico"><%= render "public/ico", name: :tablet %></div><h3>Phone, tablet, foldable</h3><p>Designed for iPhone, iPad and Android phones, tablets and foldables.</p></div>
+      <div class="tile"><div class="ico"><%= render "public/ico", name: :bell %></div><h3>Quiet hours</h3><p>Notifications wait until morning, and you choose which ones you get.</p></div>
+      <div class="tile"><div class="ico"><%= render "public/ico", name: :download %></div><h3>Your data, anytime</h3><p>Export a year as a spreadsheet, or everything about you as a file.</p></div>
+      <div class="tile"><div class="ico"><%= render "public/ico", name: :link %></div><h3>Invite with a link</h3><p>Add your roommates before they join. When they do, everything is already there.</p></div>
+    </div>
+  </section>
+
+  <section class="block" id="privacy">
+    <div class="trust">
+      <div class="eyebrow">Privacy and trust</div>
+      <h2 class="h2">Your money stays yours.</h2>
+      <div class="trust-grid">
+        <div><%= render "public/ico", name: :shield, color: "var(--on-dark-owed)", size: 28 %><h3>We never touch your money</h3><p>Tabitat tracks who owes what and opens the payment app you already use. No bank logins, no card numbers, no money passing through us.</p></div>
+        <div><%= render "public/ico", name: :receipt, color: "var(--on-dark-owed)", size: 28 %><h3>Receipts read on your phone</h3><p>Receipt scanning happens on your device. A photo is only uploaded if you choose to attach it.</p></div>
+        <div><%= render "public/ico", name: :trash, color: "var(--on-dark-owed)", size: 28 %><h3>Leave whenever you want</h3><p>Export your data or delete your account from Settings. No ads, and we don't sell your information.</p></div>
+      </div>
+      <p style="margin:28px 0 0"><a href="/privacy" style="color:#fff;font-weight:800">Read the privacy policy →</a></p>
+    </div>
+  </section>
+
+  <section class="block">
+    <div class="pricing">
+      <div>
+        <div class="eyebrow">Pricing</div>
+        <h2 class="h2">Free for your whole household.</h2>
+        <p class="muted" style="line-height:1.6;margin:0">Unlimited expenses, every day. No ads between screens. No caps that show up right when you need them.</p>
+      </div>
+      <div>
+        <div class="price">$0</div>
+        <ul style="margin-top:20px">
+          <li><%= render "public/ico", name: :check, color: "var(--owed)", weight: 2.6 %>Unlimited expenses and bills</li>
+          <li><%= render "public/ico", name: :check, color: "var(--owed)", weight: 2.6 %>Payment requests and reminders</li>
+          <li><%= render "public/ico", name: :check, color: "var(--owed)", weight: 2.6 %>Monthly statements and exports</li>
+          <li><%= render "public/ico", name: :check, color: "var(--owed)", weight: 2.6 %>Up to 5 people per home</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <section class="block" id="faq">
+    <div class="center"><div class="eyebrow">Questions</div><h2 class="h2">Good to know</h2></div>
+    <div class="faq">
+      <details><summary>Does Tabitat move my money?</summary><p>No. Tabitat keeps the tab and opens Venmo or Cash App with the amount filled in, or shows the Zelle details to use. Your money never passes through Tabitat, and Tabitat never asks for your bank or card details.</p></details>
+      <details><summary>Does my roommate need the app?</summary><p>Not to pay you. Requests open as a web page on any phone. You can add roommates before they join, and everything you've logged shows up for them when they do.</p></details>
+      <details><summary>What if we don't split everything 50/50?</summary><p>Split evenly, by percentage, by exact amounts or by shares, and choose who's in on each expense. For a dinner bill, tap who had each item and Tabitat splits tax and tip in proportion.</p></details>
+      <details><summary>How do bills that change every month work?</summary><p>Fixed bills like rent post themselves on the day they're due. For bills that change, like electric, Tabitat asks whoever pays it to type the amount when it arrives, then splits it for everyone.</p></details>
+      <details><summary>What if someone says they paid but didn't?</summary><p>A payment only counts once the person who received it confirms it. If something looks wrong, either of you can question a payment for 30 days.</p></details>
+      <details><summary>What happens when someone moves out?</summary><p>Bills split by the days each person lived there. Settle up before they go, and the history stays on everyone's statements.</p></details>
+      <details><summary>Is my information private?</summary><p>Only the people in your home see your shared expenses. Request links show first names and amounts only. We don't show ads or sell your data. <a href="/privacy">Read the privacy policy.</a></p></details>
+      <details><summary>Does it work on iPad and Android?</summary><p>Yes: iPhone, iPad, and Android phones, tablets and foldables.</p></details>
+    </div>
+  </section>
+
+  <section class="block">
+    <div class="final">
+      <h2 class="h2">Make money the easy part of living together.</h2>
+      <p>Set up your home in two minutes. Your roommates can join with a link.</p>
+      <div class="stores">
+        <a class="store" href="<%= ios || '#get' %>"><%= render "public/ico", name: :phone, color: "var(--ink)", size: 20 %><%= ios ? "Get it on iPhone" : "Coming soon to iPhone" %></a>
+        <a class="store alt" href="<%= android || '#get' %>"><%= render "public/ico", name: :phone, color: "#FFFFFF", size: 20 %><%= android ? "Get it on Android" : "Coming soon to Android" %></a>
+      </div>
+    </div>
+  </section>
+
+  <section class="block">
+    <div class="eyebrow">More from the creators of Tabitat</div>
+    <h2 class="h2">Apps for the people you live, eat and talk with.</h2>
+    <div class="family">
+      <div><b>Glofly</b><p>Chat, call and hang out with your friends, on your phone, your computer or the web.</p></div>
+      <div><b>ForkRoad</b><p>Every dinner is a fork in the road. Spin for a pick or vote with friends on where to eat.</p></div>
+      <div><b>petal</b><p>A brighter place for your people. Friends, photos and messages, with your feed in order and no ads.</p></div>
+    </div>
+  </section>
+
+</div>
+</main>
+
+<%= render "public/site_footer" %>

@@ -1,0 +1,6 @@
+User-agent: *
+Disallow: /r/
+Disallow: /i/
+Disallow: /v1/
+Disallow: /admin/
+Sitemap: https://tabitat.app/sitemap.xml

@@ -1,0 +1,21 @@
+service: tabitat-staging
+
+proxy:
+  ssl: true
+  hosts:
+    - staging.<%= ENV.fetch("TABITAT_DOMAIN") %>
+  healthcheck:
+    path: /up
+
+env:
+  clear:
+    DB_HOST: tabitat-staging-db
+    PUBLIC_URL: https://staging.<%= ENV.fetch("TABITAT_DOMAIN") %>
+    ALLOWED_HOSTS: staging.<%= ENV.fetch("TABITAT_DOMAIN") %>
+    MAIL_FROM: "Tabitat Staging <hello@<%= ENV.fetch("TABITAT_DOMAIN") %>>"
+    S3_BUCKET: <%= ENV.fetch("STAGING_BUCKET") %>
+
+accessories:
+  db:
+    directories:
+      - /data/tabitat-staging-db:/var/lib/postgresql/data

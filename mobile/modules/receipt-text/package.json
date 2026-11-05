@@ -1,0 +1,7 @@
+{
+  "name": "receipt-text",
+  "version": "1.0.0",
+  "private": true,
+  "description": "On-device receipt text recognition (Apple Vision / Google ML Kit). No image leaves the phone.",
+  "main": "src/index.ts"
+}

@@ -1,0 +1,16 @@
+plugins {
+  id 'com.android.library'
+  id 'expo-module-gradle-plugin'
+}
+
+group = 'app.tabitat.receipttext'
+version = '1.0.0'
+
+android {
+  namespace "app.tabitat.receipttext"
+}
+
+dependencies {
+  // Bundled model: works offline, nothing leaves the phone.
+  implementation 'com.google.mlkit:text-recognition:16.0.1'
+}

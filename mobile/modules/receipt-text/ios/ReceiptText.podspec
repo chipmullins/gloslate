@@ -1,0 +1,14 @@
+Pod::Spec.new do |s|
+  s.name           = 'ReceiptText'
+  s.version        = '1.0.0'
+  s.summary        = 'On-device receipt text recognition with Apple Vision'
+  s.author         = 'HarborWorks'
+  s.homepage       = 'https://tabitat.app'
+  s.license        = { :type => 'Proprietary' }
+  s.platforms      = { :ios => '15.1' }
+  s.source         = { :git => '' }
+  s.static_framework = true
+  s.dependency 'ExpoModulesCore'
+  s.frameworks     = 'Vision'
+  s.source_files   = '**/*.swift'
+end
