@@ -1,6 +1,6 @@
-# Admin API (for HomeTab Control / HarborWorks Control)
+# Admin API (for Tabitat Control / HarborWorks Control)
 
-Built from day one so a staff console can connect later. Today there is no console; the API is the contract. It is designed so a future **HarborWorks Control** can front both Glofly and HomeTab with the same patterns.
+Built from day one so a staff console can connect later. Today there is no console; the API is the contract. It is designed so a future **HarborWorks Control** can front both Glofly and Tabitat with the same patterns.
 
 ## Status
 
@@ -10,7 +10,7 @@ Create the first admin on the server: `bin/rails staff:create EMAIL=you@example.
 
 ## Principles
 
-- **Separate realm.** Staff are `staff_users`, not app `users`. Separate tokens, separate routes (`/admin/v1/*`), separate host in production (`admin-api.hometab.app`), never reachable from the mobile app's auth.
+- **Separate realm.** Staff are `staff_users`, not app `users`. Separate tokens, separate routes (`/admin/v1/*`), separate host in production (`admin-api.tabitat.app`), never reachable from the mobile app's auth.
 - **Strong sign-in.** Staff sign in with email + password **and** TOTP (2-step) required. Staff sessions last 12 hours, then sign in again; all revocable. Accounts lock after 10 wrong passwords.
 - **Roles.** `viewer` (read-only, money amounts visible, contact details masked), `support` (account actions), `admin` (everything incl. staff management). Enforced per endpoint.
 - **Everything audited.** Every staff request that reads personal data or changes anything writes an `admin_audit_events` row: staff id, action, target, params (redacted), reason, IP, user agent. Account actions require a `reason` string.
@@ -18,7 +18,7 @@ Create the first admin on the server: `bin/rails staff:create EMAIL=you@example.
 
 ## About "reset password"
 
-HomeTab users have **no passwords** (sign-in is email/phone code, Apple, Google). The support equivalents are:
+Tabitat users have **no passwords** (sign-in is email/phone code, Apple, Google). The support equivalents are:
 
 | Need | Endpoint |
 | --- | --- |

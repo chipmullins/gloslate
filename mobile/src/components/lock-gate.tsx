@@ -15,7 +15,7 @@ export function LockGate({ enabled, children }: { enabled: boolean; children: Re
   const backgroundedAt = useRef<number | null>(null);
 
   const unlock = useCallback(async () => {
-    const res = await LocalAuthentication.authenticateAsync({ promptMessage: 'Unlock HomeTab', fallbackLabel: 'Use passcode' });
+    const res = await LocalAuthentication.authenticateAsync({ promptMessage: 'Unlock Tabitat', fallbackLabel: 'Use passcode' });
     if (res.success) setLocked(false);
   }, []);
 
@@ -38,7 +38,7 @@ export function LockGate({ enabled, children }: { enabled: boolean; children: Re
       {locked ? (
         <View accessibilityViewIsModal style={{ position: 'absolute', inset: 0, backgroundColor: HT.color.ground, alignItems: 'center', justifyContent: 'center', gap: 18, padding: 24 }}>
           <HouseMark size={72} />
-          <T v="title">HomeTab is locked</T>
+          <T v="title">Tabitat is locked</T>
           <Button title="Unlock" onPress={unlock} style={{ alignSelf: 'stretch', maxWidth: 360, width: '100%' }} />
         </View>
       ) : null}

@@ -34,8 +34,8 @@ export function ToastHost({ bottom = 96 }: { bottom?: number }) {
         <T v="strong" style={{ color: '#FFFFFF', flexShrink: 1 }} numberOfLines={2}>{msg.text}</T>
         {msg.action ? (
           <Pressable accessibilityRole="button" onPress={() => { msg.action?.run(); setMsg(null); }}
-            style={{ minHeight: 44, paddingHorizontal: 14, justifyContent: 'center', borderRadius: 12, backgroundColor: '#2A3830' }}>
-            <T v="strong" style={{ color: '#7FD3A8' }}>{msg.action.label}</T>
+            style={{ minHeight: 44, paddingHorizontal: 14, justifyContent: 'center', borderRadius: 12, backgroundColor: HT.color.onDarkButton }}>
+            <T v="strong" style={{ color: HT.color.onDarkOwed }}>{msg.action.label}</T>
           </Pressable>
         ) : null}
       </View>

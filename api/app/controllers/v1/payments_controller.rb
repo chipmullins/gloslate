@@ -37,7 +37,7 @@ module V1
       amount = params[:amount_cents].present? ? Integer(params[:amount_cents].to_s) : -owed
       raise Hometab::Error, "You don't owe #{to.first_name} anything right now" unless amount.positive?
 
-      render json: { data: Payments::PayLinks.call(to:, amount_cents: amount, memo: "HomeTab · #{@household.name}") }
+      render json: { data: Payments::PayLinks.call(to:, amount_cents: amount, memo: "Tabitat · #{@household.name}") }
     end
 
     def show

@@ -59,7 +59,7 @@ module Bills
 
     def ask_for_amount(cycle)
       Notifications::Notify.call(member: cycle.bill.payer, kind: "bill_amount_needed",
-                                 title: "#{cycle.bill.name} bill in?", body: "Enter the amount and HomeTab splits it.",
+                                 title: "#{cycle.bill.name} bill in?", body: "Enter the amount and Tabitat splits it.",
                                  route: "/bill-amount/#{cycle.id}")
     end
   end

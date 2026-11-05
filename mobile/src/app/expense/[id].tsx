@@ -31,7 +31,7 @@ export default function ExpenseDetail() {
   const members = home?.members ?? [];
   const nameOf = (mid: string | null) => {
     const m = members.find((x) => x.id === mid);
-    return m ? (m.you ? 'You' : m.first_name) : mid ? 'Former member' : 'HomeTab';
+    return m ? (m.you ? 'You' : m.first_name) : mid ? 'Former member' : 'Tabitat';
   };
   const indexOf = (mid: string) => Math.max(0, members.findIndex((x) => x.id === mid));
   const initialOf = (mid: string | null) => members.find((x) => x.id === mid)?.first_name ?? '?';
@@ -74,7 +74,7 @@ export default function ExpenseDetail() {
       <T v="strong">{title}</T>
       <T v="small">{nameOf(e.payer_id)} paid · {SPLIT_LABEL[e.split_kind]}</T>
       {e.effect_for_me_cents !== 0 ? (
-        <View style={{ marginTop: 8, backgroundColor: e.effect_for_me_cents > 0 ? HT.color.brandTint : '#FBEBDD', borderRadius: 12, paddingHorizontal: 12, paddingVertical: 6 }}>
+        <View style={{ marginTop: 8, backgroundColor: e.effect_for_me_cents > 0 ? HT.color.owedTint : '#FBEBDD', borderRadius: 12, paddingHorizontal: 12, paddingVertical: 6 }}>
           <T v="strong" style={{ color: e.effect_for_me_cents > 0 ? HT.color.owedToYou : HT.color.youOwe, fontSize: 14 }}>
             {e.effect_for_me_cents > 0 ? `You're owed ${formatCents(e.effect_for_me_cents)} for this` : `Your share: ${formatCents(-e.effect_for_me_cents)}`}
           </T>

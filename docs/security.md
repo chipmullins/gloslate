@@ -1,8 +1,8 @@
-# HomeTab security notes
+# Tabitat security notes
 
 ## Model
 
-- **No money movement.** HomeTab records and links out. Payments are *marked* by one person and *confirmed* by the other.
+- **No money movement.** Tabitat records and links out. Payments are *marked* by one person and *confirmed* by the other.
 - **Two auth realms.** App users: opaque bearer tokens (`Session`, SHA-256 digest stored, revocable, expire after 180 idle days). Staff: scrypt password + required TOTP, 12-hour sessions, separate tables and routes (`/admin/v1`). Neither token works in the other realm.
 - **Sign-in codes:** 6 digits, keyed HMAC digest, 10-minute life, 5 attempts counted atomically, consumed once (`SignInCode.redeem!`), never logged.
 - **ID tokens (Apple/Google, later Glofly):** RS256 only, `kid` match, signature, `iss`, `aud`, `exp`, `nbf`, `iat` (`lib/hometab/oidc.rb`).

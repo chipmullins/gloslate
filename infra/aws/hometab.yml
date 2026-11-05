@@ -1,8 +1,8 @@
 AWSTemplateFormatVersion: "2010-09-09"
 Description: >-
-  HomeTab (lean): one small server running staging and production with Kamal,
+  Tabitat (lean): one small server running staging and production with Kamal,
   Postgres on a separate data disk, nightly backups to S3, files in S3, email
-  via SES. Its own network; touches nothing else in the account. Stack name: hometab-infra.
+  via SES. Its own network; touches nothing else in the account. Stack name: tabitat-infra.
 
 Parameters:
   ImageId:
@@ -21,7 +21,7 @@ Parameters:
   Domain:
     Type: String
     Default: ""
-    Description: e.g. hometab.app. Leave empty until the domain exists; email setup waits for it.
+    Description: e.g. tabitat.app. Leave empty until the domain exists; email setup waits for it.
   AlertEmail:
     Type: String
     Default: ""
@@ -35,18 +35,18 @@ Conditions:
   HasAlertEmail: !Not [!Equals [!Ref AlertEmail, ""]]
 
 Resources:
-  # ---- Network (HomeTab's own; no NAT gateway, so no fixed cost) ----
+  # ---- Network (Tabitat's own; no NAT gateway, so no fixed cost) ----
   Vpc:
     Type: AWS::EC2::VPC
     Properties:
       CidrBlock: 10.42.0.0/16
       EnableDnsSupport: true
       EnableDnsHostnames: true
-      Tags: [{ Key: Name, Value: hometab }, { Key: Project, Value: hometab }]
+      Tags: [{ Key: Name, Value: tabitat }, { Key: Project, Value: tabitat }]
   InternetGateway:
     Type: AWS::EC2::InternetGateway
     Properties:
-      Tags: [{ Key: Name, Value: hometab }, { Key: Project, Value: hometab }]
+      Tags: [{ Key: Name, Value: tabitat }, { Key: Project, Value: tabitat }]
   GatewayAttachment:
     Type: AWS::EC2::VPCGatewayAttachment
     Properties: { VpcId: !Ref Vpc, InternetGatewayId: !Ref InternetGateway }
@@ -56,12 +56,12 @@ Resources:
       VpcId: !Ref Vpc
       CidrBlock: 10.42.1.0/24
       AvailabilityZone: !Select [0, !GetAZs ""]
-      Tags: [{ Key: Name, Value: hometab-public }, { Key: Project, Value: hometab }]
+      Tags: [{ Key: Name, Value: tabitat-public }, { Key: Project, Value: tabitat }]
   RouteTable:
     Type: AWS::EC2::RouteTable
     Properties:
       VpcId: !Ref Vpc
-      Tags: [{ Key: Name, Value: hometab }, { Key: Project, Value: hometab }]
+      Tags: [{ Key: Name, Value: tabitat }, { Key: Project, Value: tabitat }]
   DefaultRoute:
     Type: AWS::EC2::Route
     DependsOn: GatewayAttachment
@@ -74,15 +74,15 @@ Resources:
   WebSecurityGroup:
     Type: AWS::EC2::SecurityGroup
     Properties:
-      GroupName: hometab-web
-      GroupDescription: HomeTab web (80/443). SSH opened only during deploys.
+      GroupName: tabitat-web
+      GroupDescription: Tabitat web (80/443). SSH opened only during deploys.
       VpcId: !Ref Vpc
       SecurityGroupIngress:
         - { IpProtocol: tcp, FromPort: 80, ToPort: 80, CidrIp: 0.0.0.0/0 }
         - { IpProtocol: tcp, FromPort: 443, ToPort: 443, CidrIp: 0.0.0.0/0 }
         - { IpProtocol: tcp, FromPort: 80, ToPort: 80, CidrIpv6: "::/0" }
         - { IpProtocol: tcp, FromPort: 443, ToPort: 443, CidrIpv6: "::/0" }
-      Tags: [{ Key: Name, Value: hometab-web }, { Key: Project, Value: hometab }]
+      Tags: [{ Key: Name, Value: tabitat-web }, { Key: Project, Value: tabitat }]
 
   # ---- Storage ----
   FilesBucketStaging:
@@ -90,46 +90,46 @@ Resources:
     DeletionPolicy: Retain
     UpdateReplacePolicy: Retain
     Properties:
-      BucketName: !Sub hometab-staging-files-${AWS::AccountId}
+      BucketName: !Sub tabitat-staging-files-${AWS::AccountId}
       PublicAccessBlockConfiguration: { BlockPublicAcls: true, BlockPublicPolicy: true, IgnorePublicAcls: true, RestrictPublicBuckets: true }
       BucketEncryption: { ServerSideEncryptionConfiguration: [{ ServerSideEncryptionByDefault: { SSEAlgorithm: AES256 } }] }
       OwnershipControls: { Rules: [{ ObjectOwnership: BucketOwnerEnforced }] }
-      Tags: [{ Key: Project, Value: hometab }]
+      Tags: [{ Key: Project, Value: tabitat }]
   FilesBucketProduction:
     Type: AWS::S3::Bucket
     DeletionPolicy: Retain
     UpdateReplacePolicy: Retain
     Properties:
-      BucketName: !Sub hometab-production-files-${AWS::AccountId}
+      BucketName: !Sub tabitat-production-files-${AWS::AccountId}
       PublicAccessBlockConfiguration: { BlockPublicAcls: true, BlockPublicPolicy: true, IgnorePublicAcls: true, RestrictPublicBuckets: true }
       BucketEncryption: { ServerSideEncryptionConfiguration: [{ ServerSideEncryptionByDefault: { SSEAlgorithm: AES256 } }] }
       OwnershipControls: { Rules: [{ ObjectOwnership: BucketOwnerEnforced }] }
       VersioningConfiguration: { Status: Enabled }
-      Tags: [{ Key: Project, Value: hometab }]
+      Tags: [{ Key: Project, Value: tabitat }]
   BackupsBucket:
     Type: AWS::S3::Bucket
     DeletionPolicy: Retain
     UpdateReplacePolicy: Retain
     Properties:
-      BucketName: !Sub hometab-backups-${AWS::AccountId}
+      BucketName: !Sub tabitat-backups-${AWS::AccountId}
       PublicAccessBlockConfiguration: { BlockPublicAcls: true, BlockPublicPolicy: true, IgnorePublicAcls: true, RestrictPublicBuckets: true }
       BucketEncryption: { ServerSideEncryptionConfiguration: [{ ServerSideEncryptionByDefault: { SSEAlgorithm: AES256 } }] }
       OwnershipControls: { Rules: [{ ObjectOwnership: BucketOwnerEnforced }] }
       LifecycleConfiguration:
         Rules: [{ Id: keep-35-days, Status: Enabled, ExpirationInDays: 35 }]
-      Tags: [{ Key: Project, Value: hometab }]
+      Tags: [{ Key: Project, Value: tabitat }]
 
   # ---- Server ----
   ServerRole:
     Type: AWS::IAM::Role
     Properties:
-      RoleName: hometab-server
-      Tags: [{ Key: Project, Value: hometab }]
+      RoleName: tabitat-server
+      Tags: [{ Key: Project, Value: tabitat }]
       AssumeRolePolicyDocument:
         Version: "2012-10-17"
         Statement: [{ Effect: Allow, Principal: { Service: ec2.amazonaws.com }, Action: sts:AssumeRole }]
       Policies:
-        - PolicyName: hometab-server
+        - PolicyName: tabitat-server
           PolicyDocument:
             Version: "2012-10-17"
             Statement:
@@ -157,7 +157,7 @@ Resources:
                 NotResource: arn:aws:sns:*:*:*
   ServerProfile:
     Type: AWS::IAM::InstanceProfile
-    Properties: { InstanceProfileName: hometab-server, Roles: [!Ref ServerRole] }
+    Properties: { InstanceProfileName: tabitat-server, Roles: [!Ref ServerRole] }
 
   DataVolume:
     Type: AWS::EC2::Volume
@@ -168,7 +168,7 @@ Resources:
       Size: !Ref DataVolumeGiB
       VolumeType: gp3
       Encrypted: true
-      Tags: [{ Key: Name, Value: hometab-data }, { Key: Project, Value: hometab }]
+      Tags: [{ Key: Name, Value: tabitat-data }, { Key: Project, Value: tabitat }]
 
   Server:
     Type: AWS::EC2::Instance
@@ -183,7 +183,7 @@ Resources:
       BlockDeviceMappings:
         - DeviceName: /dev/sda1
           Ebs: { VolumeSize: 16, VolumeType: gp3, Encrypted: true }
-      Tags: [{ Key: Name, Value: hometab }, { Key: Project, Value: hometab }]
+      Tags: [{ Key: Name, Value: tabitat }, { Key: Project, Value: tabitat }]
       UserData:
         Fn::Base64: !Sub
           - |
@@ -212,23 +212,23 @@ Resources:
             # Database disk: wait for it to attach, format only if new, mount at /data.
             DEV=/dev/disk/by-id/nvme-Amazon_Elastic_Block_Store_${VolNoDash}
             for i in $(seq 1 60); do [ -e "$DEV" ] && break; sleep 5; done
-            blkid "$DEV" || mkfs.ext4 -q -L hometab-data "$DEV"
+            blkid "$DEV" || mkfs.ext4 -q -L tabitat-data "$DEV"
             mkdir -p /data
-            grep -q hometab-data /etc/fstab || echo 'LABEL=hometab-data /data ext4 defaults,nofail 0 2' >> /etc/fstab
+            grep -q tabitat-data /etc/fstab || echo 'LABEL=tabitat-data /data ext4 defaults,nofail 0 2' >> /etc/fstab
             mount -a
             chown ubuntu:ubuntu /data
 
             # Nightly database backups to S3 (03:15 UTC), kept 35 days.
-            cat > /usr/local/bin/hometab-backup <<'EOS'
+            cat > /usr/local/bin/tabitat-backup <<'EOS'
             #!/bin/bash
             set -euo pipefail
-            for c in $(docker ps --format '{{.Names}}' | grep -E '^hometab-(staging|production)-db$'); do
-              docker exec "$c" pg_dumpall -U hometab | gzip | \
+            for c in $(docker ps --format '{{.Names}}' | grep -E '^tabitat-(staging|production)-db$'); do
+              docker exec "$c" pg_dumpall -U tabitat | gzip | \
                 /snap/bin/aws s3 cp - "s3://${Bucket}/$c/$(date -u +%Y-%m-%dT%H%M).sql.gz" --only-show-errors
             done
             EOS
-            chmod 755 /usr/local/bin/hometab-backup
-            echo '15 3 * * * root /usr/local/bin/hometab-backup >> /var/log/hometab-backup.log 2>&1' > /etc/cron.d/hometab-backup
+            chmod 755 /usr/local/bin/tabitat-backup
+            echo '15 3 * * * root /usr/local/bin/tabitat-backup >> /var/log/tabitat-backup.log 2>&1' > /etc/cron.d/tabitat-backup
           - VolNoDash: !Join ["", !Split ["-", !Ref DataVolume]]
             Bucket: !Ref BackupsBucket
 
@@ -241,7 +241,7 @@ Resources:
     Properties:
       Domain: vpc
       InstanceId: !Ref Server
-      Tags: [{ Key: Name, Value: hometab }, { Key: Project, Value: hometab }]
+      Tags: [{ Key: Name, Value: tabitat }, { Key: Project, Value: tabitat }]
 
   # ---- Email (once the domain exists): add the DKIM records it lists ----
   EmailIdentity:
@@ -256,15 +256,15 @@ Resources:
     Type: AWS::SNS::Topic
     Condition: HasAlertEmail
     Properties:
-      TopicName: hometab-alerts
+      TopicName: tabitat-alerts
       Subscription: [{ Protocol: email, Endpoint: !Ref AlertEmail }]
-      Tags: [{ Key: Project, Value: hometab }]
+      Tags: [{ Key: Project, Value: tabitat }]
   ServerDownAlarm:
     Type: AWS::CloudWatch::Alarm
     Condition: HasAlertEmail
     Properties:
-      AlarmName: hometab-server-down
-      AlarmDescription: HomeTab's server failed its health checks.
+      AlarmName: tabitat-server-down
+      AlarmDescription: Tabitat's server failed its health checks.
       Namespace: AWS/EC2
       MetricName: StatusCheckFailed
       Dimensions: [{ Name: InstanceId, Value: !Ref Server }]
@@ -279,11 +279,11 @@ Resources:
     Condition: HasAlertEmail
     Properties:
       Budget:
-        BudgetName: hometab-monthly
+        BudgetName: tabitat-monthly
         BudgetType: COST
         TimeUnit: MONTHLY
         BudgetLimit: { Amount: !Ref MonthlyBudgetUsd, Unit: USD }
-        CostFilters: { TagKeyValue: ["user:Project$hometab"] }
+        CostFilters: { TagKeyValue: ["user:Project$tabitat"] }
       NotificationsWithSubscribers:
         - Notification: { NotificationType: FORECASTED, ComparisonOperator: GREATER_THAN, Threshold: 100 }
           Subscribers: [{ SubscriptionType: EMAIL, Address: !Ref AlertEmail }]

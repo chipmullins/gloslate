@@ -136,7 +136,7 @@ export default function You() {
       </Section>
 
       <Section title="Reminders">
-        <Toggle label="Let HomeTab nudge people for you" hint="So nobody has to be the bad guy" value={me.auto_remind ?? true} onChange={(v) => patchMember(me.id, { auto_remind: v })} />
+        <Toggle label="Let Tabitat nudge people for you" hint="So nobody has to be the bad guy" value={me.auto_remind ?? true} onChange={(v) => patchMember(me.id, { auto_remind: v })} />
         {me.auto_remind !== false ? (
           <>
             <Field label="When someone owes you at least" value={threshold} onChangeText={setThreshold} keyboardType="decimal-pad"
@@ -178,10 +178,10 @@ export default function You() {
 
       {biometrics ? (
         <Section title="Security">
-          <Toggle label="Lock with Face ID" hint="Asks when you open HomeTab" value={user.face_id_lock}
+          <Toggle label="Lock with Face ID" hint="Asks when you open Tabitat" value={user.face_id_lock}
             onChange={async (v) => {
               const ok = v ? (await LocalAuthentication.authenticateAsync({ promptMessage: 'Turn on Face ID lock' })).success : true;
-              if (ok) patchMe({ face_id_lock: v }, v ? 'HomeTab will ask for Face ID' : 'Face ID lock off');
+              if (ok) patchMe({ face_id_lock: v }, v ? 'Tabitat will ask for Face ID' : 'Face ID lock off');
             }} />
         </Section>
       ) : null}
@@ -210,9 +210,9 @@ export default function You() {
 
       <Section title="Account">
         <Button title="Export my data" kind="secondary" icon={<DownloadIcon size={18} />}
-          onPress={() => downloadAndShare('/v1/me/export', 'hometab-my-data.json', 'application/json').catch(() => setError("Couldn't export."))} />
+          onPress={() => downloadAndShare('/v1/me/export', 'tabitat-my-data.json', 'application/json').catch(() => setError("Couldn't export."))} />
         <Button title="Export this year (CSV)" kind="secondary" icon={<DownloadIcon size={18} />}
-          onPress={() => downloadAndShare(`/v1/households/${id}/export?year=${new Date().getFullYear()}`, `HomeTab-${new Date().getFullYear()}.csv`, 'text/csv').catch(() => setError("Couldn't export."))} />
+          onPress={() => downloadAndShare(`/v1/households/${id}/export?year=${new Date().getFullYear()}`, `Tabitat-${new Date().getFullYear()}.csv`, 'text/csv').catch(() => setError("Couldn't export."))} />
         <Button title="Sign out" kind="secondary" onPress={async () => { await signOut(); router.replace('/welcome'); }} />
         <Button title="Leave this home" kind="link" onPress={() => removeMember({ ...me, first_name: 'You' } as Member)} />
         <Button title="Delete my account" kind="link" onPress={deleteAccount} />
@@ -234,7 +234,7 @@ export default function You() {
           ) : (
             <>{left}{right}</>
           )}
-          <T v="small" style={{ textAlign: 'center' }}>HomeTab by Glofly · HomeTab never holds or moves money.</T>
+          <T v="small" style={{ textAlign: 'center' }}>Tabitat by Glofly · Tabitat never holds or moves money.</T>
         </View>
       </ScrollView>
     </SafeAreaView>

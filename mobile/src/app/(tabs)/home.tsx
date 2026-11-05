@@ -120,7 +120,7 @@ export default function Home() {
         <T v="strong" style={{ color: HT.color.darkCardMuted, fontSize: 14 }}>{headline}</T>
         <Money cents={Math.abs(net)} size={wide ? 56 : 48} color="#FFFFFF" />
         <T v="small" style={{ color: HT.color.darkCardMuted, textAlign: 'center' }}>
-          {net === 0 ? 'Nothing owed either way. Log the next expense and HomeTab does the math.' : 'Everything netted out, already subtracted both ways'}
+          {net === 0 ? 'Nothing owed either way. Log the next expense and Tabitat does the math.' : 'Everything netted out, already subtracted both ways'}
         </T>
       </Pressable>
       {couple && partner && net > 0 ? (
@@ -132,7 +132,7 @@ export default function Home() {
           onPress={() => router.push(`/settle/${partner.id}` as Href)} />
       ) : null}
       {!couple && home.balance.with.length > 0 ? (
-        <View style={{ alignSelf: 'stretch', marginTop: 10, borderTopWidth: 1, borderTopColor: '#2A3830', paddingTop: 4 }}>
+        <View style={{ alignSelf: 'stretch', marginTop: 10, borderTopWidth: 1, borderTopColor: HT.color.onDarkButton, paddingTop: 4 }}>
           {home.balance.with.map((w) => {
             const m = byId.get(w.member_id);
             if (!m) return null;
@@ -141,7 +141,7 @@ export default function Home() {
                 style={({ pressed }) => ({ flexDirection: 'row', alignItems: 'center', gap: 10, minHeight: 52, opacity: pressed ? 0.7 : 1 })}>
                 <Avatar name={m.first_name} index={m.index} size={32} />
                 <T v="strong" style={{ color: '#FFFFFF', flex: 1 }}>{w.cents > 0 ? `${m.first_name} owes you` : `You owe ${m.first_name}`}</T>
-                <Money cents={Math.abs(w.cents)} color={w.cents > 0 ? '#7FD3A8' : '#F2A66B'} />
+                <Money cents={Math.abs(w.cents)} color={w.cents > 0 ? HT.color.onDarkOwed : HT.color.onDarkOwe} />
                 <ChevronIcon size={16} color={HT.color.darkCardMuted} />
               </Pressable>
             );
@@ -218,7 +218,7 @@ export default function Home() {
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10, flexShrink: 1 }}>
               <HouseMark size={34} />
               <View style={{ flexShrink: 1 }}>
-                <T v="title" style={{ fontSize: 19, lineHeight: 23 }} accessibilityRole="header">HomeTab</T>
+                <T v="title" style={{ fontSize: 19, lineHeight: 23 }} accessibilityRole="header">Tabitat</T>
                 <T v="small" numberOfLines={1}>{names(home.members)}</T>
               </View>
             </View>

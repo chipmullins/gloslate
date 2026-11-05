@@ -94,7 +94,7 @@ export default function StatementScreen() {
 
   const exportBtn = (
     <Button title="Download PDF" kind="secondary" icon={<DownloadIcon size={18} />}
-      onPress={() => downloadAndShare(`/v1/statements/${s.id}.pdf`, `HomeTab-${s.period_start.slice(0, 7)}.pdf`, 'application/pdf').catch(() => setError("Couldn't download the PDF."))} />
+      onPress={() => downloadAndShare(`/v1/statements/${s.id}.pdf`, `Tabitat-${s.period_start.slice(0, 7)}.pdf`, 'application/pdf').catch(() => setError("Couldn't download the PDF."))} />
   );
 
   return (

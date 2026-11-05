@@ -3,7 +3,7 @@ Pod::Spec.new do |s|
   s.version        = '1.0.0'
   s.summary        = 'On-device receipt text recognition with Apple Vision'
   s.author         = 'HarborWorks'
-  s.homepage       = 'https://hometab.app'
+  s.homepage       = 'https://tabitat.app'
   s.license        = { :type => 'Proprietary' }
   s.platforms      = { :ios => '15.1' }
   s.source         = { :git => '' }

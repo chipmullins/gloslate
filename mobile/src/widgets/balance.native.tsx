@@ -15,28 +15,28 @@ const BalanceWidget = createWidget<BalanceWidgetProps>(
   'BalanceWidget',
   (props: BalanceWidgetProps, env: WidgetEnvironment) => {
     'widget';
-    const color = props.tone === 'owed' ? '#1C6A4C' : props.tone === 'owe' ? '#B0440C' : '#15201A';
+    const color = props.tone === 'owed' ? '#3A7457' : props.tone === 'owe' ? '#A8441C' : '#241A23';
     const number = (
       <VStack alignment="leading" spacing={4}>
-        <Text modifiers={[font({ size: 13, weight: 'semibold' }), foregroundStyle('#56625B')]}>{props.headline}</Text>
+        <Text modifiers={[font({ size: 13, weight: 'semibold' }), foregroundStyle('#685A66')]}>{props.headline}</Text>
         <Text modifiers={[font({ size: 30, weight: 'semibold', design: 'monospaced' }), monospacedDigit(), minimumScaleFactor(0.5), foregroundStyle(color)]}>{props.amount}</Text>
-        <Text modifiers={[font({ size: 11, weight: 'medium' }), foregroundStyle('#56625B')]}>{props.home}</Text>
+        <Text modifiers={[font({ size: 11, weight: 'medium' }), foregroundStyle('#685A66')]}>{props.home}</Text>
       </VStack>
     );
     if (env.widgetFamily === 'systemMedium') {
       return (
-        <HStack modifiers={[containerBackground('#F3F4EF', 'widget'), padding({ all: 4 }), widgetURL('hometab://home')]}>
+        <HStack modifiers={[containerBackground('#F6F2F4', 'widget'), padding({ all: 4 }), widgetURL('tabitat://home')]}>
           {number}
           <Spacer />
-          <Button target="add" modifiers={[widgetURL('hometab://add')]}>
+          <Button target="add" modifiers={[widgetURL('tabitat://add')]}>
             <Text modifiers={[font({ size: 16, weight: 'heavy' }), foregroundStyle('#FFFFFF')]}>+ Add</Text>
           </Button>
         </HStack>
       );
     }
-    return <VStack alignment="leading" modifiers={[containerBackground('#F3F4EF', 'widget'), widgetURL('hometab://home')]}>{number}<Spacer /></VStack>;
+    return <VStack alignment="leading" modifiers={[containerBackground('#F6F2F4', 'widget'), widgetURL('tabitat://home')]}>{number}<Spacer /></VStack>;
   },
-  { headline: 'Open HomeTab', amount: '$0.00', home: '', tone: 'even' },
+  { headline: 'Open Tabitat', amount: '$0.00', home: '', tone: 'even' },
 );
 
 export function updateBalanceWidget(home: Household) {

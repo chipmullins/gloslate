@@ -2,7 +2,7 @@ import * as SecureStore from 'expo-secure-store';
 import { Platform } from 'react-native';
 
 const BASE = process.env.EXPO_PUBLIC_API_URL ?? 'http://localhost:3000';
-const TOKEN_KEY = 'hometab.session';
+const TOKEN_KEY = 'tabitat.session';
 
 export class ApiError extends Error {
   constructor(public status: number, message: string) {
@@ -44,7 +44,7 @@ export async function api<T = unknown>(
       body: init.body ? JSON.stringify(init.body) : undefined,
     });
   } catch {
-    throw new ApiError(0, "Can't reach HomeTab. Check your connection.");
+    throw new ApiError(0, "Can't reach Tabitat. Check your connection.");
   }
   if (res.status === 204) return undefined as T;
   const data = await res.json().catch(() => ({}));

@@ -59,7 +59,7 @@ export function Money({ cents, size = 15, color = HT.color.ink, sign, style }: {
 // ---------- Layout ----------
 
 /**
- * Safe-area screen with the HomeTab ground. Content is centered and capped so
+ * Safe-area screen with the Tabitat ground. Content is centered and capped so
  * it never stretches edge-to-edge on iPad / tablets / unfolded foldables.
  */
 export function Screen({ children, scroll = true, maxWidth = HT.maxWidth.content, footer, background = HT.color.ground }: {

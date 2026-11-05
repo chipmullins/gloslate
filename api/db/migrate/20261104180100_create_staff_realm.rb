@@ -1,4 +1,4 @@
-# Separate auth realm for HomeTab Control / HarborWorks Control.
+# Separate auth realm for Tabitat Control / HarborWorks Control.
 class CreateStaffRealm < ActiveRecord::Migration[8.1]
   def change
     create_table :staff_users, id: :uuid do |t|

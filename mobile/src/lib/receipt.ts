@@ -42,7 +42,7 @@ export type AssignedItem = ReceiptLine & { memberIds: string[] };
 /**
  * Exact split for an itemized receipt. Each item splits equally among the
  * people on it; tax and tip split in proportion to what each person ordered.
- * Leftover cents go to the payer (same rule as every HomeTab split).
+ * Leftover cents go to the payer (same rule as every Tabitat split).
  */
 export function itemize(items: AssignedItem[], taxCents: number, tipCents: number, payerId: string): Record<string, number> {
   const base: Record<string, number> = {};

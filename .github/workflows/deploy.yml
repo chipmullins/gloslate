@@ -26,7 +26,7 @@ concurrency:
 
 env:
   AWS_REGION: us-east-1
-  STACK: hometab-infra
+  STACK: tabitat-infra
 
 jobs:
   infra:
@@ -48,23 +48,23 @@ jobs:
         run: |
           put() { # name type value
             aws ssm get-parameter --name "$1" >/dev/null 2>&1 || \
-              aws ssm put-parameter --name "$1" --type "$2" --value "$3" --tags Key=Project,Value=hometab >/dev/null
+              aws ssm put-parameter --name "$1" --type "$2" --value "$3" --tags Key=Project,Value=tabitat >/dev/null
           }
-          if ! aws ssm get-parameter --name /hometab/deploy-ssh-public-key >/dev/null 2>&1; then
-            ssh-keygen -q -t ed25519 -N "" -C hometab-deploy -f key
-            put /hometab/deploy-ssh-private-key SecureString "$(cat key)"
-            put /hometab/deploy-ssh-public-key String "$(cat key.pub)"
+          if ! aws ssm get-parameter --name /tabitat/deploy-ssh-public-key >/dev/null 2>&1; then
+            ssh-keygen -q -t ed25519 -N "" -C tabitat-deploy -f key
+            put /tabitat/deploy-ssh-private-key SecureString "$(cat key)"
+            put /tabitat/deploy-ssh-public-key String "$(cat key.pub)"
             rm -f key key.pub
           fi
           for env in staging production; do
-            put /hometab/$env/SECRET_KEY_BASE SecureString "$(openssl rand -hex 64)"
-            put /hometab/$env/DATABASE_PASSWORD SecureString "$(openssl rand -hex 24)"
+            put /tabitat/$env/SECRET_KEY_BASE SecureString "$(openssl rand -hex 64)"
+            put /tabitat/$env/DATABASE_PASSWORD SecureString "$(openssl rand -hex 24)"
           done
 
-      - name: Create or update the HomeTab stack
+      - name: Create or update the Tabitat stack
         run: |
           ACCOUNT=$(aws sts get-caller-identity --query Account --output text)
-          PUB=$(aws ssm get-parameter --name /hometab/deploy-ssh-public-key --query Parameter.Value --output text)
+          PUB=$(aws ssm get-parameter --name /tabitat/deploy-ssh-public-key --query Parameter.Value --output text)
           EXTRA=""
           if ! aws cloudformation describe-stacks --stack-name "$STACK" >/dev/null 2>&1; then
             # Pick the Ubuntu image once; later runs keep it, so the server is never replaced by surprise.
@@ -73,12 +73,12 @@ jobs:
           fi
           aws cloudformation deploy \
             --stack-name "$STACK" \
-            --template-file infra/aws/hometab.yml \
-            --role-arn "arn:aws:iam::$ACCOUNT:role/hometab-cfn-exec" \
+            --template-file infra/aws/tabitat.yml \
+            --role-arn "arn:aws:iam::$ACCOUNT:role/tabitat-cfn-exec" \
             --capabilities CAPABILITY_NAMED_IAM \
-            --tags Project=hometab \
+            --tags Project=tabitat \
             --no-fail-on-empty-changeset \
-            --parameter-overrides "DeployPublicKey=$PUB" "Domain=${{ vars.HOMETAB_DOMAIN }}" \
+            --parameter-overrides "DeployPublicKey=$PUB" "Domain=${{ vars.TABITAT_DOMAIN }}" \
               "AlertEmail=${{ vars.ALERT_EMAIL }}" "InstanceType=${{ vars.INSTANCE_TYPE || 't3.micro' }}" $EXTRA
 
       - id: out
@@ -90,19 +90,19 @@ jobs:
           echo "staging_bucket=$(o StagingBucket)" >> "$GITHUB_OUTPUT"
           echo "production_bucket=$(o ProductionBucket)" >> "$GITHUB_OUTPUT"
           {
-            echo "### HomeTab server"
+            echo "### Tabitat server"
             echo "Server IP: \`$(o ServerIp)\`"
             DKIM=$(o DkimRecords); [ -n "$DKIM" ] && [ "$DKIM" != "None" ] && echo "Email DKIM records: $DKIM"
           } >> "$GITHUB_STEP_SUMMARY"
 
   deploy:
     needs: infra
-    if: vars.HOMETAB_DOMAIN != ''
+    if: vars.TABITAT_DOMAIN != ''
     runs-on: ubuntu-latest
     env:
       DEST: ${{ github.event_name == 'workflow_dispatch' && inputs.target || 'staging' }}
-      HOMETAB_HOST_IP: ${{ needs.infra.outputs.ip }}
-      HOMETAB_DOMAIN: ${{ vars.HOMETAB_DOMAIN }}
+      TABITAT_HOST_IP: ${{ needs.infra.outputs.ip }}
+      TABITAT_DOMAIN: ${{ vars.TABITAT_DOMAIN }}
       STAGING_BUCKET: ${{ needs.infra.outputs.staging_bucket }}
       PRODUCTION_BUCKET: ${{ needs.infra.outputs.production_bucket }}
       APPLE_CLIENT_IDS: ${{ vars.APPLE_CLIENT_IDS }}
@@ -130,10 +130,10 @@ jobs:
       - name: Load secrets for ${{ env.DEST }}
         run: |
           get() { aws ssm get-parameter --with-decryption --name "$1" --query Parameter.Value --output text; }
-          SKB=$(get /hometab/$DEST/SECRET_KEY_BASE); echo "::add-mask::$SKB"; echo "SECRET_KEY_BASE=$SKB" >> "$GITHUB_ENV"
-          DBP=$(get /hometab/$DEST/DATABASE_PASSWORD); echo "::add-mask::$DBP"; echo "HOMETAB_DATABASE_PASSWORD=$DBP" >> "$GITHUB_ENV"
+          SKB=$(get /tabitat/$DEST/SECRET_KEY_BASE); echo "::add-mask::$SKB"; echo "SECRET_KEY_BASE=$SKB" >> "$GITHUB_ENV"
+          DBP=$(get /tabitat/$DEST/DATABASE_PASSWORD); echo "::add-mask::$DBP"; echo "TABITAT_DATABASE_PASSWORD=$DBP" >> "$GITHUB_ENV"
           install -d -m 700 ~/.ssh
-          get /hometab/deploy-ssh-private-key > ~/.ssh/hometab_deploy && chmod 600 ~/.ssh/hometab_deploy
+          get /tabitat/deploy-ssh-private-key > ~/.ssh/tabitat_deploy && chmod 600 ~/.ssh/tabitat_deploy
 
       - name: Open SSH for this runner only
         run: |
@@ -141,22 +141,22 @@ jobs:
           echo "RUNNER_CIDR=$MY_IP/32" >> "$GITHUB_ENV"
           aws ec2 authorize-security-group-ingress --group-id "${{ needs.infra.outputs.sg }}" \
             --ip-permissions "IpProtocol=tcp,FromPort=22,ToPort=22,IpRanges=[{CidrIp=$MY_IP/32,Description=github-deploy}]"
-          for i in $(seq 1 40); do ssh-keyscan -T 5 "$HOMETAB_HOST_IP" > ~/.ssh/known_hosts 2>/dev/null && [ -s ~/.ssh/known_hosts ] && break; sleep 6; done
+          for i in $(seq 1 40); do ssh-keyscan -T 5 "$TABITAT_HOST_IP" > ~/.ssh/known_hosts 2>/dev/null && [ -s ~/.ssh/known_hosts ] && break; sleep 6; done
           # A brand-new server may still be installing Docker.
-          ssh -i ~/.ssh/hometab_deploy ubuntu@"$HOMETAB_HOST_IP" 'cloud-init status --wait >/dev/null; docker info >/dev/null'
+          ssh -i ~/.ssh/tabitat_deploy ubuntu@"$TABITAT_HOST_IP" 'cloud-init status --wait >/dev/null; docker info >/dev/null'
 
       - name: Deploy ${{ env.DEST }}
         run: |
-          if ssh -i ~/.ssh/hometab_deploy ubuntu@"$HOMETAB_HOST_IP" "docker ps -a --format '{{.Names}}' | grep -qx hometab-$DEST-db"; then
+          if ssh -i ~/.ssh/tabitat_deploy ubuntu@"$TABITAT_HOST_IP" "docker ps -a --format '{{.Names}}' | grep -qx tabitat-$DEST-db"; then
             bin/kamal deploy -d "$DEST"
           else
             bin/kamal setup -d "$DEST" # first time: database, proxy, app
           fi
-          echo "Deployed **$DEST** to \`$HOMETAB_HOST_IP\`" >> "$GITHUB_STEP_SUMMARY"
+          echo "Deployed **$DEST** to \`$TABITAT_HOST_IP\`" >> "$GITHUB_STEP_SUMMARY"
 
       - name: Close SSH
         if: always() && env.RUNNER_CIDR != ''
         run: |
           aws ec2 revoke-security-group-ingress --group-id "${{ needs.infra.outputs.sg }}" \
             --protocol tcp --port 22 --cidr "$RUNNER_CIDR" || true
-          rm -f ~/.ssh/hometab_deploy
+          rm -f ~/.ssh/tabitat_deploy

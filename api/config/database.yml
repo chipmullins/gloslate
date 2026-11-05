@@ -87,15 +87,15 @@ test:
 production:
   primary: &primary_production
     <<: *default
-    database: hometab_production
-    username: hometab
-    password: <%= ENV["HOMETAB_DATABASE_PASSWORD"] %>
+    database: tabitat_production
+    username: tabitat
+    password: <%= ENV["TABITAT_DATABASE_PASSWORD"] %>
     host: <%= ENV.fetch("DB_HOST", "localhost") %>
   cache:
     <<: *primary_production
-    database: hometab_production_cache
+    database: tabitat_production_cache
     migrations_paths: db/cache_migrate
   queue:
     <<: *primary_production
-    database: hometab_production_queue
+    database: tabitat_production_queue
     migrations_paths: db/queue_migrate

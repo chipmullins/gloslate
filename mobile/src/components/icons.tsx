@@ -21,20 +21,17 @@ export const ShareIcon = (p: IconProps) => <Stroke {...p} d="M12 3v12M7 8l5-5 5 
 export const TrashIcon = (p: IconProps) => <Stroke {...p} d="M4 7h16M10 11v6M14 11v6M6 7l1 12a2 2 0 002 2h6a2 2 0 002-2l1-12M9 7V4h6v3" />;
 
 /** The receipt-house mark (logo direction A). */
+/** The Tabitat mark: a lowercase t that rises into a roof (logo B). */
 export function HouseMark({ size = 32, inverted = false }: { size?: number; inverted?: boolean }) {
   const bg = inverted ? '#FFFFFF' : HT.color.brand;
   const fg = inverted ? HT.color.brand : '#FFFFFF';
+  const line = { fill: 'none', stroke: fg, strokeWidth: 8, strokeLinecap: 'round', strokeLinejoin: 'round' } as const;
   return (
     <Svg width={size} height={size} viewBox="0 0 100 100" accessibilityElementsHidden importantForAccessibility="no">
       <Rect width={100} height={100} rx={22.5} fill={bg} />
-      <Path
-        d="M27 47L50 27L73 47V77L67.25 72.5L61.5 77L55.75 72.5L50 77L44.25 72.5L38.5 77L32.75 72.5L27 77Z"
-        fill={fg}
-        stroke={fg}
-        strokeWidth={2}
-        strokeLinejoin="round"
-      />
-      <Path d="M39 54H61M39 62H54" stroke={bg} strokeWidth={4.5} strokeLinecap="round" />
+      <Path d="M22 47L50 23L78 47" {...line} />
+      <Path d="M50 34V68Q50 79 61 79H64" {...line} />
+      <Path d="M37 52H63" {...line} />
     </Svg>
   );
 }

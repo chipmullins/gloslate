@@ -34,7 +34,7 @@ module Requests
         next unless over_amount || over_days || soon
 
         Notifications::Notify.call(member: debtor, kind: "reminder",
-                                   title: "Quick nudge from HomeTab", body: "You owe #{creditor.first_name} #{Hometab::Money.format(d.cents)}. Settle up anytime.",
+                                   title: "Quick nudge from Tabitat", body: "You owe #{creditor.first_name} #{Hometab::Money.format(d.cents)}. Settle up anytime.",
                                    route: "/settle/#{creditor.id}").tap do |n|
           n&.update!(data: n.data.merge("creditor_member_id" => creditor.id))
         end

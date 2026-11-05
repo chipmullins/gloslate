@@ -29,5 +29,5 @@ local:
 amazon:
   service: S3
   region: <%= ENV.fetch("AWS_REGION", "us-east-1") %>
-  bucket: <%= ENV.fetch("S3_BUCKET", "hometab-production") %>
+  bucket: <%= ENV.fetch("S3_BUCKET", "tabitat-production") %>
   # Credentials come from the EC2 instance role (no keys in the app).

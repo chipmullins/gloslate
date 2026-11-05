@@ -1,4 +1,4 @@
-package app.hometab.receipttext
+package app.tabitat.receipttext
 
 import android.net.Uri
 import com.google.mlkit.vision.common.InputImage

@@ -69,7 +69,7 @@ export default function Welcome() {
             No more{'\n'}“you owe me”{'\n'}texts.
           </T>
           <T v="body" style={{ color: HT.color.muted, fontSize: 16.5, lineHeight: 24, maxWidth: 420 }}>
-            HomeTab keeps a running tab of rent, bills and groceries, does the math, and tells everyone exactly what to send.
+            Tabitat keeps a running tab of rent, bills and groceries, does the math, and tells everyone exactly what to send.
           </T>
         </View>
 
@@ -105,7 +105,7 @@ export default function Welcome() {
           />
           <ErrorNote message={error} />
           <Button title="Send me a code" onPress={sendCode} loading={busy} disabled={destination.trim().length < 5} />
-          <T v="small" style={{ textAlign: 'center' }}>HomeTab never holds or moves your money.</T>
+          <T v="small" style={{ textAlign: 'center' }}>Tabitat never holds or moves your money.</T>
         </View>
       </View>
     </Screen>

@@ -4,7 +4,7 @@ module V1
 
     # GET /v1/me/export — all my data as JSON
     def export
-      send_data Accounts::Export.call(current_user).to_json, type: "application/json", filename: "hometab-my-data.json"
+      send_data Accounts::Export.call(current_user).to_json, type: "application/json", filename: "tabitat-my-data.json"
     end
 
     # DELETE /v1/me { confirm: "DELETE" }

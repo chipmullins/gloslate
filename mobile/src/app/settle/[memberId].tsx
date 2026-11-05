@@ -131,10 +131,10 @@ export default function Settle() {
       <Avatar name={other.first_name} index={otherIndex} />
       <T v="strong" style={{ color: HT.color.darkCardMuted }}>{headline}</T>
       <Money cents={Math.abs(net)} size={48} color="#FFFFFF" />
-      {b.credit_cents.theirs > 0 ? <T v="small" style={{ color: '#7FD3A8' }}>{other.first_name} has {formatCents(b.credit_cents.theirs)} credit from overpaying</T> : null}
-      {b.credit_cents.mine > 0 ? <T v="small" style={{ color: '#7FD3A8' }}>You have {formatCents(b.credit_cents.mine)} credit</T> : null}
+      {b.credit_cents.theirs > 0 ? <T v="small" style={{ color: HT.color.onDarkOwed }}>{other.first_name} has {formatCents(b.credit_cents.theirs)} credit from overpaying</T> : null}
+      {b.credit_cents.mine > 0 ? <T v="small" style={{ color: HT.color.onDarkOwed }}>You have {formatCents(b.credit_cents.mine)} credit</T> : null}
       {pendingPay ? (
-        <Pressable onPress={() => router.push(`/payments/${pendingPay.id}` as Href)} style={{ marginTop: 6, backgroundColor: '#2A3830', borderRadius: 12, paddingHorizontal: 12, paddingVertical: 8 }}>
+        <Pressable onPress={() => router.push(`/payments/${pendingPay.id}` as Href)} style={{ marginTop: 6, backgroundColor: HT.color.onDarkButton, borderRadius: 12, paddingHorizontal: 12, paddingVertical: 8 }}>
           <T v="small" style={{ color: '#FFFFFF' }}>Pending · {formatCents(pendingPay.amount_cents)} waiting on {pendingPay.you_sent ? other.first_name : 'you'} to confirm</T>
         </Pressable>
       ) : null}
@@ -166,7 +166,7 @@ export default function Settle() {
       ) : (
         <Button kind="secondary" title={`${other.first_name} paid me another way`} onPress={() => setRecording(true)} />
       )}
-      <T v="small">HomeTab never moves money. A payment you record counts as confirmed by you.</T>
+      <T v="small">Tabitat never moves money. A payment you record counts as confirmed by you.</T>
     </Card>
   ) : net < 0 && pay ? (
     <Card style={{ gap: 12 }}>

@@ -1,23 +1,23 @@
-service: hometab-production
+service: tabitat-production
 
 proxy:
   ssl: true
   hosts:
-    - <%= ENV.fetch("HOMETAB_DOMAIN") %>
-    - api.<%= ENV.fetch("HOMETAB_DOMAIN") %>
-    - admin-api.<%= ENV.fetch("HOMETAB_DOMAIN") %>
+    - <%= ENV.fetch("TABITAT_DOMAIN") %>
+    - api.<%= ENV.fetch("TABITAT_DOMAIN") %>
+    - admin-api.<%= ENV.fetch("TABITAT_DOMAIN") %>
   healthcheck:
     path: /up
 
 env:
   clear:
-    DB_HOST: hometab-production-db
-    PUBLIC_URL: https://<%= ENV.fetch("HOMETAB_DOMAIN") %>
-    ALLOWED_HOSTS: <%= ENV.fetch("HOMETAB_DOMAIN") %>,api.<%= ENV.fetch("HOMETAB_DOMAIN") %>,admin-api.<%= ENV.fetch("HOMETAB_DOMAIN") %>
-    MAIL_FROM: "HomeTab <hello@<%= ENV.fetch("HOMETAB_DOMAIN") %>>"
+    DB_HOST: tabitat-production-db
+    PUBLIC_URL: https://<%= ENV.fetch("TABITAT_DOMAIN") %>
+    ALLOWED_HOSTS: <%= ENV.fetch("TABITAT_DOMAIN") %>,api.<%= ENV.fetch("TABITAT_DOMAIN") %>,admin-api.<%= ENV.fetch("TABITAT_DOMAIN") %>
+    MAIL_FROM: "Tabitat <hello@<%= ENV.fetch("TABITAT_DOMAIN") %>>"
     S3_BUCKET: <%= ENV.fetch("PRODUCTION_BUCKET") %>
 
 accessories:
   db:
     directories:
-      - /data/hometab-production-db:/var/lib/postgresql/data
+      - /data/tabitat-production-db:/var/lib/postgresql/data

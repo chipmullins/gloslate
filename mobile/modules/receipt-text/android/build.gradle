@@ -3,11 +3,11 @@ plugins {
   id 'expo-module-gradle-plugin'
 }
 
-group = 'app.hometab.receipttext'
+group = 'app.tabitat.receipttext'
 version = '1.0.0'
 
 android {
-  namespace "app.hometab.receipttext"
+  namespace "app.tabitat.receipttext"
 }
 
 dependencies {

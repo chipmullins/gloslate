@@ -1,5 +1,5 @@
 module Accounts
-  # "Export my data": everything HomeTab holds about this person, as JSON.
+  # "Export my data": everything Tabitat holds about this person, as JSON.
   module Export
     module_function
 

@@ -1,12 +1,12 @@
 # Kamal 2. Staging and production share one small server (see infra/aws).
 # Deploys run from GitHub Actions (.github/workflows/deploy.yml), which sets
-# HOMETAB_HOST_IP, HOMETAB_DOMAIN, the bucket names and the secrets.
-service: hometab
-image: chipmullins/hometab-api
+# TABITAT_HOST_IP, TABITAT_DOMAIN, the bucket names and the secrets.
+service: tabitat
+image: chipmullins/tabitat-api
 
 servers:
   web:
-    - <%= ENV.fetch("HOMETAB_HOST_IP", "127.0.0.1") %>
+    - <%= ENV.fetch("TABITAT_HOST_IP", "127.0.0.1") %>
 
 registry:
   server: ghcr.io
@@ -17,7 +17,7 @@ registry:
 ssh:
   user: ubuntu
   keys_only: true
-  keys: ["~/.ssh/hometab_deploy"]
+  keys: ["~/.ssh/tabitat_deploy"]
 
 builder:
   arch: amd64
@@ -25,7 +25,7 @@ builder:
 env:
   secret:
     - SECRET_KEY_BASE
-    - HOMETAB_DATABASE_PASSWORD
+    - TABITAT_DATABASE_PASSWORD
   clear:
     SOLID_QUEUE_IN_PUMA: true
     RAILS_MAX_THREADS: 3
@@ -33,7 +33,7 @@ env:
     ACTIVE_STORAGE_SERVICE: amazon
     MAIL_DELIVERY: ses
     SMS_DELIVERY: sns
-    APPLE_CLIENT_IDS: "<%= ENV.fetch("APPLE_CLIENT_IDS", "app.hometab") %>"
+    APPLE_CLIENT_IDS: "<%= ENV.fetch("APPLE_CLIENT_IDS", "app.tabitat") %>"
     GOOGLE_CLIENT_IDS: "<%= ENV.fetch("GOOGLE_CLIENT_IDS", "") %>"
     APPLE_TEAM_ID: "<%= ENV.fetch("APPLE_TEAM_ID", "") %>"
     ANDROID_CERT_SHA256: "<%= ENV.fetch("ANDROID_CERT_SHA256", "") %>"
@@ -46,11 +46,11 @@ aliases:
 accessories:
   db:
     image: postgres:16
-    host: <%= ENV.fetch("HOMETAB_HOST_IP", "127.0.0.1") %>
+    host: <%= ENV.fetch("TABITAT_HOST_IP", "127.0.0.1") %>
     env:
       clear:
-        POSTGRES_USER: hometab
-        POSTGRES_DB: hometab_production
+        POSTGRES_USER: tabitat
+        POSTGRES_DB: tabitat_production
       secret:
         - POSTGRES_PASSWORD
     cmd: postgres -c shared_buffers=64MB -c max_connections=30

@@ -19,7 +19,7 @@ class PublicController < ActionController::Base
     end
     @current = @req.current_cents
     @pay_amount = [@current, 0].max
-    @links = @pay_amount.positive? ? Payments::PayLinks.call(to: @req.requester, amount_cents: @pay_amount, memo: "HomeTab · #{@req.household.name}")[:links] : {}
+    @links = @pay_amount.positive? ? Payments::PayLinks.call(to: @req.requester, amount_cents: @pay_amount, memo: "Tabitat · #{@req.household.name}")[:links] : {}
     @marked = params[:marked].present?
     response.headers["Cache-Control"] = "no-store"
     response.headers["Referrer-Policy"] = "no-referrer"
@@ -67,7 +67,7 @@ class PublicController < ActionController::Base
     team = ENV["APPLE_TEAM_ID"]
     return head(:not_found) if team.blank?
 
-    render json: { applinks: { details: [{ appIDs: ["#{team}.app.hometab"], components: [{ "/" => "/i/*" }] }] } }
+    render json: { applinks: { details: [{ appIDs: ["#{team}.app.tabitat"], components: [{ "/" => "/i/*" }] }] } }
   end
 
   def asset_links
@@ -75,7 +75,7 @@ class PublicController < ActionController::Base
     return head(:not_found) if sha.blank?
 
     render json: [{ relation: ["delegate_permission/common.handle_all_urls"],
-                    target: { namespace: "android_app", package_name: "app.hometab", sha256_cert_fingerprints: sha.split(",") } }]
+                    target: { namespace: "android_app", package_name: "app.tabitat", sha256_cert_fingerprints: sha.split(",") } }]
   end
 
   FONTS = Dir[Rails.root.join("app/assets/fonts/*.ttf")].to_h { [File.basename(_1), _1] }.freeze

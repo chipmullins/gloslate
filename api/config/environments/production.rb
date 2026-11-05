@@ -55,7 +55,7 @@ Rails.application.configure do
   # config.action_mailer.raise_delivery_errors = false
 
   # Set host to be used by links generated in mailer templates.
-  config.action_mailer.default_url_options = { host: URI(ENV.fetch("PUBLIC_URL", "https://hometab.app")).host }
+  config.action_mailer.default_url_options = { host: URI(ENV.fetch("PUBLIC_URL", "https://tabitat.app")).host }
   # Email goes through Amazon SES using the server's role (lib/hometab/aws_api.rb).
   config.action_mailer.delivery_method = ENV.fetch("MAIL_DELIVERY", "ses").to_sym
   config.action_mailer.raise_delivery_errors = true
@@ -80,7 +80,7 @@ Rails.application.configure do
   config.active_record.attributes_for_inspect = [ :id ]
 
   # Enable DNS rebinding protection and other `Host` header attacks.
-  config.hosts = ENV.fetch("ALLOWED_HOSTS", "hometab.app,api.hometab.app,admin-api.hometab.app").split(",")
+  config.hosts = ENV.fetch("ALLOWED_HOSTS", "tabitat.app,api.tabitat.app,admin-api.tabitat.app").split(",")
   # config.hosts = [
   #   "example.com",     # Allow requests from example.com
   #   /.*\.example\.com/ # Allow requests from subdomains like `www.example.com`

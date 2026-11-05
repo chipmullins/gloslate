@@ -1,4 +1,4 @@
-# Running HomeTab
+# Running Tabitat
 
 ## On your Mac (development)
 
@@ -28,8 +28,8 @@ In Expo Go, receipt scanning falls back to attaching the photo and typing the to
 
 ## What step 13 needs from Chip
 
-- **AWS** (us-east-1): EC2 for Kamal (staging + production), RDS Postgres 16, S3 bucket for receipts and PDFs (private), SES (verify hometab.app, request production access), SNS for SMS sign-in codes, Route 53 for hometab.app.
-- **Apple**: Team ID, App ID `app.hometab` with Sign in with Apple, Associated Domains, Push; App Group `group.app.hometab` (widgets).
+- **AWS** (us-east-1): EC2 for Kamal (staging + production), RDS Postgres 16, S3 bucket for receipts and PDFs (private), SES (verify tabitat.app, request production access), SNS for SMS sign-in codes, Route 53 for tabitat.app.
+- **Apple**: Team ID, App ID `app.tabitat` with Sign in with Apple, Associated Domains, Push; App Group `group.app.tabitat` (widgets).
 - **Google Play**: developer account ($25), upload key SHA-256 for `assetlinks.json`.
 - **Expo/EAS**: `npx eas-cli init` (sets `extra.eas.projectId`, required for push tokens).
 - **Google sign-in**: OAuth client IDs (iOS, Android, web) → `GOOGLE_CLIENT_IDS`.
@@ -39,11 +39,11 @@ In Expo Go, receipt scanning falls back to attaching the photo and typing the to
 | Variable | What |
 | --- | --- |
 | `RAILS_MASTER_KEY` | decrypts credentials (never commit `config/master.key`) |
-| `HOMETAB_DATABASE_PASSWORD` | RDS password |
-| `ALLOWED_HOSTS` | default `hometab.app,api.hometab.app,admin-api.hometab.app` |
-| `PUBLIC_URL` | `https://hometab.app` (request and invite links) |
+| `TABITAT_DATABASE_PASSWORD` | RDS password |
+| `ALLOWED_HOSTS` | default `tabitat.app,api.tabitat.app,admin-api.tabitat.app` |
+| `PUBLIC_URL` | `https://tabitat.app` (request and invite links) |
 | `S3_BUCKET`, `AWS_REGION` | receipts / exports (instance role, no keys) |
-| `MAIL_FROM` | `HomeTab <hello@hometab.app>` |
+| `MAIL_FROM` | `Tabitat <hello@tabitat.app>` |
 | `APPLE_CLIENT_IDS`, `GOOGLE_CLIENT_IDS` | ID token audiences |
 | `APPLE_TEAM_ID`, `ANDROID_CERT_SHA256` | universal links (`/.well-known/...`) |
 | `EXPO_ACCESS_TOKEN` | optional, for Expo push security |
@@ -53,4 +53,4 @@ In Expo Go, receipt scanning falls back to attaching the photo and typing the to
 
 - Privacy policy and terms pages (App Store requires a privacy policy URL).
 - One hour with a fintech attorney to confirm the link-out payment model (spec open question).
-- HomeTab trademark and the hometab.app domain.
+- Tabitat trademark and the tabitat.app domain.

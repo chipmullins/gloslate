@@ -8,7 +8,7 @@ class PaymentRequest < ApplicationRecord
 
   before_validation(on: :create) { self.token ||= SecureRandom.urlsafe_base64(16) }
 
-  def url = "#{ENV.fetch('PUBLIC_URL', 'https://hometab.app')}/r/#{token}"
+  def url = "#{ENV.fetch('PUBLIC_URL', 'https://tabitat.app')}/r/#{token}"
   def image_url = "#{url}/image.png"
 
   # What they owe now (may differ from the snapshot).

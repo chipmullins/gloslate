@@ -1,15 +1,15 @@
-<% content_for :title, @invite ? "Join #{@invite.created_by.first_name}'s home on HomeTab" : "Invite not found · HomeTab" %>
+<% content_for :title, @invite ? "Join #{@invite.created_by.first_name}'s home on Tabitat" : "Invite not found · Tabitat" %>
 <% content_for :head do %>
   <meta name="robots" content="noindex">
-  <% if @invite %><meta property="og:title" content="Join <%= @invite.created_by.first_name %>'s home on HomeTab"><meta property="og:description" content="Keep a running tab of rent, bills and groceries. No more 'you owe me' texts."><% end %>
+  <% if @invite %><meta property="og:title" content="Join <%= @invite.created_by.first_name %>'s home on Tabitat"><meta property="og:description" content="Keep a running tab of rent, bills and groceries. No more 'you owe me' texts."><% end %>
 <% end %>
 <main style="max-width:440px;margin:0 auto;padding:56px 20px;display:flex;flex-direction:column;gap:18px">
   <%= render "public/mark", size: 64 %>
   <% if @invite&.open? %>
     <h1 style="margin:0;font-size:32px;line-height:1.15;font-weight:800;letter-spacing:-0.02em">Join <%= @invite.created_by.first_name %>'s home?</h1>
     <p style="margin:0;color:var(--muted);line-height:1.5"><%= @invite.household.name %>. Anything already logged with your name shows up the moment you join.</p>
-    <a href="hometab://join/<%= @invite.token %>" style="min-height:54px;border-radius:16px;background:var(--brand);color:#fff;font-weight:800;display:flex;align-items:center;justify-content:center;text-decoration:none">Open in HomeTab</a>
-    <p style="margin:0;color:var(--muted);font-size:14px;text-align:center">Don't have it yet? Get HomeTab for <a href="<%= ENV.fetch('APP_STORE_URL', '#') %>">iPhone & iPad</a> or <a href="<%= ENV.fetch('PLAY_STORE_URL', '#') %>">Android</a>, then tap this link again.</p>
+    <a href="tabitat://join/<%= @invite.token %>" style="min-height:54px;border-radius:16px;background:var(--brand);color:#fff;font-weight:800;display:flex;align-items:center;justify-content:center;text-decoration:none">Open in Tabitat</a>
+    <p style="margin:0;color:var(--muted);font-size:14px;text-align:center">Don't have it yet? Get Tabitat for <a href="<%= ENV.fetch('APP_STORE_URL', '#') %>">iPhone & iPad</a> or <a href="<%= ENV.fetch('PLAY_STORE_URL', '#') %>">Android</a>, then tap this link again.</p>
   <% else %>
     <h1 style="margin:0;font-size:28px;font-weight:800">This invite has expired</h1>
     <p style="margin:0;color:var(--muted)">Ask for a new link.</p>

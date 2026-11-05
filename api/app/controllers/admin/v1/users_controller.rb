@@ -1,6 +1,6 @@
 module Admin
   module V1
-    # Look up and help HomeTab users. Users have no passwords (codes, Apple,
+    # Look up and help Tabitat users. Users have no passwords (codes, Apple,
     # Google), so "reset" means: attach a new email/phone, sign out devices,
     # send a fresh code, or lock/unlock.
     class UsersController < BaseController

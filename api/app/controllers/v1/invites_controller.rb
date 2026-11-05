@@ -14,7 +14,7 @@ module V1
       invite = Invite.create!(household: me.household, created_by: me, member:)
       who = member&.first_name
       render json: { data: { token: invite.token, url: invite.url, expires_at: invite.expires_at,
-                             message: "#{who ? "#{who}, j" : 'J'}oin our home on HomeTab so we can stop texting numbers: #{invite.url}" } },
+                             message: "#{who ? "#{who}, j" : 'J'}oin our home on Tabitat so we can stop texting numbers: #{invite.url}" } },
              status: :created
     end
 

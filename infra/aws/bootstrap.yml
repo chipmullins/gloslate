@@ -1,7 +1,7 @@
 AWSTemplateFormatVersion: "2010-09-09"
 Description: >-
-  HomeTab one-time setup. Lets GitHub Actions in chipmullins/hometab manage
-  HomeTab's own stacks and nothing else in this account. Stack name: hometab-bootstrap.
+  Tabitat one-time setup. Lets GitHub Actions in chipmullins/hometab manage
+  Tabitat's own stacks and nothing else in this account. Stack name: tabitat-bootstrap.
 
 Parameters:
   GitHubRepo:
@@ -24,20 +24,20 @@ Resources:
     Type: AWS::IAM::OIDCProvider
     Condition: MakeProvider
     UpdateReplacePolicy: Retain
-    DeletionPolicy: Retain # other projects may start using it; never delete it with HomeTab
+    DeletionPolicy: Retain # other projects may start using it; never delete it with Tabitat
     Properties:
       Url: https://token.actions.githubusercontent.com
       ClientIdList: [sts.amazonaws.com]
-      Tags: [{ Key: Project, Value: hometab }]
+      Tags: [{ Key: Project, Value: tabitat }]
 
-  # CloudFormation uses this role to build HomeTab's stack. It can create the
-  # kinds of things HomeTab needs, but can only change or delete EC2 and S3
-  # things that are tagged / named for HomeTab.
+  # CloudFormation uses this role to build Tabitat's stack. It can create the
+  # kinds of things Tabitat needs, but can only change or delete EC2 and S3
+  # things that are tagged / named for Tabitat.
   ExecRole:
     Type: AWS::IAM::Role
     Properties:
-      RoleName: hometab-cfn-exec
-      Tags: [{ Key: Project, Value: hometab }]
+      RoleName: tabitat-cfn-exec
+      Tags: [{ Key: Project, Value: tabitat }]
       AssumeRolePolicyDocument:
         Version: "2012-10-17"
         Statement:
@@ -45,7 +45,7 @@ Resources:
             Principal: { Service: cloudformation.amazonaws.com }
             Action: sts:AssumeRole
       Policies:
-        - PolicyName: hometab-build
+        - PolicyName: tabitat-build
           PolicyDocument:
             Version: "2012-10-17"
             Statement:
@@ -89,22 +89,22 @@ Resources:
                   - arn:aws:ec2:*:*:route-table/*
                   - arn:aws:ec2:*:*:elastic-ip/*
                 Condition:
-                  StringNotEquals: { "aws:ResourceTag/Project": hometab }
+                  StringNotEquals: { "aws:ResourceTag/Project": tabitat }
               - Sid: S3HometabBucketsOnly
                 Effect: Allow
                 Action: s3:*
-                Resource: ["arn:aws:s3:::hometab-*", "arn:aws:s3:::hometab-*/*"]
+                Resource: ["arn:aws:s3:::tabitat-*", "arn:aws:s3:::tabitat-*/*"]
               - Sid: IamHometabRolesOnly
                 Effect: Allow
                 Action: iam:*
                 Resource:
-                  - !Sub arn:aws:iam::${AWS::AccountId}:role/hometab-*
-                  - !Sub arn:aws:iam::${AWS::AccountId}:instance-profile/hometab-*
+                  - !Sub arn:aws:iam::${AWS::AccountId}:role/tabitat-*
+                  - !Sub arn:aws:iam::${AWS::AccountId}:instance-profile/tabitat-*
               - Sid: HometabParameters
                 Effect: Allow
                 Action: ssm:*
                 Resource:
-                  - !Sub arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/hometab/*
+                  - !Sub arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/tabitat/*
                   - arn:aws:ssm:*::parameter/aws/service/* # public AMI lookups
               - Sid: Email
                 Effect: Allow
@@ -120,14 +120,14 @@ Resources:
                          budgets:ModifyBudget, budgets:ViewBudget, budgets:CreateBudgetAction, budgets:TagResource]
                 Resource: "*"
 
-  # GitHub Actions uses this role. It can run HomeTab's stacks (through
-  # ExecRole), read and write /hometab/* settings, and open SSH on HomeTab's
+  # GitHub Actions uses this role. It can run Tabitat's stacks (through
+  # ExecRole), read and write /tabitat/* settings, and open SSH on Tabitat's
   # server for the length of a deploy. Nothing else.
   DeployRole:
     Type: AWS::IAM::Role
     Properties:
-      RoleName: hometab-github-deploy
-      Tags: [{ Key: Project, Value: hometab }]
+      RoleName: tabitat-github-deploy
+      Tags: [{ Key: Project, Value: tabitat }]
       MaxSessionDuration: 3600
       AssumeRolePolicyDocument:
         Version: "2012-10-17"
@@ -140,14 +140,14 @@ Resources:
               StringEquals: { "token.actions.githubusercontent.com:aud": sts.amazonaws.com }
               StringLike: { "token.actions.githubusercontent.com:sub": !Sub "repo:${GitHubRepo}:ref:refs/heads/main" }
       Policies:
-        - PolicyName: hometab-deploy
+        - PolicyName: tabitat-deploy
           PolicyDocument:
             Version: "2012-10-17"
             Statement:
               - Sid: HometabStacks
                 Effect: Allow
                 Action: cloudformation:*
-                Resource: !Sub arn:aws:cloudformation:${AWS::Region}:${AWS::AccountId}:stack/hometab-*/*
+                Resource: !Sub arn:aws:cloudformation:${AWS::Region}:${AWS::AccountId}:stack/tabitat-*/*
               - Sid: StackHelpers
                 Effect: Allow
                 Action: [cloudformation:ValidateTemplate, cloudformation:GetTemplateSummary, cloudformation:ListStacks]
@@ -160,7 +160,7 @@ Resources:
                 Effect: Allow
                 Action: [ssm:GetParameter, ssm:GetParameters, ssm:PutParameter]
                 Resource:
-                  - !Sub arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/hometab/*
+                  - !Sub arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/tabitat/*
                   - arn:aws:ssm:*::parameter/aws/service/*
               - Sid: Describe
                 Effect: Allow
@@ -171,7 +171,7 @@ Resources:
                 Action: [ec2:AuthorizeSecurityGroupIngress, ec2:RevokeSecurityGroupIngress]
                 Resource: !Sub arn:aws:ec2:${AWS::Region}:${AWS::AccountId}:security-group/*
                 Condition:
-                  StringEquals: { "aws:ResourceTag/Project": hometab }
+                  StringEquals: { "aws:ResourceTag/Project": tabitat }
 
 Outputs:
   DeployRoleArn:

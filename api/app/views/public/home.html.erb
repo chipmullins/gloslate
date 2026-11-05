@@ -1,7 +1,7 @@
-<% content_for :title, "HomeTab — Split home costs without the math" %>
+<% content_for :title, "Tabitat — Split home costs without the math" %>
 <% content_for :head do %>
-  <meta name="description" content="HomeTab keeps a running tab of rent, bills and every dinner run, then tells each person exactly what to send. For couples and roommates, 2 to 5 people.">
-  <meta property="og:title" content="HomeTab — Stop texting “you owe me.”">
+  <meta name="description" content="Tabitat keeps a running tab of rent, bills and every dinner run, then tells each person exactly what to send. For couples and roommates, 2 to 5 people.">
+  <meta property="og:title" content="Tabitat — Stop texting “you owe me.”">
   <meta property="og:description" content="A running tab for rent, bills and groceries. One number, already netted. Pay in the app you already use.">
 <% end %>
 <% content_for :styles do %>
@@ -26,10 +26,10 @@
   .phone { justify-self: center; width: min(340px, 100%); background: var(--ground); border: 10px solid var(--ink); border-radius: 44px; padding: 22px 18px; box-shadow: 0 30px 60px rgba(21,32,26,0.18); }
   .phone .card { background: var(--ink); color: #fff; border-radius: 22px; padding: 22px; text-align: center; }
   .phone .card .money { font-size: 42px; font-weight: 600; letter-spacing: -0.03em; display: block; margin: 4px 0 12px; }
-  .phone .card span { color: #B9C7BF; font-size: 13px; font-weight: 700; }
+  .phone .card span { color: #C9BAC6; font-size: 13px; font-weight: 700; }
   .phone .req { background: #fff; color: var(--ink); border-radius: 13px; padding: 12px; font-weight: 800; font-size: 14px; }
   .phone .row { display: flex; justify-content: space-between; padding: 10px 2px; border-bottom: 1px solid var(--hairline); font-weight: 700; font-size: 14px; }
-  .pos { color: var(--brand); } .neg { color: var(--you-owe); }
+  .pos { color: var(--owed); } .neg { color: var(--you-owe); }
   .toast { margin-top: 14px; background: var(--brand-tint); color: var(--brand); border-radius: 12px; padding: 10px 12px; font-size: 13px; font-weight: 800; text-align: center; }
   section.block { padding: 72px 0; }
   section.block h2 { font-size: clamp(30px, 4.5vw, 44px); letter-spacing: -0.03em; line-height: 1.1; margin: 10px 0 28px; font-weight: 800; }
@@ -50,8 +50,8 @@
   .ticket .line { display: flex; justify-content: space-between; padding: 6px 0; font-size: 14px; } .ticket .pay { margin-top: 14px; background: #fff; color: var(--ink); border-radius: 14px; padding: 14px; text-align: center; font-weight: 800; }
   .pricing { background: var(--ink); color: #fff; border-radius: 32px; padding: 48px; display: grid; grid-template-columns: 1fr 1fr; gap: 32px; }
   @media (max-width: 860px) { .pricing { grid-template-columns: 1fr; padding: 32px 24px; } }
-  .pricing p { color: #B9C7BF; line-height: 1.55; } .pricing ul { list-style: none; padding: 0; margin: 0; display: grid; gap: 12px; font-weight: 700; }
-  .pricing li::before { content: ""; display: inline-block; width: 10px; height: 10px; border-radius: 50%; background: #7FD3A8; margin-right: 10px; }
+  .pricing p { color: #C9BAC6; line-height: 1.55; } .pricing ul { list-style: none; padding: 0; margin: 0; display: grid; gap: 12px; font-weight: 700; }
+  .pricing li::before { content: ""; display: inline-block; width: 10px; height: 10px; border-radius: 50%; background: var(--on-dark-owed); margin-right: 10px; }
   .faq details { background: #fff; border-radius: 16px; padding: 18px 20px; margin-bottom: 10px; }
   .faq summary { font-weight: 800; cursor: pointer; } .faq p { color: var(--muted); line-height: 1.55; margin: 10px 0 0; }
   .family { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
@@ -62,7 +62,7 @@
 <% end %>
 <div class="container">
   <header class="nav">
-    <a class="logo" href="/"><%= render "public/mark", size: 34 %><span>HomeTab <small>by Glofly</small></span></a>
+    <a class="logo" href="/"><%= render "public/mark", size: 34 %><span>Tabitat <small>by Glofly</small></span></a>
     <nav class="links" aria-label="Main"><a href="#how">How it works</a><a href="#features">Features</a><a href="#pricing">Pricing</a><a class="cta" href="#get">Get the app</a></nav>
   </header>
 
@@ -70,7 +70,7 @@
     <div>
       <div class="eyebrow">For couples and roommates · 2 to 5 people</div>
       <h1>Stop texting<br>“you owe me.”</h1>
-      <p class="lede">HomeTab keeps a running tab of rent, bills and every dinner run, then tells each person exactly what to send. No spreadsheets. No calculator screenshots.</p>
+      <p class="lede">Tabitat keeps a running tab of rent, bills and every dinner run, then tells each person exactly what to send. No spreadsheets. No calculator screenshots.</p>
       <div class="stores">
         <a class="store" href="<%= ENV.fetch('APP_STORE_URL', '#get') %>">Get it on iPhone</a>
         <a class="store alt" href="<%= ENV.fetch('PLAY_STORE_URL', '#get') %>">Get it on Android</a>
@@ -91,9 +91,9 @@
 
   <section class="block" id="how">
     <div class="eyebrow">How it works</div>
-    <h2>Log it in three taps. HomeTab does the math.</h2>
+    <h2>Log it in three taps. Tabitat does the math.</h2>
     <div class="steps">
-      <div class="step"><b class="num">01</b><h3>Set up your bills once</h3><p>Rent, electric, water, sewer. Each one posts itself when it's due, and HomeTab asks for the new amount when a bill changes.</p></div>
+      <div class="step"><b class="num">01</b><h3>Set up your bills once</h3><p>Rent, electric, water, sewer. Each one posts itself when it's due, and Tabitat asks for the new amount when a bill changes.</p></div>
       <div class="step"><b class="num">02</b><h3>Add the everyday stuff</h3><p>Dinner, groceries, a pizza for four. Type the amount, pick who paid, done. Everyone sees it right away.</p></div>
       <div class="step"><b class="num">03</b><h3>Settle up anytime</h3><p>One number, already netted. Send a request, they pay in the app they already use, and the balance resets.</p></div>
     </div>
@@ -103,9 +103,9 @@
     <div>
       <div class="eyebrow">Requests that look good</div>
       <h2>A link instead of a lecture.</h2>
-      <p class="lede">Every request is a clean page with the total, the breakdown and a Pay button. It opens on any phone, even if your roommate hasn't downloaded HomeTab yet.</p>
+      <p class="lede">Every request is a clean page with the total, the breakdown and a Pay button. It opens on any phone, even if your roommate hasn't downloaded Tabitat yet.</p>
       <div class="feat">
-        <div><b>Nudges, not nagging</b><span>Set a limit like $40 or 7 days and HomeTab sends the reminder for you.</span></div>
+        <div><b>Nudges, not nagging</b><span>Set a limit like $40 or 7 days and Tabitat sends the reminder for you.</span></div>
         <div><b>Paid means paid</b><span>Mark a payment, the other person confirms, and it's off the list for good.</span></div>
         <div><b>Grows with the house</b><span>Two of you or five. Choose who's in on each expense.</span></div>
         <div><b>Monthly statements</b><span>A clean record of every month, with the fewest payments to settle it.</span></div>
@@ -125,7 +125,7 @@
 
   <section class="block" id="pricing">
     <div class="pricing">
-      <div><div class="eyebrow" style="color:#7FD3A8">Pricing</div><h2 style="margin-top:10px">Free for your whole household.</h2><p>Unlimited expenses, every day. No ads between screens. No caps that show up right when you need them.</p></div>
+      <div><div class="eyebrow" style="color:var(--on-dark-owed)">Pricing</div><h2 style="margin-top:10px">Free for your whole household.</h2><p>Unlimited expenses, every day. No ads between screens. No caps that show up right when you need them.</p></div>
       <ul><li>Unlimited expenses</li><li>Recurring bills &amp; reminders</li><li>Shareable payment requests</li><li>Up to 5 people per home</li></ul>
     </div>
   </section>
@@ -133,13 +133,13 @@
   <section class="block faq">
     <div class="eyebrow">Questions</div>
     <h2>Good to know</h2>
-    <details><summary>Does HomeTab move my money?</summary><p>No. HomeTab tracks who owes what and opens the payment app you already use, with the amount filled in. Your money never passes through us.</p></details>
+    <details><summary>Does Tabitat move my money?</summary><p>No. Tabitat tracks who owes what and opens the payment app you already use, with the amount filled in. Your money never passes through us.</p></details>
     <details><summary>Does my roommate need the app?</summary><p>Not to pay you. Requests open as a web page on any phone. The app makes logging and tracking easier for everyone.</p></details>
     <details><summary>What if we don't split everything 50/50?</summary><p>Choose who's in on each expense, or split by percentage or exact amounts. Your usual split is saved for next time.</p></details>
   </section>
 
   <section class="block">
-    <div class="eyebrow">More from the creators of HomeTab</div>
+    <div class="eyebrow">More from the creators of Tabitat</div>
     <h2>Apps for the people you live, eat and talk with.</h2>
     <div class="family">
       <div><b>Glofly</b><p>Chat, call and hang out with your friends, on your phone, your computer or the web.</p></div>
@@ -148,5 +148,5 @@
     </div>
   </section>
 
-  <footer><span>HomeTab by Glofly · © 2026 HarborWorks</span><span>HomeTab never holds or moves money.</span></footer>
+  <footer><span>Tabitat by Glofly · © 2026 HarborWorks</span><span>Tabitat never holds or moves money.</span></footer>
 </div>

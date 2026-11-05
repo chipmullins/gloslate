@@ -1,6 +1,6 @@
 import { Redirect, useLocalSearchParams, type Href } from 'expo-router';
 
-/** Universal-link path (https://hometab.app/i/TOKEN) → the join screen. */
+/** Universal-link path (https://tabitat.app/i/TOKEN) → the join screen. */
 export default function InviteLink() {
   const { token } = useLocalSearchParams<{ token: string }>();
   return <Redirect href={`/join/${token}` as Href} />;

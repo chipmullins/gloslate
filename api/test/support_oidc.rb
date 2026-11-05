@@ -18,7 +18,7 @@ module OidcTestKeys
 
   def self.claims(provider, sub:, email: nil, verified: true, aud: nil, exp: 1.hour.from_now)
     iss = provider == "apple" ? "https://appleid.apple.com" : "https://accounts.google.com"
-    aud ||= provider == "apple" ? "app.hometab" : "google-test-client"
+    aud ||= provider == "apple" ? "app.tabitat" : "google-test-client"
     { iss:, aud:, sub:, email:, email_verified: verified, exp: exp.to_i, iat: Time.now.to_i }.compact
   end
 end

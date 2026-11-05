@@ -1,8 +1,8 @@
-# HomeTab — notes for Claude
+# Tabitat — notes for Claude
 
-HomeTab keeps a running tab of shared home costs for 2–5 people, does the math, and tells each person what to send. Payment happens in Venmo / Cash App / Zelle. **HomeTab never holds or moves money.**
+Tabitat keeps a running tab of shared home costs for 2–5 people, does the math, and tells each person what to send. Payment happens in Venmo / Cash App / Zelle. **Tabitat never holds or moves money.**
 
-Owner: Chip Mullins. Brand line: "HomeTab by Glofly". Legal owner: HarborWorks.
+Owner: Chip Mullins. Brand line: "Tabitat by Glofly". Legal owner: HarborWorks.
 
 ## Source of truth
 
@@ -27,16 +27,19 @@ docs/     decisions, admin API, Glofly integration, runbooks
 2. **Append-only ledger.** Expenses, edits, deletions, payments are events. Balances are always computed, never stored as editable numbers. Edits keep old/new values.
 3. **Split / netting / simplify-debts logic is pure and heavily tested** before UI is built on it.
 4. **Statements are frozen.** Later changes become adjustment lines on the next statement.
-5. **No money movement.** Copy says a payment was *marked* or *confirmed by a person*, never verified by HomeTab.
+5. **No money movement.** Copy says a payment was *marked* or *confirmed by a person*, never verified by Tabitat.
 6. **Auth is provider-agnostic.** `users` has many `identities (provider, provider_uid)`. Launch providers: email, phone, apple, google. `glofly` drops in later with no schema change.
 7. **Request pages** are public by unguessable token; show first names, amounts, breakdown only.
 8. **Admin API from day one** (see `docs/admin-api.md`). Staff are a separate auth realm from app users; every staff action is audit-logged.
 9. **Never modify the Glofly repo or backend.** Track required Glofly changes in `docs/glofly-integration.md`.
 
-## Design system (from canvas v3)
+Renamed from HomeTab on Nov 4, 2026. The repo (`chipmullins/hometab`), the Ruby namespace (`Hometab::`, `lib/hometab/`) and dev/test database names keep the old name on purpose; everything users, stores or AWS see says Tabitat (`tabitat.app`, bundle ID `app.tabitat`, scheme `tabitat://`, AWS names `tabitat-*`).
 
+## Design system (layout from canvas v3; colors and logo from the Tabitat logo canvas)
+
+- Logo: **B, the t-roof monogram** (a lowercase t rising into a roof), white on brand. Source: `HouseMark` in `mobile/src/components/icons.tsx` and `api/app/views/public/_mark.html.erb`. Logo canvas: https://claude.ai/artifact/QihYwPjZp7mtBypJJLwZBm
 - Fonts: **Manrope** (UI, 400–800), **IBM Plex Mono** (all money amounts, 500–600)
-- Colors: ground `#F3F4EF`, ink `#15201A`, muted `#56625B`, brand green `#1C6A4C`, green tint `#E3EFE8`, owed-to-you `#1C6A4C`, you-owe `#B0440C`, hairline `#E1E4DC`, chip border `#D5D9CF`, dark card `#15201A`
+- Colors (**Plum & Sage**): ground `#F6F2F4`, ink `#241A23`, muted `#685A66`, brand plum `#6B3A63`, plum tint `#EFE3EC`, owed-to-you sage `#3A7457`, you-owe `#A8441C`, hairline `#E9E0E6`, chip border `#DCCFD8`, dark card `#241A23` (owed on dark `#A9D9BD`). Owed-to-you is no longer the brand color: use `owedToYou` / `--owed` for money owed to you, never `brand`.
 - Radii: cards 24, tiles 14, buttons 15–16, pill FAB 29
 - Touch targets ≥ 44pt. Icons: stroke SVG, no emoji.
 - **Every screen adapts** to iPhone, iPad, Android phones/tablets and foldables via `useLayout()` (`mobile/src/hooks/use-layout.ts`): ≥700dp wide = two columns / side-by-side; content capped (`HT.maxWidth`); rotation, iPad split view and fold changes re-render. Check phone (390), small Android (360), unfolded foldable (~884) and iPad portrait/landscape.

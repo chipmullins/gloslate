@@ -4,9 +4,9 @@ require "prawn/table"
 module Statements
   # One PDF per month: useful for move-outs, landlord disputes, or taxes.
   module Pdf
-    INK = "15201A"
-    MUTED = "56625B"
-    BRAND = "1C6A4C"
+    INK = "241A23"
+    MUTED = "685A66"
+    BRAND = "6B3A63"
     FONTS = Rails.root.join("app/assets/fonts")
 
     module_function
@@ -15,12 +15,12 @@ module Statements
       d = statement.data
       names = d["names"]
       money = ->(c) { Hometab::Money.format(c).sub("−", "-") }
-      Prawn::Document.new(page_size: "LETTER", margin: 54, info: { Title: "HomeTab #{statement.title} statement" }) do |pdf|
+      Prawn::Document.new(page_size: "LETTER", margin: 54, info: { Title: "Tabitat #{statement.title} statement" }) do |pdf|
         pdf.font_families.update("Manrope" => { normal: FONTS.join("Manrope_500Medium.ttf").to_s, bold: FONTS.join("Manrope_800ExtraBold.ttf").to_s },
                                  "Plex" => { normal: FONTS.join("IBMPlexMono_500Medium.ttf").to_s, bold: FONTS.join("IBMPlexMono_600SemiBold.ttf").to_s })
         pdf.font "Manrope"
         pdf.fill_color BRAND
-        pdf.text "HomeTab", size: 14, style: :bold
+        pdf.text "Tabitat", size: 14, style: :bold
         pdf.fill_color INK
         pdf.move_down 6
         pdf.text "#{statement.household.name} · #{statement.title}", size: 22, style: :bold
@@ -65,7 +65,7 @@ module Statements
 
         pdf.move_down 20
         pdf.fill_color MUTED
-        pdf.text "Payments are marked and confirmed by the people involved. HomeTab never holds or moves money.", size: 8.5
+        pdf.text "Payments are marked and confirmed by the people involved. Tabitat never holds or moves money.", size: 8.5
       end.render
     end
 
