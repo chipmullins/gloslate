@@ -251,6 +251,36 @@ Resources:
       EmailIdentity: !Ref Domain
       DkimSigningAttributes: { NextSigningKeyLength: RSA_2048_BIT }
 
+  # ---- DNS for the domain (set the registrar's nameservers to the NameServers output) ----
+  Zone:
+    Type: AWS::Route53::HostedZone
+    Condition: HasDomain
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
+    Properties:
+      Name: !Ref Domain
+      HostedZoneTags: [{ Key: Project, Value: tabitat }]
+  SiteRecords:
+    Type: AWS::Route53::RecordSetGroup
+    Condition: HasDomain
+    Properties:
+      HostedZoneId: !Ref Zone
+      RecordSets:
+        - { Name: !Ref Domain, Type: A, TTL: "300", ResourceRecords: [!Ref PublicIp] }
+        - { Name: !Sub "api.${Domain}", Type: A, TTL: "300", ResourceRecords: [!Ref PublicIp] }
+        - { Name: !Sub "admin-api.${Domain}", Type: A, TTL: "300", ResourceRecords: [!Ref PublicIp] }
+        - { Name: !Sub "staging.${Domain}", Type: A, TTL: "300", ResourceRecords: [!Ref PublicIp] }
+  EmailRecords:
+    Type: AWS::Route53::RecordSetGroup
+    Condition: HasDomain
+    Properties:
+      HostedZoneId: !Ref Zone
+      RecordSets:
+        - { Name: !GetAtt EmailIdentity.DkimDNSTokenName1, Type: CNAME, TTL: "1800", ResourceRecords: [!GetAtt EmailIdentity.DkimDNSTokenValue1] }
+        - { Name: !GetAtt EmailIdentity.DkimDNSTokenName2, Type: CNAME, TTL: "1800", ResourceRecords: [!GetAtt EmailIdentity.DkimDNSTokenValue2] }
+        - { Name: !GetAtt EmailIdentity.DkimDNSTokenName3, Type: CNAME, TTL: "1800", ResourceRecords: [!GetAtt EmailIdentity.DkimDNSTokenValue3] }
+        - { Name: !Sub "_dmarc.${Domain}", Type: TXT, TTL: "3600", ResourceRecords: [!Sub '"v=DMARC1; p=none; rua=mailto:dmarc@${Domain}"'] }
+
   # ---- Alerts ----
   AlertTopic:
     Type: AWS::SNS::Topic
@@ -289,6 +319,10 @@ Resources:
           Subscribers: [{ SubscriptionType: EMAIL, Address: !Ref AlertEmail }]
 
 Outputs:
+  NameServers:
+    Condition: HasDomain
+    Description: Put these four nameservers in at your registrar (GoDaddy).
+    Value: !Join [", ", !GetAtt Zone.NameServers]
   ServerIp:
     Description: Point the domain's A records here.
     Value: !Ref PublicIp
@@ -300,11 +334,3 @@ Outputs:
     Value: !Ref FilesBucketProduction
   BackupsBucket:
     Value: !Ref BackupsBucket
-  DkimRecords:
-    Condition: HasDomain
-    Description: Add these three CNAME records so email from the domain is trusted.
-    Value: !Join
-      - " | "
-      - - !Sub "${EmailIdentity.DkimDNSTokenName1} -> ${EmailIdentity.DkimDNSTokenValue1}"
-        - !Sub "${EmailIdentity.DkimDNSTokenName2} -> ${EmailIdentity.DkimDNSTokenValue2}"
-        - !Sub "${EmailIdentity.DkimDNSTokenName3} -> ${EmailIdentity.DkimDNSTokenValue3}"

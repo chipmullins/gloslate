@@ -92,7 +92,7 @@ jobs:
           {
             echo "### Tabitat server"
             echo "Server IP: \`$(o ServerIp)\`"
-            DKIM=$(o DkimRecords); [ -n "$DKIM" ] && [ "$DKIM" != "None" ] && echo "Email DKIM records: $DKIM"
+            NS=$(o NameServers); [ -n "$NS" ] && [ "$NS" != "None" ] && echo "Set these nameservers at your registrar: $NS"
           } >> "$GITHUB_STEP_SUMMARY"
 
   deploy:

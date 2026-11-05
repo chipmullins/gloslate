@@ -29,7 +29,8 @@ Your own console sign-in is unchanged and can see and manage everything.
 
 1. Sign in to AWS and set the region to **us-east-1 (N. Virginia)**.
 2. CloudFormation → **Create stack** → *With new resources* → **Upload a template file**:
-   `infra/aws/bootstrap.yml`. Name the stack `tabitat-bootstrap`.
+   `infra/aws/bootstrap.yml`. Name the stack `tabitat-bootstrap`. Leave **DomainSuffix** as `tabitat.app`
+     (the setup can only change DNS records under that name, and can never delete a DNS zone).
    - If the account already has a GitHub "OIDC provider" (for example from Glofly), set
      **CreateGitHubOidcProvider = false**. If you're not sure, leave it `true`. If the stack
      then fails with "already exists", delete the failed stack and try again with `false`.
@@ -38,16 +39,19 @@ Your own console sign-in is unchanged and can see and manage everything.
 4. In GitHub, go to repo **Settings → Secrets and variables → Actions → Variables** and add:
    - `AWS_ROLE_ARN`: the value from step 3
    - `ALERT_EMAIL`: where "server down" and budget alerts go
-   - `TABITAT_DOMAIN`: e.g. `tabitat.app`. Leave it unset until you own the domain; the server
-     still gets built, the app just isn't deployed yet.
+   - `TABITAT_DOMAIN`: `tabitat.app`
 5. Actions → **Deploy** → **Run workflow** (staging). The first run takes about 10 minutes.
 
 ## After the first run
 
-- **Domain:** add A records for `@`, `api`, `admin-api` and `staging` pointing to the
-  **Server IP** shown in the run summary. HTTPS certificates are issued automatically on
-  the first visit.
-- **Email:** add the three DKIM CNAME records listed in the run summary. Then, in the SES
+- **Domain (tabitat.app, bought at GoDaddy):** the stack creates the DNS zone in Route 53 with every
+  record already in it: the site, `api`, `admin-api`, `staging`, the email (DKIM) records and DMARC.
+  The run summary lists four **nameservers**. In GoDaddy, go to **My Products → tabitat.app → DNS →
+  Nameservers → Change → "I'll use my own nameservers"** and enter those four. That's the only DNS step.
+  It takes effect within an hour, often minutes. GoDaddy's own DNS records stop being used, which
+  doesn't matter for a new domain. HTTPS certificates are issued automatically on the first visit
+  (.app requires HTTPS, so this is needed anyway).
+- **Email:** once the nameservers switch, SES verifies the domain by itself. Then, in the SES
   console, choose **Request production access** (until AWS approves it, SES only sends to
   verified addresses).
 - **Texts:** in the SNS console, **Text messaging (SMS)**:
