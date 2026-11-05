@@ -23,6 +23,7 @@ Resources:
   GitHubOidcProvider:
     Type: AWS::IAM::OIDCProvider
     Condition: MakeProvider
+    UpdateReplacePolicy: Retain
     DeletionPolicy: Retain # other projects may start using it; never delete it with HomeTab
     Properties:
       Url: https://token.actions.githubusercontent.com
