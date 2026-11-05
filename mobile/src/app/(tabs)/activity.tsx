@@ -70,7 +70,7 @@ export default function Activity() {
       <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10, backgroundColor: HT.color.surface, borderRadius: HT.radius.tile, borderWidth: 1, borderColor: HT.color.chipBorder, paddingHorizontal: 14 }}>
         <SearchIcon size={18} color={HT.color.muted} />
         <TextInput value={q} onChangeText={setQ} placeholder="Search items" placeholderTextColor={HT.color.faint} accessibilityLabel="Search items" returnKeyType="search"
-          style={{ flex: 1, minHeight: 48, fontFamily: HT.font.semibold, fontSize: 15.5, color: HT.color.ink }} />
+          style={{ flex: 1, height: 48, paddingVertical: 0, fontFamily: HT.font.semibold, fontSize: 15.5, color: HT.color.ink }} />
       </View>
       <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 8 }}>
         {(home?.members ?? []).filter((m) => !m.former).map((m) => (

@@ -20,6 +20,8 @@ import { SessionProvider, useSession } from '@/lib/session';
 
 SplashScreen.preventAutoHideAsync().catch(() => {});
 
+const MODAL = { presentation: 'modal', animation: 'slide_from_bottom' } as const;
+
 function Root() {
   const [manrope] = useManropeFonts({ Manrope_400Regular, Manrope_500Medium, Manrope_600SemiBold, Manrope_700Bold, Manrope_800ExtraBold });
   const [plex] = usePlexFonts({ IBMPlexMono_500Medium, IBMPlexMono_600SemiBold });
@@ -41,7 +43,13 @@ function Root() {
     <>
       <StatusBar style="dark" />
       <LockGate enabled={!!user?.face_id_lock}>
-        <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: HT.color.ground }, animation: 'slide_from_right' }} />
+        {/* Pop-up screens are declared here, before they open: iOS can't switch a screen
+            to modal after it has started presenting (doing it inside the screen crashed). */}
+        <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: HT.color.ground }, animation: 'slide_from_right' }}>
+          <Stack.Screen name="add" options={MODAL} />
+          <Stack.Screen name="itemize" options={MODAL} />
+          <Stack.Screen name="bill-edit" options={MODAL} />
+        </Stack>
       </LockGate>
     </>
   );

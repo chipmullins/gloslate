@@ -160,9 +160,11 @@ export const Field = forwardRef<TextInputInstance, TextInputProps & { label: str
           {...rest}
           style={[
             {
-              minHeight: 52, borderRadius: HT.radius.tile, borderWidth: 1,
+              // A fixed height (not minHeight): iOS otherwise resizes single-line inputs as you
+              // type, because the custom font's placeholder and text metrics differ.
+              height: 58, paddingVertical: 0, borderRadius: HT.radius.tile, borderWidth: 1,
               borderColor: error ? HT.color.danger : HT.color.chipBorder, backgroundColor: HT.color.surface,
-              paddingHorizontal: 16, fontFamily: HT.font.semibold, fontSize: 16, color: HT.color.ink,
+              paddingHorizontal: 18, fontFamily: HT.font.semibold, fontSize: 17, color: HT.color.ink,
             },
             style,
           ]}
