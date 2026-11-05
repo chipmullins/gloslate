@@ -21,6 +21,15 @@ jobs:
         working-directory: api
     steps:
       - uses: actions/checkout@v4
+      # Same image libraries and brand fonts as the production Dockerfile (share images, PDFs).
+      - name: Install libvips and fonts
+        working-directory: .
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install --no-install-recommends -y libvips42 librsvg2-2 fontconfig
+          sudo mkdir -p /usr/local/share/fonts/hometab
+          sudo cp api/app/assets/fonts/*.ttf /usr/local/share/fonts/hometab/
+          fc-cache -f
       - uses: ruby/setup-ruby@v1
         with:
           ruby-version: "3.3.6"
