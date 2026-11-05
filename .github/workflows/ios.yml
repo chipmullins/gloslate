@@ -1,0 +1,47 @@
+name: iPhone app
+
+# Builds Tabitat for iPhone in Expo's cloud (EAS) and uploads it to TestFlight.
+# Needs repo secrets: EXPO_TOKEN, ASC_KEY_ID, ASC_ISSUER_ID, ASC_KEY_P8 (see docs/ios.md).
+on:
+  workflow_dispatch:
+    inputs:
+      server:
+        description: Which server the app talks to
+        type: choice
+        options: [production, staging]
+        default: production
+
+permissions:
+  contents: read
+
+jobs:
+  testflight:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: mobile
+    env:
+      EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
+      EXPO_ASC_KEY_ID: ${{ secrets.ASC_KEY_ID }}
+      EXPO_ASC_ISSUER_ID: ${{ secrets.ASC_ISSUER_ID }}
+      EXPO_ASC_API_KEY_PATH: ${{ github.workspace }}/asc-key.p8
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: mobile/package-lock.json
+      - run: npm ci
+      - name: App Store Connect key
+        run: printf '%s' "${{ secrets.ASC_KEY_P8 }}" > "$EXPO_ASC_API_KEY_PATH"
+      - name: Link the Expo project (first run creates it)
+        run: |
+          npx --yes eas-cli@latest init --non-interactive --force
+          PID=$(node -e "console.log(require('./app.json').expo.extra.eas.projectId)")
+          echo "EAS project: \`$PID\`" >> "$GITHUB_STEP_SUMMARY"
+      - name: Build and send to TestFlight
+        run: npx --yes eas-cli@latest build --platform ios --profile ${{ inputs.server }} --non-interactive --auto-submit --wait
+      - if: always()
+        run: rm -f "$EXPO_ASC_API_KEY_PATH"
+      - run: echo "Built and sent to TestFlight. Apple takes 5 to 30 minutes to process it, then it appears in the TestFlight app on your iPhone." >> "$GITHUB_STEP_SUMMARY"
