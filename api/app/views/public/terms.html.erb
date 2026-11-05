@@ -1,0 +1,50 @@
+<% content_for :title, "Terms of use · Tabitat" %>
+<% content_for :head do %><meta name="description" content="The rules for using Tabitat."><% end %>
+<% content_for :styles do %><style><%= raw File.read(Rails.root.join("app/assets/stylesheets/site.css")) %></style><% end %>
+<% support = ENV.fetch("SUPPORT_EMAIL", "support@tabitat.app") %>
+<%= render "public/site_nav" %>
+<main id="main" class="container">
+<article class="doc">
+  <% if ENV["LEGAL_DRAFT"] != "false" %><div class="draft">Draft for review. These terms haven't been finalized yet.</div><% end %>
+  <div class="eyebrow">Legal</div>
+  <h1>Terms of use</h1>
+  <p class="updated">Last updated November 4, 2026</p>
+
+  <p>These terms are an agreement between you and HarborWorks ("we", "us") about using the Tabitat apps and tabitat.app ("Tabitat"). By using Tabitat, you agree to them.</p>
+
+  <h2>What Tabitat is, and isn't</h2>
+  <p>Tabitat helps people who share a home keep track of shared costs and work out who owes whom. <b>Tabitat never holds, sends or receives money.</b> It isn't a bank, payment processor or money transmitter. Pay buttons open third-party apps like Venmo or Cash App, and any payment you make there is between you, the person you pay, and that app, under that app's terms. A payment shows as paid in Tabitat only because a person marked or confirmed it; Tabitat doesn't verify payments.</p>
+
+  <h2>Who can use it</h2>
+  <p>You must be 18 or older and able to agree to these terms. Keep your sign-in methods secure; you're responsible for what happens in your account.</p>
+
+  <h2>Your entries</h2>
+  <p>Balances are only as accurate as what you and your roommates enter. Please check amounts before you pay or request. Tabitat keeps a history of every change, but we can't settle disagreements between members, and we aren't responsible for amounts entered incorrectly.</p>
+  <p>You own what you add. You give us permission to store, process and display it as needed to run Tabitat for you and the people in your home.</p>
+
+  <h2>Using Tabitat fairly</h2>
+  <p>Don't use Tabitat to harass anyone, to request money you aren't owed, for anything illegal, or to try to break, overload or get around its security. We may suspend or close accounts that do.</p>
+
+  <h2>Changes and availability</h2>
+  <p>Tabitat is free today. We may change or add features over time, and we'll give you notice in the app before any change that affects what you pay or how your data is used. We work to keep Tabitat available, but it may sometimes be down for maintenance or problems outside our control.</p>
+
+  <h2>Ending your use</h2>
+  <p>You can stop using Tabitat and delete your account at any time in Settings. What happens to your data is explained in the <a href="/privacy">privacy policy</a>.</p>
+
+  <h2>Disclaimers</h2>
+  <p>Tabitat is provided "as is". To the extent the law allows, we disclaim warranties of any kind, including fitness for a particular purpose. Tabitat doesn't give financial, legal or tax advice.</p>
+
+  <h2>Limitation of liability</h2>
+  <p>To the extent the law allows, HarborWorks isn't liable for indirect or consequential losses, or for payments you make or receive through other apps. Our total liability for any claim about Tabitat is limited to $50.</p>
+
+  <h2>Governing law</h2>
+  <p>These terms are governed by the laws of the Commonwealth of Kentucky, United States.</p>
+
+  <h2>Changes to these terms</h2>
+  <p>If we update these terms in a meaningful way, we'll tell you in the app before they take effect. Continuing to use Tabitat after that means you accept the new terms.</p>
+
+  <h2>Contact</h2>
+  <p>HarborWorks · <a href="mailto:<%= support %>"><%= support %></a></p>
+</article>
+</main>
+<%= render "public/site_footer" %>

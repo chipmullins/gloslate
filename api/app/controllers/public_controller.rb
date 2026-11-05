@@ -11,6 +11,17 @@ class PublicController < ActionController::Base
 
   def money(cents) = Hometab::Money.format(cents)
 
+  # Marketing site pages (tabitat.app). Static, so they can be cached briefly.
+  def privacy = render_site
+  def terms = render_site
+  def support = render_site
+
+  def sitemap
+    base = ENV.fetch("PUBLIC_URL", "https://tabitat.app")
+    urls = ["/", "/support", "/privacy", "/terms"].map { |p| "<url><loc>#{base}#{p == '/' ? '/' : p}</loc></url>" }.join
+    render xml: %(<?xml version="1.0" encoding="UTF-8"?><urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">#{urls}</urlset>)
+  end
+
   def request_page
     @req = PaymentRequest.includes(:requester, :recipient, :household).find_by!(token: params[:token])
     unless request.headers["Purpose"] == "prefetch" || request.user_agent.to_s.match?(/bot|preview|facebookexternalhit|Slack|Twitter/i)
@@ -88,5 +99,12 @@ class PublicController < ActionController::Base
   def icon
     expires_in 1.week, public: true
     render plain: render_to_string(partial: "public/mark", formats: [:html], locals: { size: 100 }), content_type: "image/svg+xml"
+  end
+
+  private
+
+  def render_site
+    expires_in 10.minutes, public: true
+    render action_name
   end
 end

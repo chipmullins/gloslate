@@ -61,6 +61,16 @@ Your own console sign-in is unchanged and can see and manage everything.
 - **Budget:** in Billing → **Cost allocation tags**, activate `Project` so the Tabitat budget
   counts only Tabitat.
 
+## Finding Tabitat in AWS
+
+- **Resource Groups & Tag Editor → Saved resource groups → Tabitat** lists every Tabitat resource
+  (everything tagged `Project=tabitat`).
+- **CloudWatch → Dashboards → Tabitat** shows the server's CPU, health, network and disk.
+- **Billing → Cost Explorer**, filtered by tag `Project = tabitat`, shows only Tabitat's costs
+  (after activating the `Project` cost allocation tag once).
+- AWS's older "myApplications"/AppRegistry feature stopped accepting new accounts in July 2026, so
+  Tabitat uses tags and a Resource Group, which AWS now recommends instead.
+
 ## Day to day
 
 - Every push to `main` that touches `api/` or `infra/` updates the stack and deploys **staging**.

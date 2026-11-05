@@ -281,6 +281,20 @@ Resources:
         - { Name: !GetAtt EmailIdentity.DkimDNSTokenName3, Type: CNAME, TTL: "1800", ResourceRecords: [!GetAtt EmailIdentity.DkimDNSTokenValue3] }
         - { Name: !Sub "_dmarc.${Domain}", Type: TXT, TTL: "3600", ResourceRecords: [!Sub '"v=DMARC1; p=none; rua=mailto:dmarc@${Domain}"'] }
 
+  # ---- The "Tabitat" dashboard in CloudWatch: the server at a glance ----
+  Dashboard:
+    Type: AWS::CloudWatch::Dashboard
+    Properties:
+      DashboardName: Tabitat
+      DashboardBody: !Sub |
+        {"widgets":[
+          {"type":"text","x":0,"y":0,"width":24,"height":2,"properties":{"markdown":"# Tabitat\nOne server (staging + production). Resources: Resource Groups → **Tabitat**. Costs: Cost Explorer, filter tag Project = tabitat."}},
+          {"type":"metric","x":0,"y":2,"width":12,"height":6,"properties":{"title":"Server CPU %","region":"${AWS::Region}","stat":"Average","period":300,"metrics":[["AWS/EC2","CPUUtilization","InstanceId","${Server}"]]}},
+          {"type":"metric","x":12,"y":2,"width":12,"height":6,"properties":{"title":"Health checks failed","region":"${AWS::Region}","stat":"Maximum","period":300,"metrics":[["AWS/EC2","StatusCheckFailed","InstanceId","${Server}"]]}},
+          {"type":"metric","x":0,"y":8,"width":12,"height":6,"properties":{"title":"Network in / out","region":"${AWS::Region}","stat":"Sum","period":300,"metrics":[["AWS/EC2","NetworkIn","InstanceId","${Server}"],["AWS/EC2","NetworkOut","InstanceId","${Server}"]]}},
+          {"type":"metric","x":12,"y":8,"width":12,"height":6,"properties":{"title":"Data disk I/O","region":"${AWS::Region}","stat":"Sum","period":300,"metrics":[["AWS/EBS","VolumeWriteOps","VolumeId","${DataVolume}"],["AWS/EBS","VolumeReadOps","VolumeId","${DataVolume}"]]}}
+        ]}
+
   # ---- Alerts ----
   AlertTopic:
     Type: AWS::SNS::Topic

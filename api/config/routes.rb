@@ -3,6 +3,10 @@ Rails.application.routes.draw do
 
   # Public pages (server-rendered)
   root "public#home"
+  get "privacy", to: "public#privacy"
+  get "terms", to: "public#terms"
+  get "support", to: "public#support"
+  get "sitemap.xml", to: "public#sitemap", defaults: { format: :xml }
   get "r/:token", to: "public#request_page", as: :public_request
   post "r/:token/paid", to: "public#mark_paid"
   get "r/:token/image.png", to: "public#request_image"

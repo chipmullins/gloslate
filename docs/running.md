@@ -47,7 +47,9 @@ In Expo Go, receipt scanning falls back to attaching the photo and typing the to
 | `APPLE_CLIENT_IDS`, `GOOGLE_CLIENT_IDS` | ID token audiences |
 | `APPLE_TEAM_ID`, `ANDROID_CERT_SHA256` | universal links (`/.well-known/...`) |
 | `EXPO_ACCESS_TOKEN` | optional, for Expo push security |
-| `APP_STORE_URL`, `PLAY_STORE_URL` | store links on the website and invite pages |
+| `APP_STORE_URL`, `PLAY_STORE_URL` | store links on the website and invite pages ("Coming soon" until set) |
+| `SUPPORT_EMAIL` | contact address on Support, Privacy and Terms (default `support@tabitat.app`) |
+| `LEGAL_DRAFT` | set to `false` once Privacy and Terms are reviewed, to hide the "Draft for review" notice |
 
 ## Before launch (not code)
 

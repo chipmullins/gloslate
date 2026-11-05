@@ -34,6 +34,20 @@ Resources:
       ClientIdList: [sts.amazonaws.com]
       Tags: [{ Key: Project, Value: tabitat }]
 
+  # "Tabitat" as its own project in the console: Resource Groups lists every
+  # resource tagged Project=tabitat (also the filter for Cost Explorer).
+  ResourceGroup:
+    Type: AWS::ResourceGroups::Group
+    Properties:
+      Name: Tabitat
+      Description: Everything tagged Project tabitat
+      ResourceQuery:
+        Type: TAG_FILTERS_1_0
+        Query:
+          ResourceTypeFilters: [AWS::AllSupported]
+          TagFilters: [{ Key: Project, Values: [tabitat] }]
+      Tags: [{ Key: Project, Value: tabitat }]
+
   # CloudFormation uses this role to build Tabitat's stack. It can create the
   # kinds of things Tabitat needs, but can only change or delete EC2 and S3
   # things that are tagged / named for Tabitat.
@@ -137,6 +151,7 @@ Resources:
               - Sid: Alarms
                 Effect: Allow
                 Action: [cloudwatch:PutMetricAlarm, cloudwatch:DeleteAlarms, cloudwatch:DescribeAlarms, cloudwatch:TagResource,
+                         cloudwatch:PutDashboard, cloudwatch:DeleteDashboards, cloudwatch:GetDashboard,
                          sns:CreateTopic, sns:DeleteTopic, sns:Subscribe, sns:Unsubscribe, sns:GetTopicAttributes,
                          sns:SetTopicAttributes, sns:TagResource, sns:ListSubscriptionsByTopic,
                          budgets:ModifyBudget, budgets:ViewBudget, budgets:CreateBudgetAction, budgets:TagResource]
