@@ -1,0 +1,28 @@
+name: Link Expo project (once)
+
+# Creates (or finds) the Expo project for Tabitat and prints its ID, which goes
+# into mobile/app.json. Needs repo secret EXPO_TOKEN.
+on: workflow_dispatch
+
+permissions:
+  contents: read
+
+jobs:
+  init:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: mobile
+    env:
+      EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: npx --yes eas-cli@latest init --non-interactive --force
+      - run: |
+          PID=$(node -e "console.log(require('./app.json').expo.extra.eas.projectId)")
+          OWNER=$(npx --yes eas-cli@latest whoami 2>/dev/null | head -1)
+          echo "projectId=$PID owner=$OWNER"
+          echo "Expo project ID: \`$PID\` (owner \`$OWNER\`)" >> "$GITHUB_STEP_SUMMARY"

@@ -1,0 +1,40 @@
+name: App update (over the air)
+
+# Ships JavaScript-only changes (screens, text, logic) to installed apps without a
+# new App Store / TestFlight build. Phones download it on next open and use it the
+# time after. Changes to native code (new modules, permissions, app.json plugins)
+# change the app's "fingerprint"; those phones keep their bundle until a new build.
+# Needs repo secret EXPO_TOKEN and the Expo project ID in mobile/app.json.
+on:
+  workflow_dispatch:
+    inputs:
+      message:
+        description: What changed (shown in the Expo dashboard)
+        required: true
+        default: Fixes and polish
+
+permissions:
+  contents: read
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: mobile
+    env:
+      EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: mobile/package-lock.json
+      - run: npm ci
+      - run: npm run typecheck && npm test
+      - name: Publish
+        run: npx --yes eas-cli@latest update --channel production --message "${{ inputs.message }}" --non-interactive
+        env:
+          EXPO_PUBLIC_API_URL: https://api.tabitat.app
+      - run: echo "Published. Phones pick it up on their next open and run it the time after." >> "$GITHUB_STEP_SUMMARY"
