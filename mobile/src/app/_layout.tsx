@@ -49,6 +49,7 @@ function Root() {
           <Stack.Screen name="add" options={MODAL} />
           <Stack.Screen name="itemize" options={MODAL} />
           <Stack.Screen name="bill-edit" options={MODAL} />
+          <Stack.Screen name="counter" options={MODAL} />
         </Stack>
       </LockGate>
     </>

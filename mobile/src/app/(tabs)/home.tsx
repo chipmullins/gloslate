@@ -2,7 +2,6 @@ import { router, useFocusEffect, type Href } from 'expo-router';
 import { useCallback, useEffect, useState } from 'react';
 import { Pressable, RefreshControl, ScrollView, Share, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import Svg, { Defs, LinearGradient, Rect, Stop } from 'react-native-svg';
 
 import { ExpenseRow, shortDate } from '@/components/expense-row';
 import { BellIcon, ChevronIcon, HouseMark, PlusIcon, SendIcon, ShareIcon } from '@/components/icons';
@@ -259,16 +258,7 @@ export default function Home() {
         </View>
       </ScrollView>
       <ToastHost bottom={92} />
-      <View pointerEvents="box-none" style={{ position: 'absolute', left: 0, right: 0, bottom: 0, paddingBottom: 16, paddingTop: 36, alignItems: 'center' }}>
-        <Svg pointerEvents="none" style={{ position: 'absolute', left: 0, right: 0, top: 0, bottom: 0 }} width="100%" height="100%" preserveAspectRatio="none">
-          <Defs>
-            <LinearGradient id="fade" x1="0" y1="0" x2="0" y2="1">
-              <Stop offset="0" stopColor={HT.color.ground} stopOpacity={0} />
-              <Stop offset="0.45" stopColor={HT.color.ground} stopOpacity={1} />
-            </LinearGradient>
-          </Defs>
-          <Rect x="0" y="0" width="100%" height="100%" fill="url(#fade)" />
-        </Svg>
+      <View pointerEvents="box-none" style={{ position: 'absolute', left: 0, right: 0, bottom: 0, paddingBottom: 16, alignItems: 'center' }}>
         <Pressable accessibilityRole="button" accessibilityLabel="Add an expense" onPress={() => router.push('/add' as Href)}
           style={({ pressed }) => ({ minHeight: 58, paddingHorizontal: 36, borderRadius: HT.radius.pill, backgroundColor: HT.color.brand,
             flexDirection: 'row', alignItems: 'center', gap: 10, transform: [{ scale: pressed ? 0.97 : 1 }],
