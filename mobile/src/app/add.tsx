@@ -1,4 +1,4 @@
-import { router, Stack, useFocusEffect, useLocalSearchParams, type Href } from 'expo-router';
+import { router, useFocusEffect, useLocalSearchParams, type Href } from 'expo-router';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Pressable, ScrollView, Text, TextInput, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -226,7 +226,7 @@ export default function Add() {
       </T>
       <TextInput value={description} onChangeText={setDescription} placeholder="What was it? (optional)" placeholderTextColor={HT.color.faint}
         accessibilityLabel="What was it" maxLength={60} returnKeyType="done"
-        style={{ marginTop: 6, minHeight: 44, minWidth: 220, textAlign: 'center', fontFamily: HT.font.semibold, fontSize: 15, color: HT.color.ink }} />
+        style={{ marginTop: 6, height: 44, paddingVertical: 0, minWidth: 220, textAlign: 'center', fontFamily: HT.font.semibold, fontSize: 15, color: HT.color.ink }} />
       {!editing ? (
         <View style={{ flexDirection: 'row', gap: 8, flexWrap: 'wrap', justifyContent: 'center' }}>
           <Pressable accessibilityRole="button" accessibilityLabel={photoUri ? 'Retake receipt photo' : 'Scan a receipt'} onPress={() => scan('camera')}
@@ -333,7 +333,7 @@ export default function Add() {
                 <TextInput value={inputs[m.id] ?? ''} onChangeText={(t) => setInputs((cur) => ({ ...cur, [m.id]: t }))}
                   keyboardType="decimal-pad" placeholder={kind === 'shares' ? '1' : '0'} placeholderTextColor={HT.color.faint}
                   accessibilityLabel={`${m.you ? 'Your' : `${m.first_name}'s`} ${kind === 'percent' ? 'percentage' : kind === 'exact' ? 'amount' : 'shares'}`}
-                  style={{ width: 84, minHeight: 44, borderRadius: 12, borderWidth: 1, borderColor: HT.color.chipBorder, paddingHorizontal: 10,
+                  style={{ width: 92, height: 48, paddingVertical: 0, borderRadius: 12, borderWidth: 1, borderColor: HT.color.chipBorder, paddingHorizontal: 10,
                     textAlign: 'right', fontFamily: HT.font.mono, fontSize: 16, color: HT.color.ink }} />
                 {kind === 'percent' ? <T v="muted">%</T> : null}
               </View>
@@ -359,7 +359,6 @@ export default function Add() {
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: HT.color.ground }} edges={['top', 'left', 'right', 'bottom']}>
-      <Stack.Screen options={{ presentation: 'modal', animation: 'slide_from_bottom' }} />
       <View style={{ flex: 1, width: '100%', maxWidth: wide ? 1000 : HT.maxWidth.form, alignSelf: 'center', paddingHorizontal: wide ? 32 : 20 }}>
         <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', minHeight: 52 }}>
           <IconButton label="Close" onPress={() => router.back()}><CloseIcon /></IconButton>

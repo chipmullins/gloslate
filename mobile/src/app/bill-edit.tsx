@@ -1,4 +1,4 @@
-import { router, Stack, useLocalSearchParams } from 'expo-router';
+import { router, useLocalSearchParams } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { Alert, Platform, Pressable, View } from 'react-native';
 
@@ -80,7 +80,6 @@ export default function BillEdit() {
 
   return (
     <Screen maxWidth={wide ? 760 : HT.maxWidth.form} footer={<Button title={id ? 'Save bill' : 'Add bill'} onPress={save} loading={busy} disabled={!ready} />}>
-      <Stack.Screen options={{ presentation: 'modal', animation: 'slide_from_bottom' }} />
       <View style={{ gap: 20 }}>
         <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
           <IconButton label="Close" onPress={() => router.back()}><CloseIcon /></IconButton>

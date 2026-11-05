@@ -1,4 +1,4 @@
-import { router, Stack, useLocalSearchParams } from 'expo-router';
+import { router, useLocalSearchParams } from 'expo-router';
 import { useState } from 'react';
 import { Pressable, TextInput, View } from 'react-native';
 
@@ -60,10 +60,10 @@ export default function Itemize() {
           <View style={{ flexDirection: 'row', gap: 8, alignItems: 'center' }}>
             <TextInput value={r.name} onChangeText={(t) => setRows((cur) => cur.map((x, j) => (j === i ? { ...x, name: t } : x)))} placeholder="Item"
               placeholderTextColor={HT.color.faint} accessibilityLabel={`Item ${i + 1} name`} maxLength={60}
-              style={{ flex: 1, minHeight: 44, fontFamily: HT.font.bold, fontSize: 15.5, color: HT.color.ink }} />
+              style={{ flex: 1, height: 48, paddingVertical: 0, fontFamily: HT.font.bold, fontSize: 15.5, color: HT.color.ink }} />
             <TextInput value={r.amount} onChangeText={(t) => setRows((cur) => cur.map((x, j) => (j === i ? { ...x, amount: t } : x)))} placeholder="0.00"
               placeholderTextColor={HT.color.faint} keyboardType="decimal-pad" accessibilityLabel={`Item ${i + 1} amount`}
-              style={{ width: 96, minHeight: 44, borderRadius: 12, borderWidth: 1, borderColor: HT.color.chipBorder, paddingHorizontal: 10, textAlign: 'right', fontFamily: HT.font.mono, fontSize: 16, color: HT.color.ink }} />
+              style={{ width: 104, height: 48, paddingVertical: 0, borderRadius: 12, borderWidth: 1, borderColor: HT.color.chipBorder, paddingHorizontal: 10, textAlign: 'right', fontFamily: HT.font.mono, fontSize: 16, color: HT.color.ink }} />
             <IconButton label={`Remove item ${i + 1}`} onPress={() => setRows((cur) => cur.filter((_, j) => j !== i))}><TrashIcon size={18} color={HT.color.muted} /></IconButton>
           </View>
           <View style={{ flexDirection: 'row', gap: 10, flexWrap: 'wrap' }}>
@@ -90,12 +90,12 @@ export default function Itemize() {
         <View style={{ flex: 1, gap: 4 }}>
           <T v="label">Tax</T>
           <TextInput value={tax} onChangeText={setTax} keyboardType="decimal-pad" placeholder="0.00" placeholderTextColor={HT.color.faint} accessibilityLabel="Tax"
-            style={{ minHeight: 48, borderRadius: 12, borderWidth: 1, borderColor: HT.color.chipBorder, paddingHorizontal: 12, fontFamily: HT.font.mono, fontSize: 16, color: HT.color.ink }} />
+            style={{ height: 52, paddingVertical: 0, borderRadius: 12, borderWidth: 1, borderColor: HT.color.chipBorder, paddingHorizontal: 12, fontFamily: HT.font.mono, fontSize: 16, color: HT.color.ink }} />
         </View>
         <View style={{ flex: 1, gap: 4 }}>
           <T v="label">Tip</T>
           <TextInput value={tip} onChangeText={setTip} keyboardType="decimal-pad" placeholder="0.00" placeholderTextColor={HT.color.faint} accessibilityLabel="Tip"
-            style={{ minHeight: 48, borderRadius: 12, borderWidth: 1, borderColor: HT.color.chipBorder, paddingHorizontal: 12, fontFamily: HT.font.mono, fontSize: 16, color: HT.color.ink }} />
+            style={{ height: 52, paddingVertical: 0, borderRadius: 12, borderWidth: 1, borderColor: HT.color.chipBorder, paddingHorizontal: 12, fontFamily: HT.font.mono, fontSize: 16, color: HT.color.ink }} />
         </View>
       </View>
       <T v="small">Tax and tip split in proportion to what each person had.</T>
@@ -116,7 +116,6 @@ export default function Itemize() {
 
   return (
     <Screen maxWidth={wide ? 1000 : HT.maxWidth.form} footer={<Button title={total ? `Use ${formatCents(total)}` : 'Add items'} onPress={done} disabled={!total || unassigned} />}>
-      <Stack.Screen options={{ presentation: 'modal', animation: 'slide_from_bottom' }} />
       <View style={{ gap: 16 }}>
         <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
           <IconButton label="Close" onPress={() => router.back()}><CloseIcon /></IconButton>
