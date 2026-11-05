@@ -1,7 +1,8 @@
 import * as SecureStore from 'expo-secure-store';
 import { Platform } from 'react-native';
 
-const BASE = process.env.EXPO_PUBLIC_API_URL ?? 'http://localhost:3000';
+// Release builds always reach the live server, even if no .env file was picked up.
+const BASE = process.env.EXPO_PUBLIC_API_URL || (__DEV__ ? 'http://localhost:3000' : 'https://api.tabitat.app');
 const TOKEN_KEY = 'tabitat.session';
 
 export class ApiError extends Error {
@@ -181,7 +182,7 @@ export type Statement = StatementSummary & {
 };
 export type NotificationItem = { id: string; kind: string; title: string; body: string; data: { route?: string }; created_at: string; read: boolean };
 
-export const API_BASE = process.env.EXPO_PUBLIC_API_URL ?? 'http://localhost:3000';
+export const API_BASE = BASE;
 
 /** Attaches a receipt photo to an expense (multipart upload). */
 export async function uploadReceipt(expenseId: string, uri: string) {
