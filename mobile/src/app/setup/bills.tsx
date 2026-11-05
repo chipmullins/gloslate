@@ -6,7 +6,7 @@ import { CheckIcon } from '@/components/icons';
 import { Button, ErrorNote, Field, Screen, Steps, T } from '@/components/ui';
 import { HT } from '@/constants/theme';
 import { api, ApiError } from '@/lib/api';
-import { parseCents } from '@/lib/money';
+import { centsFirst, parseCents } from '@/lib/money';
 
 const OPTIONS = [
   { key: 'rent', label: 'Rent', fixed: true },
@@ -77,7 +77,7 @@ export default function SetupBills() {
                 </Pressable>
                 {on && o.fixed ? (
                   <View style={{ flexDirection: 'row', gap: 10 }}>
-                    <View style={{ flex: 2 }}><Field label="Amount" value={amounts[o.key] ?? ''} onChangeText={(t) => setAmounts((a) => ({ ...a, [o.key]: t }))} keyboardType="decimal-pad" placeholder="1800.00" /></View>
+                    <View style={{ flex: 2 }}><Field label="Amount" value={amounts[o.key] ?? ''} onChangeText={(t) => setAmounts((a) => ({ ...a, [o.key]: centsFirst(t) }))} keyboardType="number-pad" placeholder="0.00" /></View>
                     <View style={{ flex: 1 }}><Field label="Due day" value={days[o.key] ?? ''} onChangeText={(t) => setDays((d) => ({ ...d, [o.key]: t.replace(/\D/g, '').slice(0, 2) }))} keyboardType="number-pad" placeholder="1" /></View>
                   </View>
                 ) : null}

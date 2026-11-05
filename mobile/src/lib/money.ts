@@ -10,6 +10,17 @@ export function formatCents(cents: number, opts: { sign?: boolean } = {}): strin
   return neg ? `−${body}` : body;
 }
 
+/**
+ * Cash-register entry: digits fill in from the cents ("5" → 0.05, "512" → 5.12),
+ * so nobody has to type the decimal point. Returns a dollar string for parseCents.
+ */
+export function centsFirst(input: string): string {
+  const digits = input.replace(/\D/g, '').replace(/^0+/, '').slice(0, 9);
+  if (!digits) return '';
+  const padded = digits.padStart(3, '0');
+  return `${Number(padded.slice(0, -2))}.${padded.slice(-2)}`;
+}
+
 /** Keypad input ("32.4", "1,200") → cents, without float math. */
 export function parseCents(input: string): number | null {
   const clean = input.replace(/[$,\s]/g, '');

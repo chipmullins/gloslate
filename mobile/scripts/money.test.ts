@@ -40,3 +40,15 @@ test('equal split: randomized, always sums and non-payers never pay extra', () =
     if (ids.includes(payer)) for (const id of ids) if (id !== payer) assert.equal(s[id], floor);
   }
 });
+
+test('cash-register entry fills from the cents', async () => {
+  const { centsFirst } = await import('../src/lib/money.ts');
+  assert.equal(centsFirst('5'), '0.05');
+  assert.equal(centsFirst('512'), '5.12');
+  assert.equal(centsFirst('0.051'), '0.51'); // the field already showed 0.05, then "1" typed
+  assert.equal(centsFirst('5.1'), '0.51'); // backspace from 5.12
+  assert.equal(centsFirst('180000'), '1800.00');
+  assert.equal(centsFirst(''), '');
+  assert.equal(centsFirst('0.0'), '');
+  assert.equal(parseCents(centsFirst('123456789999')), 123456789);
+});

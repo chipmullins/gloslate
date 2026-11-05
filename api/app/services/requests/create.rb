@@ -11,7 +11,7 @@ module Requests
 
       lines = b[:items].reject { _1[:status] == "paid" }.map do |i|
         open = i[:cents].positive? ? i[:cents] - i[:paid_cents] : i[:cents] + i[:paid_cents]
-        { description: i[:description], spent_on: i[:spent_on], cents: open }
+        { description: i[:description], spent_on: i[:spent_on], cents: open, total_cents: i[:total_cents], split_count: i[:split_count] }
       end
       lines << { description: "Paid already", cents: -b[:credit_cents][:theirs] } if b[:credit_cents][:theirs].positive?
       grouped = summarize(lines)
@@ -31,7 +31,9 @@ module Requests
       lines.group_by { _1[:description] }.map do |desc, rows|
         total = rows.sum { _1[:cents] }
         label = rows.size > 1 ? "#{desc} — #{rows.size}" : desc
-        { description: label, cents: total }
+        totals = rows.filter_map { _1[:total_cents] }
+        counts = rows.filter_map { _1[:split_count] }.uniq
+        { description: label, cents: total, total_cents: totals.sum.nonzero?, split_count: (counts.first if counts.size == 1) }
       end.reject { _1[:cents].zero? }.sort_by { -_1[:cents] }
     end
   end

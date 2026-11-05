@@ -12,7 +12,7 @@ import { useLayout } from '@/hooks/use-layout';
 import { api, ApiError, CATEGORIES, uploadReceipt, type Expense, type Member } from '@/lib/api';
 import { receiptDraft } from '@/lib/draft';
 import { scanReceipt } from '@/lib/receipt-scan';
-import { formatCents, parseCents } from '@/lib/money';
+import { centsFirst, formatCents, parseCents } from '@/lib/money';
 import { effectFor, equalSplit, newClientId } from '@/lib/split';
 import { toast } from '@/lib/toast';
 
@@ -330,8 +330,8 @@ export default function Add() {
             {kind !== 'equal' && on ? (
               <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
                 {kind === 'exact' ? <T v="muted">$</T> : null}
-                <TextInput value={inputs[m.id] ?? ''} onChangeText={(t) => setInputs((cur) => ({ ...cur, [m.id]: t }))}
-                  keyboardType="decimal-pad" placeholder={kind === 'shares' ? '1' : '0'} placeholderTextColor={HT.color.faint}
+                <TextInput value={inputs[m.id] ?? ''} onChangeText={(t) => setInputs((cur) => ({ ...cur, [m.id]: kind === 'exact' ? centsFirst(t) : t }))}
+                  keyboardType={kind === 'exact' ? 'number-pad' : 'decimal-pad'} placeholder={kind === 'shares' ? '1' : '0'} placeholderTextColor={HT.color.faint}
                   accessibilityLabel={`${m.you ? 'Your' : `${m.first_name}'s`} ${kind === 'percent' ? 'percentage' : kind === 'exact' ? 'amount' : 'shares'}`}
                   style={{ width: 92, height: 48, paddingVertical: 0, borderRadius: 12, borderWidth: 1, borderColor: HT.color.chipBorder, paddingHorizontal: 10,
                     textAlign: 'right', fontFamily: HT.font.mono, fontSize: 16, color: HT.color.ink }} />
