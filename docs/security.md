@@ -31,7 +31,7 @@ Every limit has its own `name:` so counters never share. Sign-in codes 10/min an
 
 ## Production settings
 
-`force_ssl`, `assume_ssl` (TLS at the Kamal proxy), host allowlist (`ALLOWED_HOSTS`), sensitive params filtered from logs (codes, phones, tokens, payment handles), mail job arguments not logged, receipts served through 5-minute signed links.
+`force_ssl`, `assume_ssl` (TLS at Caddy on the server), host allowlist (`ALLOWED_HOSTS`), sensitive params filtered from logs (codes, phones, tokens, payment handles), mail job arguments not logged, receipts served through 5-minute signed links.
 
 ## Review log
 

@@ -17,7 +17,7 @@ Owner: Chip Mullins. Brand line: "Tabitat by Glofly". Legal owner: HarborWorks.
 ```
 api/      Rails 8 (API mode) + server-rendered request pages, landing page
 mobile/   Expo (React Native, TypeScript, expo-router)
-infra/    Kamal 2 config, AWS notes
+infra/    AWS CloudFormation (infra/aws/tabitat.yml); the server pulls images from ghcr.io (docs/deploy.md)
 docs/     decisions, admin API, Glofly integration, runbooks
 ```
 

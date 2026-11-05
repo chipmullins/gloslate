@@ -1,0 +1,52 @@
+# Tabitat on its server. The server's updater (infra/aws/tabitat.yml) copies this
+# file out of the newest app image every few minutes and runs `docker compose up`.
+# Secrets live only on the server, in /data/env/*.secrets.env (made on first boot).
+name: tabitat
+
+x-web: &web
+  restart: unless-stopped
+  stop_grace_period: 20s
+  logging: { driver: json-file, options: { max-size: "10m", max-file: "3" } }
+
+x-db: &db
+  image: postgres:16
+  restart: unless-stopped
+  command: postgres -c shared_buffers=64MB -c max_connections=30
+  environment: { POSTGRES_USER: tabitat, POSTGRES_DB: tabitat_production }
+  logging: { driver: json-file, options: { max-size: "10m", max-file: "3" } }
+
+services:
+  caddy:
+    image: caddy:2
+    restart: unless-stopped
+    ports: ["80:80", "443:443", "443:443/udp"]
+    env_file: [/data/env/server.env]
+    volumes:
+      - /opt/tabitat/Caddyfile:/etc/caddy/Caddyfile:ro
+      - /data/caddy:/data
+
+  staging-db:
+    <<: *db
+    container_name: tabitat-staging-db
+    env_file: [/data/env/staging.secrets.env]
+    volumes: [/data/pg-staging:/var/lib/postgresql/data]
+
+  staging-web:
+    <<: *web
+    image: ghcr.io/chipmullins/tabitat-api:staging
+    container_name: tabitat-staging-web
+    depends_on: [staging-db]
+    env_file: [/data/env/server.env, /data/env/staging.server.env, /opt/tabitat/staging.env, /data/env/staging.secrets.env]
+
+  production-db:
+    <<: *db
+    container_name: tabitat-production-db
+    env_file: [/data/env/production.secrets.env]
+    volumes: [/data/pg-production:/var/lib/postgresql/data]
+
+  production-web:
+    <<: *web
+    image: ghcr.io/chipmullins/tabitat-api:production
+    container_name: tabitat-production-web
+    depends_on: [production-db]
+    env_file: [/data/env/server.env, /data/env/production.server.env, /opt/tabitat/production.env, /data/env/production.secrets.env]

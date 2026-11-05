@@ -1,0 +1,18 @@
+# HTTPS certificates come from Let's Encrypt automatically.
+{
+	email {$ACME_EMAIL}
+}
+
+tabitat.app, api.tabitat.app, admin-api.tabitat.app {
+	encode zstd gzip
+	reverse_proxy production-web:80
+}
+
+www.tabitat.app {
+	redir https://tabitat.app{uri} permanent
+}
+
+staging.tabitat.app {
+	encode zstd gzip
+	reverse_proxy staging-web:80
+}
