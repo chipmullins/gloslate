@@ -90,6 +90,7 @@ production:
     database: hometab_production
     username: hometab
     password: <%= ENV["HOMETAB_DATABASE_PASSWORD"] %>
+    host: <%= ENV.fetch("DB_HOST", "localhost") %>
   cache:
     <<: *primary_production
     database: hometab_production_cache
