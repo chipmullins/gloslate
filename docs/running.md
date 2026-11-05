@@ -28,7 +28,7 @@ In Expo Go, receipt scanning falls back to attaching the photo and typing the to
 
 ## What step 13 needs from Chip
 
-- **AWS** (us-east-1): EC2 for Kamal (staging + production), RDS Postgres 16, S3 bucket for receipts and PDFs (private), SES (verify tabitat.app, request production access), SNS for SMS sign-in codes, Route 53 for tabitat.app.
+- **AWS** (us-east-1): one EC2 server (staging + production, Postgres on its own disk), S3 bucket for receipts and PDFs (private), SES (verify tabitat.app, request production access), SNS for SMS sign-in codes, Route 53 for tabitat.app.
 - **Apple**: Team ID, App ID `app.tabitat` with Sign in with Apple, Associated Domains, Push; App Group `group.app.tabitat` (widgets).
 - **Google Play**: developer account ($25), upload key SHA-256 for `assetlinks.json`.
 - **Expo/EAS**: `npx eas-cli init` (sets `extra.eas.projectId`, required for push tokens).

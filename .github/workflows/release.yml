@@ -1,0 +1,74 @@
+name: Release
+
+# Builds Tabitat's server image and stores it in GitHub's package registry.
+# The server checks the registry every 2 minutes and updates itself, so
+# nothing here needs (or has) any access to AWS.
+#
+#   Push to main (api/**)  -> new :staging image -> staging.tabitat.app updates
+#   Run workflow           -> "promote" copies :staging to :production -> tabitat.app updates
+on:
+  push:
+    branches: [main]
+    paths: ["api/**", ".github/workflows/release.yml"]
+  workflow_dispatch:
+    inputs:
+      action:
+        description: What to do
+        type: choice
+        options: [promote staging to production, rebuild staging]
+        default: promote staging to production
+
+permissions:
+  contents: read
+  packages: write
+
+concurrency:
+  group: release
+  cancel-in-progress: false
+
+env:
+  IMAGE: ghcr.io/chipmullins/tabitat-api
+
+jobs:
+  staging:
+    if: github.event_name == 'push' || inputs.action == 'rebuild staging'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: docker/setup-buildx-action@v3
+      - uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - uses: docker/build-push-action@v6
+        with:
+          context: api
+          platforms: linux/amd64
+          push: true
+          tags: |
+            ${{ env.IMAGE }}:staging
+            ${{ env.IMAGE }}:sha-${{ github.sha }}
+          labels: |
+            org.opencontainers.image.source=https://github.com/${{ github.repository }}
+            org.opencontainers.image.revision=${{ github.sha }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+      - run: |
+          echo "Built **staging** from \`${GITHUB_SHA::7}\`. staging.tabitat.app updates within about 2 minutes." >> "$GITHUB_STEP_SUMMARY"
+
+  production:
+    if: github.event_name == 'workflow_dispatch' && inputs.action == 'promote staging to production'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: docker/setup-buildx-action@v3
+      - uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Copy staging to production
+        run: |
+          docker buildx imagetools create -t "$IMAGE:production" "$IMAGE:staging"
+          REV=$(docker buildx imagetools inspect "$IMAGE:staging" --format '{{ index .Image.Config.Labels "org.opencontainers.image.revision" }}' 2>/dev/null || true)
+          echo "Promoted staging (\`${REV::7}\`) to **production**. tabitat.app updates within about 2 minutes." >> "$GITHUB_STEP_SUMMARY"
