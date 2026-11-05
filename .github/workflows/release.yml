@@ -70,6 +70,12 @@ jobs:
             echo "$path -> $code"; [ "$code" = 200 ] || { docker logs web | tail -80; exit 1; }
           done
           curl -fsS -H 'Host: staging.tabitat.app' http://localhost:8080/ | grep -q "Stop texting"
+          # Background jobs start a few seconds after the web server; make sure they stay up.
+          sleep 25
+          [ "$(docker inspect -f '{{.State.Running}}' web)" = true ] || { docker logs web | tail -80; exit 1; }
+          if docker logs web 2>&1 | grep -qE "Solid Queue has gone away|StatementInvalid"; then docker logs web | tail -80; exit 1; fi
+          docker logs web 2>&1 | grep -q "Started Scheduler" || { echo "background jobs didn't start"; docker logs web | tail -80; exit 1; }
+          curl -fsS -o /dev/null http://localhost:8080/up
       - name: Tag as staging
         run: |
           docker buildx imagetools create -t "$IMAGE:staging" "$IMAGE:sha-$GITHUB_SHA"
