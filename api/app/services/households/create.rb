@@ -4,8 +4,11 @@ module Households
   class Create
     def self.call(...) = new(...).call
 
-    def initialize(user:, name: nil, display_name: nil, roommates: [], handles: {})
+    def initialize(user:, name: nil, display_name: nil, roommates: [], handles: {}, kind: "home")
       @user = user
+      @kind = kind.to_s.presence || "home"
+      raise Hometab::Error, "Pick home or group" unless Household::KINDS.include?(@kind)
+      raise Hometab::Error, "Name your group" if @kind == "group" && name.to_s.strip.empty?
       @roommates = Array(roommates).map { _1.to_s.strip }.reject(&:empty?)
       @display_name = display_name.presence || user.first_name.presence || "Me"
       @name = name.presence || default_name
@@ -13,17 +16,19 @@ module Households
     end
 
     def call
-      raise Hometab::Error, "A home can have up to #{Household::MAX_MEMBERS} people" if @roommates.size + 1 > Household::MAX_MEMBERS
+      max = @kind == "group" ? Household::MAX_GROUP_MEMBERS : Household::MAX_MEMBERS
+      raise Hometab::Error, "A #{@kind} can have up to #{max} people" if @roommates.size + 1 > max
 
       household = Household.transaction do
-        h = Household.create!(name: @name)
+        # Groups settle the quickest way from the start: fewest payments.
+        h = Household.create!(name: @name, kind: @kind, simplify_debts: @kind == "group")
         me = h.members.create!(user: @user, display_name: @display_name, **@handles)
         @roommates.each { |n| h.members.create!(display_name: n) }
         LedgerEvent.record!(household: h, kind: "household.created", subject: h, actor: me,
-                            data: { name: @name, roommates: @roommates })
+                            data: { name: @name, kind: @kind, roommates: @roommates })
         h
       end
-      AnalyticsEvent.track("household_created", user: @user, household:, size: @roommates.size + 1)
+      AnalyticsEvent.track(@kind == "group" ? "group_created" : "household_created", user: @user, household:, size: @roommates.size + 1)
       household
     end
 

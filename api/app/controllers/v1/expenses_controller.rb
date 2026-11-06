@@ -106,6 +106,18 @@ module V1
       @household = @expense.household
     end
 
+    # payers: [{ member_id, amount_cents }] -> { member => cents }
+    def parse_payers(raw)
+      return nil if raw.blank?
+      rows = Array(raw).first(Household::MAX_GROUP_MEMBERS)
+      rows.each_with_object({}) do |r, h|
+        r = r.respond_to?(:permit) ? r.permit(:member_id, :amount_cents) : r
+        raise Hometab::Error, "Amount must be whole cents" unless r[:amount_cents].to_s.match?(/\A\d{1,10}\z/)
+        m = @household.members.find(r[:member_id])
+        h[m] = (h[m] || 0) + r[:amount_cents].to_i
+      end
+    end
+
     def sanitize_itemization(raw)
       return nil if raw.blank?
 
@@ -128,6 +140,7 @@ module V1
         args[:amount_cents] = cents.to_i
       end
       args[:payer] = @household.members.find(p[:payer_id]) if p[:payer_id]
+      args[:payers] = parse_payers(params[:payers]) if params.key?(:payers)
       args[:participants] = @household.members.where(id: p[:participant_ids]).to_a if p.key?(:participant_ids)
       if p[:split_weights]
         args[:split_weights] = p[:split_weights].to_h.transform_values do |v|

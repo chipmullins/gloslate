@@ -3,7 +3,7 @@ module Expenses
   # snapshot goes into the ledger; balances recompute (lowering an expense
   # someone already paid for turns the difference into credit automatically).
   class Update
-    EDITABLE = %i[amount_cents payer participants split_kind split_weights description category spent_on urgency note itemization].freeze
+    EDITABLE = %i[amount_cents payer payers participants split_kind split_weights description category spent_on urgency note itemization].freeze
 
     def self.call(...) = new(...).call
 
@@ -18,19 +18,28 @@ module Expenses
 
       household = @expense.household
       before = @expense.snapshot
-      payer = @changes[:payer] || @expense.payer
+      amount = @changes[:amount_cents] || @expense.amount_cents
+      if @changes.key?(:payers)
+        payer, paid_by = Payers.resolve(household, amount, @changes[:payers], @changes[:payer] || @expense.payer)
+      elsif @changes[:payer]
+        payer, paid_by = @changes[:payer], nil # one person paid it all now
+      else
+        payer, paid_by = @expense.payer, @expense.paid_by
+        if paid_by.present? && amount != @expense.amount_cents
+          raise Hometab::Error, "Several people paid for this. Update how much each paid too."
+        end
+      end
       participants = @changes[:participants] || Member.where(id: @expense.shares.select(:member_id)).to_a
       spent_on = @changes[:spent_on] || @expense.spent_on
       kind = (@changes[:split_kind] || @expense.split_kind).to_s
       weights = @changes[:split_weights] || (@changes.key?(:split_kind) ? {} : @expense.split_weights)
-      amount = @changes[:amount_cents] || @expense.amount_cents
 
       Validation.check!(household, @actor, payer, participants, spent_on)
       shares = Validation.compute_shares(amount, payer, participants, kind, weights)
 
       Expense.transaction do
         @expense.lock!
-        @expense.update!(@changes.except(:participants).merge(payer:, split_kind: kind, split_weights: weights,
+        @expense.update!(@changes.except(:participants, :payers).merge(payer:, paid_by:, split_kind: kind, split_weights: weights,
                                                                version: @expense.version + 1))
         @expense.shares.delete_all
         shares.each { |member_id, cents| @expense.shares.create!(member_id:, share_cents: cents) }

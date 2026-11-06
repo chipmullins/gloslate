@@ -3,14 +3,17 @@ module V1
     before_action :load_household, except: %i[index create]
 
     def index
+      # Homes first (the app's Home tab uses the first one), then newest groups.
       homes = current_user.members.current.includes(:household).map(&:household)
+                          .sort_by { |h| [h.group? ? 1 : 0, h.group? ? -h.created_at.to_f : h.created_at.to_f] }
       render json: { data: homes.map { |h| summary(h) } }
     end
 
-    # POST /v1/households { name?, display_name?, roommates: ["Alex"], handles: {...} }
+    # POST /v1/households { kind?: "home"|"group", name?, display_name?, roommates: ["Alex"], handles: {...} }
     def create
       h = Households::Create.call(user: current_user, name: params[:name], display_name: params[:display_name],
-                                  roommates: params[:roommates], handles: params.fetch(:handles, {}).permit!.to_h)
+                                  roommates: params[:roommates], handles: params.fetch(:handles, {}).permit!.to_h,
+                                  kind: params.fetch(:kind, "home"))
       render json: { data: detail(h) }, status: :created
     end
 
@@ -35,7 +38,8 @@ module V1
 
     def summary(h)
       me = h.members.find_by(user: current_user)
-      { id: h.id, name: h.name, member_count: h.members.current.count, balance: h.balance_for(me) }
+      { id: h.id, kind: h.kind, name: h.name, member_count: h.members.current.count, balance: h.balance_for(me),
+        created_at: h.created_at }
     end
 
     def detail(h)
@@ -44,7 +48,10 @@ module V1
         statement_day: h.statement_day, simplify_debts: h.simplify_debts, currency: h.currency,
         default_split_kind: h.default_split_kind,
         me: me.as_api_json(viewer: me),
-        members: h.members.order(:created_at).map { |m| m.as_api_json(viewer: me) }
+        members: h.members.order(:created_at).map { |m| m.as_api_json(viewer: me) },
+        # Everyone's quickest way to settle up (groups show this as the plan).
+        settle_plan: (h.simplified? ? h.settle_plan : h.debts).map { |d| { from_member_id: d.debtor, to_member_id: d.creditor, cents: d.cents } },
+        total_spent_cents: h.expenses.active.sum(:amount_cents)
       )
     end
   end
