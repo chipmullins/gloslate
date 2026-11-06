@@ -3,6 +3,7 @@ import { useCallback, useState } from 'react';
 import { Pressable, ScrollView, TextInput, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
+import { FullScreenLoader } from '@/components/bunny-loader';
 import { ExpenseRow } from '@/components/expense-row';
 import { ArrowIcon } from '@/components/group-icons';
 import { BackIcon, PlusIcon, ShareIcon } from '@/components/icons';
@@ -30,6 +31,7 @@ export default function GroupScreen() {
   }, [id]));
 
   if (!group) {
+    if (!loadError) return <FullScreenLoader label="Opening the group" />;
     return <SafeAreaView style={{ flex: 1, backgroundColor: HT.color.ground }}><ErrorNote message={loadError} /></SafeAreaView>;
   }
 

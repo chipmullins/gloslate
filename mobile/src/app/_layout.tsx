@@ -14,6 +14,7 @@ import { StatusBar } from 'expo-status-bar';
 import { useEffect } from 'react';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 
+import { FullScreenLoader } from '@/components/bunny-loader';
 import { HT } from '@/constants/theme';
 import { LockGate } from '@/components/lock-gate';
 import { listenForTaps, registerDevice } from '@/lib/push';
@@ -32,11 +33,12 @@ function Root() {
     DMSansTabular_700Bold: require('../../assets/fonts/DMSansTabular_700Bold.ttf'),
   });
   const { ready, user } = useSession();
-  const loaded = dmSans && outfit && plex && tabular && ready;
+  const fonts = dmSans && outfit && plex && tabular;
 
+  // The splash only waits for fonts; while the session restores, the hopping bunny shows.
   useEffect(() => {
-    if (loaded) SplashScreen.hideAsync().catch(() => {});
-  }, [loaded]);
+    if (fonts) SplashScreen.hideAsync().catch(() => {});
+  }, [fonts]);
 
   useEffect(() => {
     if (!user) return;
@@ -44,7 +46,15 @@ function Root() {
     return listenForTaps();
   }, [user?.id]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  if (!loaded) return null;
+  if (!fonts) return null;
+  if (!ready) {
+    return (
+      <>
+        <StatusBar style="light" />
+        <FullScreenLoader tone="night" />
+      </>
+    );
+  }
   return (
     <>
       <StatusBar style="dark" />

@@ -6,6 +6,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { ExpenseRow, shortDate } from '@/components/expense-row';
 import { BellIcon, ChevronIcon, HouseMark, PlusIcon, SendIcon, ShareIcon, SparkleIcon } from '@/components/icons';
 import { ToastHost } from '@/components/toast-host';
+import { FullScreenLoader } from '@/components/bunny-loader';
 import { Avatar, Button, Card, Money, T } from '@/components/ui';
 import { HT } from '@/constants/theme';
 import { useLayout } from '@/hooks/use-layout';
@@ -103,7 +104,8 @@ export default function Home() {
     );
   }
   if (!home) {
-    return <SafeAreaView style={{ flex: 1, backgroundColor: HT.color.ground }}>{error ? <T style={{ padding: 20 }}>{error}</T> : null}</SafeAreaView>;
+    if (!error) return <FullScreenLoader label="Loading your home" />;
+    return <SafeAreaView style={{ flex: 1, backgroundColor: HT.color.ground }}><T style={{ padding: 20 }}>{error}</T></SafeAreaView>;
   }
 
   const byId = new Map(home.members.map((m, i) => [m.id, { ...m, index: i }]));

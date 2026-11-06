@@ -1,4 +1,4 @@
-import Svg, { Circle, Defs, Path, RadialGradient, Rect, Stop } from 'react-native-svg';
+import Svg, { Circle, Defs, Ellipse, Path, RadialGradient, Rect, Stop } from 'react-native-svg';
 
 import { HT } from '@/constants/theme';
 
@@ -21,15 +21,18 @@ export const ShareIcon = (p: IconProps) => <Stroke {...p} d="M12 3v12M7 8l5-5 5 
 export const TrashIcon = (p: IconProps) => <Stroke {...p} d="M4 7h16M10 11v6M14 11v6M6 7l1 12a2 2 0 002 2h6a2 2 0 002-2l1-12M9 7V4h6v3" />;
 
 /**
- * The Gloslate "clean slate" mark: a little slate with a check on a plum-night tile, and
- * an amber 4-point sparkle with a soft halo at its top-right corner. (Kept under the old
- * HouseMark name so screens don't change.) `inverted` = glass tile, for night surfaces.
- * Small sizes use the heavier strokes from the brand canvas so it stays legible.
+ * The Gloslate mark, "C · Bunny on the slate" (GloBunny canvas): a little off-white bunny
+ * sitting on top of a slate with a check, an amber 4-point sparkle with a soft halo beside
+ * it, on a plum-night tile. (Kept under the old HouseMark name so screens don't change.)
+ * `inverted` = glass tile, for night surfaces. Smaller sizes use the canvas's simplified
+ * drawings: under 72px the 64px one (heavier strokes; no tail, eye or halo), under 48px
+ * the 36px one (one ear, a plain slate).
  */
 export function HouseMark({ size = 32, inverted = false }: { size?: number; inverted?: boolean }) {
   const n = HT.color.night;
+  const fur = HT.color.onDarkText;
   const id = inverted ? 'glMarkG' : 'glMark';
-  const small = size < 56;
+  const tier = size < 48 ? 's' : size < 72 ? 'm' : 'l';
   return (
     <Svg width={size} height={size} viewBox="0 0 100 100" accessibilityElementsHidden importantForAccessibility="no">
       <Defs>
@@ -48,12 +51,38 @@ export function HouseMark({ size = 32, inverted = false }: { size?: number; inve
       ) : (
         <Rect width={100} height={100} rx={23} fill={`url(#${id}Sky)`} />
       )}
-      <Rect x={small ? 19 : 20} y={30} width={small ? 58 : 56} height={small ? 48 : 46} rx={small ? 9.5 : 9}
-        fill={n.edge} stroke={HT.color.onDarkText} strokeWidth={small ? 4.5 : 3.5} />
-      <Path d="M34 53 L43 62 L61 43" fill="none" stroke={HT.color.onDarkText} strokeWidth={small ? 7 : 5} strokeLinecap="round" strokeLinejoin="round" />
-      {small ? null : <Circle cx={74} cy={29} r={20} fill={`url(#${id}Halo)`} />}
-      <Path d={small ? 'M74 14 Q75 28 89 29 Q75 30 74 44 Q73 30 59 29 Q73 28 74 14 Z' : 'M74 16 Q75 28 87 29 Q75 30 74 42 Q73 30 61 29 Q73 28 74 16 Z'}
-        fill={HT.color.glow} />
+      {tier === 's' ? (
+        <>
+          <Rect x={14} y={52} width={72} height={38} rx={10} fill={n.edge} stroke={fur} strokeWidth={6} />
+          <Ellipse cx={40} cy={44} rx={14} ry={11} fill={fur} />
+          <Circle cx={51} cy={33} r={9.5} fill={fur} />
+          <Ellipse cx={50} cy={15} rx={5} ry={12} transform="rotate(4 50 15)" fill={fur} />
+          <Path d="M80 14 Q81 28 95 29 Q81 30 80 44 Q79 30 65 29 Q79 28 80 14 Z" fill={HT.color.glow} />
+        </>
+      ) : tier === 'm' ? (
+        <>
+          <Rect x={16} y={50} width={68} height={38} rx={9} fill={n.edge} stroke={fur} strokeWidth={4.5} />
+          <Path d="M36 69 L45 78 L64 59" fill="none" stroke={fur} strokeWidth={6} strokeLinecap="round" strokeLinejoin="round" />
+          <Ellipse cx={40} cy={43} rx={13} ry={10} fill={fur} />
+          <Circle cx={50} cy={33} r={8.5} fill={fur} />
+          <Ellipse cx={47} cy={17} rx={3.8} ry={10.5} transform="rotate(-8 47 17)" fill={fur} />
+          <Ellipse cx={55} cy={18} rx={3.8} ry={10} transform="rotate(14 55 18)" fill={fur} />
+          <Path d="M79 17 Q80 29 92 30 Q80 31 79 43 Q78 31 66 30 Q78 29 79 17 Z" fill={HT.color.glow} />
+        </>
+      ) : (
+        <>
+          <Rect x={16} y={50} width={68} height={38} rx={9} fill={n.edge} stroke={fur} strokeWidth={3.5} />
+          <Path d="M36 69 L45 78 L64 59" fill="none" stroke={fur} strokeWidth={5} strokeLinecap="round" strokeLinejoin="round" />
+          <Ellipse cx={40} cy={43} rx={13} ry={10} fill={fur} />
+          <Circle cx={29} cy={45} r={4} fill={fur} />
+          <Circle cx={50} cy={33} r={8} fill={fur} />
+          <Ellipse cx={47} cy={17} rx={3.4} ry={10.5} transform="rotate(-8 47 17)" fill={fur} />
+          <Ellipse cx={55} cy={18} rx={3.4} ry={10} transform="rotate(14 55 18)" fill={fur} />
+          <Circle cx={53} cy={32} r={1.6} fill={n.edge} />
+          <Circle cx={78} cy={30} r={16} fill={`url(#${id}Halo)`} />
+          <Path d="M78 19 Q79 29 89 30 Q79 31 78 41 Q77 31 67 30 Q77 29 78 19 Z" fill={HT.color.glow} />
+        </>
+      )}
     </Svg>
   );
 }

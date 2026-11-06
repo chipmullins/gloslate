@@ -3,6 +3,7 @@ import { Redirect, router, useFocusEffect, useLocalSearchParams, type Href } fro
 import { useCallback, useMemo, useRef, useState } from 'react';
 import { Linking, Pressable, View } from 'react-native';
 
+import { FullScreenLoader } from '@/components/bunny-loader';
 import { shortDate } from '@/components/expense-row';
 import { BackIcon, CheckIcon, CopyIcon, PlusIcon, SendIcon } from '@/components/icons';
 import { Avatar, Button, Card, ErrorNote, Field, IconButton, Money, Screen, T } from '@/components/ui';
@@ -31,7 +32,7 @@ function centsToInput(c: number) {
 /** Everything behind one person's balance, and how to settle it. */
 export default function Settle() {
   const { memberId, hid } = useLocalSearchParams<{ memberId: string; hid?: string }>();
-  const { home } = useHousehold(hid);
+  const { home, error: loadError } = useHousehold(hid);
   const { wide } = useLayout();
   const [b, setB] = useState<Breakdown | null>(null);
   const [pay, setPay] = useState<PayInfo | null>(null);
@@ -139,7 +140,8 @@ export default function Settle() {
     return <Redirect href={`/group/settle?hid=${home.id}&from=${from}&to=${to}` as Href} />;
   }
 
-  if (!home || !other || !b) return <Screen><ErrorNote message={error} /></Screen>;
+  if ((!home || (other && !b)) && !error && !loadError) return <FullScreenLoader />;
+  if (!home || !other || !b) return <Screen><ErrorNote message={error ?? loadError} /></Screen>;
 
   const net = b.net_cents;
   const theyOwe = net > 0;
