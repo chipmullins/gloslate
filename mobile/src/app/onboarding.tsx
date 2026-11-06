@@ -81,6 +81,7 @@ export default function Onboarding() {
   const { width } = useWindowDimensions();
   const pageWidth = Math.min(width, 560);
   const [page, setPage] = useState(0);
+  const [pageHeight, setPageHeight] = useState(0); // pages fill the pager so content sits centered
   const scroller = useRef<React.ComponentRef<typeof ScrollView>>(null);
   const last = page >= PAGES.length;
 
@@ -88,7 +89,7 @@ export default function Onboarding() {
   const go = (i: number) => scroller.current?.scrollTo({ x: i * pageWidth, animated: true });
 
   const choices = (
-    <View style={{ width: pageWidth, paddingHorizontal: 24, justifyContent: 'center', gap: 14 }}>
+    <View style={{ width: pageWidth, height: pageHeight || undefined, paddingHorizontal: 24, justifyContent: 'center', gap: 14 }}>
       <T v="display" accessibilityRole="header">How do you want to start?</T>
       <T v="muted">You can do all three. This just picks where to begin.</T>
       {[
@@ -115,9 +116,10 @@ export default function Onboarding() {
         <View style={{ flexDirection: 'row', justifyContent: 'flex-end', minHeight: 48, paddingHorizontal: 12 }}>
           {!last ? <Button kind="link" title="Skip" onPress={() => go(PAGES.length)} /> : null}
         </View>
-        <ScrollView ref={scroller} horizontal pagingEnabled showsHorizontalScrollIndicator={false} onMomentumScrollEnd={onScroll} style={{ flex: 1 }}>
+        <ScrollView ref={scroller} horizontal pagingEnabled showsHorizontalScrollIndicator={false} onMomentumScrollEnd={onScroll} onScroll={onScroll} scrollEventThrottle={64}
+          onLayout={(e) => setPageHeight(e.nativeEvent.layout.height)} style={{ flex: 1 }}>
           {PAGES.map((p) => (
-            <View key={p.key} style={{ width: pageWidth, paddingHorizontal: 24, justifyContent: 'center', gap: 22 }}>
+            <View key={p.key} style={{ width: pageWidth, height: pageHeight || undefined, paddingHorizontal: 24, justifyContent: 'center', gap: 22 }}>
               {p.art}
               <View style={{ gap: 10 }}>
                 <T v="display" accessibilityRole="header">{p.title}</T>

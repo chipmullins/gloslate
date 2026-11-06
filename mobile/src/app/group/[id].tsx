@@ -1,6 +1,6 @@
 import { router, useFocusEffect, useLocalSearchParams, type Href } from 'expo-router';
 import { useCallback, useState } from 'react';
-import { Pressable, ScrollView, Share, TextInput, View } from 'react-native';
+import { Pressable, ScrollView, TextInput, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { ExpenseRow } from '@/components/expense-row';
@@ -12,6 +12,7 @@ import { useHousehold } from '@/hooks/use-household';
 import { useLayout } from '@/hooks/use-layout';
 import { api, ApiError, type Expense, type Transfer } from '@/lib/api';
 import { formatCents } from '@/lib/money';
+import { shareLink } from '@/lib/share';
 
 /** One group: where you stand, the fewest payments to settle everyone, and what's been spent. */
 export default function GroupScreen() {
@@ -56,7 +57,7 @@ export default function GroupScreen() {
   async function invite(memberId: string) {
     try {
       const res = await api<{ data: { url: string; message: string } }>(`/v1/households/${id}/invites`, { body: { member_id: memberId } });
-      await Share.share({ message: res.data.message, url: res.data.url });
+      await shareLink(res.data.message, res.data.url);
     } catch (e) {
       setError(e instanceof ApiError ? e.message : "Couldn't make an invite link.");
     }
