@@ -1,7 +1,6 @@
 import * as Haptics from 'expo-haptics';
 import { forwardRef, type ReactNode } from 'react';
 import {
-  ActivityIndicator,
   KeyboardAvoidingView,
   Platform,
   Pressable,
@@ -20,6 +19,7 @@ import {
 import { LinearGradient } from 'expo-linear-gradient';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
+import { ButtonBunny } from '@/components/bunny-hop';
 import { HT } from '@/constants/theme';
 import { useLayout } from '@/hooks/use-layout';
 import { formatCents } from '@/lib/money';
@@ -177,7 +177,7 @@ export function Button({ title, onPress, kind = 'primary', loading, disabled, ic
         glow,
         style,
       ]}>
-      {loading ? <ActivityIndicator color={palette.fg} /> : icon}
+      {loading ? <ButtonBunny color={palette.fg} eye={palette.bg === 'transparent' ? undefined : palette.bg} /> : icon}
       <Text
         maxFontSizeMultiplier={1.4}
         style={{ fontFamily: HT.font.extrabold, fontSize: 15.5, color: palette.fg,
