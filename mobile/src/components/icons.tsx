@@ -25,7 +25,7 @@ export const TrashIcon = (p: IconProps) => <Stroke {...p} d="M4 7h16M10 11v6M14 
  * sitting on top of a slate with a check, an amber 4-point sparkle with a soft halo beside
  * it, on a plum-night tile. (Kept under the old HouseMark name so screens don't change.)
  * `inverted` = glass tile, for night surfaces. Smaller sizes use the canvas's simplified
- * drawings: under 72px the 64px one (heavier strokes; no tail, eye or halo), under 48px
+ * drawings: under 72px the 64px one (heavier strokes, bigger eye; no tail or halo), under 48px
  * the 36px one (one ear, a plain slate).
  */
 export function HouseMark({ size = 32, inverted = false }: { size?: number; inverted?: boolean }) {
@@ -57,6 +57,7 @@ export function HouseMark({ size = 32, inverted = false }: { size?: number; inve
           <Ellipse cx={40} cy={44} rx={14} ry={11} fill={fur} />
           <Circle cx={51} cy={33} r={9.5} fill={fur} />
           <Ellipse cx={50} cy={15} rx={5} ry={12} transform="rotate(4 50 15)" fill={fur} />
+          <Circle cx={55} cy={32} r={3.2} fill={n.edge} />
           <Path d="M80 14 Q81 28 95 29 Q81 30 80 44 Q79 30 65 29 Q79 28 80 14 Z" fill={HT.color.glow} />
         </>
       ) : tier === 'm' ? (
@@ -67,6 +68,7 @@ export function HouseMark({ size = 32, inverted = false }: { size?: number; inve
           <Circle cx={50} cy={33} r={8.5} fill={fur} />
           <Ellipse cx={47} cy={17} rx={3.8} ry={10.5} transform="rotate(-8 47 17)" fill={fur} />
           <Ellipse cx={55} cy={18} rx={3.8} ry={10} transform="rotate(14 55 18)" fill={fur} />
+          <Circle cx={53.5} cy={32} r={2.5} fill={n.edge} />
           <Path d="M79 17 Q80 29 92 30 Q80 31 79 43 Q78 31 66 30 Q78 29 79 17 Z" fill={HT.color.glow} />
         </>
       ) : (
@@ -78,7 +80,7 @@ export function HouseMark({ size = 32, inverted = false }: { size?: number; inve
           <Circle cx={50} cy={33} r={8} fill={fur} />
           <Ellipse cx={47} cy={17} rx={3.4} ry={10.5} transform="rotate(-8 47 17)" fill={fur} />
           <Ellipse cx={55} cy={18} rx={3.4} ry={10} transform="rotate(14 55 18)" fill={fur} />
-          <Circle cx={53} cy={32} r={1.6} fill={n.edge} />
+          <Circle cx={53} cy={32} r={2} fill={n.edge} />
           <Circle cx={78} cy={30} r={16} fill={`url(#${id}Halo)`} />
           <Path d="M78 19 Q79 29 89 30 Q79 31 78 41 Q77 31 67 30 Q77 29 78 19 Z" fill={HT.color.glow} />
         </>

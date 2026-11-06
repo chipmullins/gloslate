@@ -51,13 +51,14 @@ def glyph(small=False, mono=False, halo=True):
     if small:
         return (f'<rect x="14" y="52" width="72" height="38" rx="10" fill="{SLATE}" stroke="{FUR}" stroke-width="6"/>'
                 + ellipse(40, 44, 14, 11, FUR) + circle(51, 33, 9.5, FUR) + ellipse(50, 15, 5, 12, FUR, 4)
+                + circle(55, 32, 3.2, SLATE)
                 + f'<path d="M80 14 Q81 28 95 29 Q81 30 80 44 Q79 30 65 29 Q79 28 80 14 Z" fill="{GLOW}"/>')
     h = '<circle cx="78" cy="30" r="16" fill="url(#halo)"/>' if halo else ""
     return (f'<rect x="16" y="50" width="68" height="38" rx="9" fill="{SLATE}" stroke="{FUR}" stroke-width="3.5"/>'
             + check("M36 69 L45 78 L64 59", FUR, 5)
             + ellipse(40, 43, 13, 10, FUR) + circle(29, 45, 4, FUR) + circle(50, 33, 8, FUR)
             + ellipse(47, 17, 3.4, 10.5, FUR, -8) + ellipse(55, 18, 3.4, 10, FUR, 14)
-            + circle(53, 32, 1.6, SLATE)
+            + circle(53, 32, 2, SLATE)
             + h + f'<path d="M78 19 Q79 29 89 30 Q79 31 78 41 Q77 31 67 30 Q77 29 78 19 Z" fill="{GLOW}"/>')
 
 
