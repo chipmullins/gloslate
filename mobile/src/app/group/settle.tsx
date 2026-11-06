@@ -3,6 +3,7 @@ import { router, useFocusEffect, useLocalSearchParams, type Href } from 'expo-ro
 import { useCallback, useRef, useState } from 'react';
 import { Linking, Pressable, View } from 'react-native';
 
+import { FullScreenLoader } from '@/components/bunny-loader';
 import { BackIcon, CheckIcon, CopyIcon, SendIcon } from '@/components/icons';
 import { Avatar, Button, Card, ErrorNote, Field, IconButton, Money, Screen, T } from '@/components/ui';
 import { HT } from '@/constants/theme';
@@ -20,7 +21,7 @@ const twoDp = (c: number) => `${Math.floor(c / 100)}.${String(c % 100).padStart(
 /** One payment from a group's settle-up plan: pay it, request it, or record it. */
 export default function GroupSettle() {
   const { hid, from, to } = useLocalSearchParams<{ hid: string; from: string; to: string }>();
-  const { home: group, reload } = useHousehold(hid);
+  const { home: group, reload, error: loadError } = useHousehold(hid);
   const [pay, setPay] = useState<PayInfo | null>(null);
   const [pending, setPending] = useState<Payment[]>([]);
   const [amount, setAmount] = useState<string | null>(null); // null: what's left
@@ -57,7 +58,8 @@ export default function GroupSettle() {
   const shown = amount ?? (left > 0 ? twoDp(left) : '');
   const cents = parseCents(shown) ?? 0;
 
-  if (!group || !from || !to) return <Screen><ErrorNote message={error} /></Screen>;
+  if (!group && !error && !loadError) return <FullScreenLoader />;
+  if (!group || !from || !to) return <Screen><ErrorNote message={error ?? loadError} /></Screen>;
   const nameOf = (mid: string) => (mid === meId ? 'You' : group.members.find((m) => m.id === mid)?.first_name ?? 'Former member');
   const other = youPay ? to : from;
   const otherName = nameOf(other);

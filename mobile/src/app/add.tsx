@@ -3,6 +3,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Pressable, ScrollView, Text, TextInput, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
+import { FullScreenLoader } from '@/components/bunny-loader';
 import { CameraIcon, CheckIcon, CloseIcon } from '@/components/icons';
 import { applyKey, Keypad } from '@/components/keypad';
 import { Avatar, Button, ErrorNote, IconButton, T } from '@/components/ui';
@@ -227,7 +228,7 @@ export default function Add() {
     });
   }
 
-  if (!home || !me) return <SafeAreaView style={{ flex: 1, backgroundColor: HT.color.ground }} />;
+  if (!home || !me) return <FullScreenLoader />;
 
   const chip = (on: boolean) => ({
     minHeight: 40, paddingHorizontal: 14, borderRadius: 20, justifyContent: 'center' as const,
