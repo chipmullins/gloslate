@@ -44,7 +44,7 @@ module Requests
               <circle cx="50" cy="33" r="8.5" fill="#F3EEF5"/>
               <ellipse cx="47" cy="17" rx="3.8" ry="10.5" transform="rotate(-8 47 17)" fill="#F3EEF5"/>
               <ellipse cx="55" cy="18" rx="3.8" ry="10" transform="rotate(14 55 18)" fill="#F3EEF5"/>
-              <circle cx="53" cy="32" r="1.6" fill="#140C18"/>
+              <circle cx="53" cy="32" r="2" fill="#140C18"/>
               <circle cx="78" cy="30" r="16" fill="url(#halo)"/>
               <path d="M78 19 Q79 29 89 30 Q79 31 78 41 Q77 31 67 30 Q77 29 78 19 Z" fill="#FFB547"/>
             </g>
