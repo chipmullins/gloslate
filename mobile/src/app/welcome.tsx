@@ -1,10 +1,11 @@
 import * as AppleAuthentication from 'expo-apple-authentication';
 import { router } from 'expo-router';
 import { useEffect, useState } from 'react';
-import { Platform, View } from 'react-native';
+import { StatusBar } from 'expo-status-bar';
+import { Platform, Text, View } from 'react-native';
 
 import { HouseMark } from '@/components/icons';
-import { Button, ErrorNote, Field, Screen, T } from '@/components/ui';
+import { Button, ErrorNote, Field, NightSurface, Screen, T } from '@/components/ui';
 import { HT } from '@/constants/theme';
 import { useLayout } from '@/hooks/use-layout';
 import { api, ApiError, type SignInResult } from '@/lib/api';
@@ -60,27 +61,32 @@ export default function Welcome() {
   }
 
   return (
-    <Screen maxWidth={wide ? 980 : HT.maxWidth.form}>
+    <NightSurface fireflies style={{ flex: 1 }}>
+    <StatusBar style="light" />
+    <Screen maxWidth={wide ? 980 : HT.maxWidth.form} background="transparent">
       <View style={{ flex: 1, flexDirection: wide ? 'row' : 'column', gap: wide ? 56 : 28, alignItems: wide ? 'center' : 'stretch',
         justifyContent: 'center', paddingVertical: wide ? 40 : 24 }}>
         <View style={{ flex: wide ? 1 : undefined, gap: 18, paddingTop: wide ? 0 : 36 }}>
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 14 }}>
-            <HouseMark size={wide ? 72 : 60} />
+            <HouseMark size={wide ? 72 : 60} inverted />
             <View>
-              <T v="title" style={{ fontSize: 26, lineHeight: 30 }}>Tabitat</T>
-              <T v="small" style={{ fontFamily: HT.font.semibold }}>by Glofly</T>
+              <Text accessibilityLabel="Gloslate" maxFontSizeMultiplier={1.4}
+                style={{ fontFamily: HT.font.displayBold, fontSize: 30, lineHeight: 34, letterSpacing: -0.9, color: HT.color.onDarkText }}>
+                <Text style={{ color: HT.color.glow, textShadowColor: HT.color.glowHalo, textShadowRadius: 12, textShadowOffset: { width: 0, height: 0 } }}>glo</Text>slate
+              </Text>
+              <T v="small" style={{ fontFamily: HT.font.label, fontSize: 11, letterSpacing: 1.1, color: HT.color.darkCardMuted }}>BY GLOFLY</T>
             </View>
           </View>
-          <T v="display" style={{ fontSize: wide ? 44 : 36, lineHeight: wide ? 50 : 42 }} accessibilityRole="header">
+          <T v="display" style={{ fontSize: wide ? 44 : 36, lineHeight: wide ? 50 : 42, color: HT.color.onDarkText }} accessibilityRole="header">
             No more{'\n'}“you owe me”{'\n'}texts.
           </T>
-          <T v="body" style={{ color: HT.color.muted, fontSize: 16.5, lineHeight: 24, maxWidth: 420 }}>
-            Tabitat keeps a running tab of rent, bills and groceries, does the math, and tells everyone exactly what to send.
+          <T v="body" style={{ color: HT.color.darkCardMuted, fontSize: 16.5, lineHeight: 24, maxWidth: 420 }}>
+            Gloslate keeps a running tab of rent, bills and groceries, does the math, and tells everyone exactly what to send.
           </T>
         </View>
 
-        <View style={{ flex: wide ? 1 : undefined, gap: 14, backgroundColor: wide ? HT.color.surface : 'transparent',
-          borderRadius: HT.radius.card, padding: wide ? 28 : 0 }}>
+        <View style={{ flex: wide ? 1 : undefined, gap: 14, backgroundColor: HT.color.surface,
+          borderRadius: HT.radius.card, padding: wide ? 28 : 20 }}>
           {appleAvailable ? (
             <AppleAuthentication.AppleAuthenticationButton
               buttonType={AppleAuthentication.AppleAuthenticationButtonType.CONTINUE}
@@ -111,9 +117,10 @@ export default function Welcome() {
           />
           <ErrorNote message={error} />
           <Button title="Send me a code" onPress={sendCode} loading={busy} disabled={destination.trim().length < 5} />
-          <T v="small" style={{ textAlign: 'center' }}>Tabitat never holds or moves your money.</T>
+          <T v="small" style={{ textAlign: 'center' }}>Gloslate never holds or moves your money.</T>
         </View>
       </View>
     </Screen>
+    </NightSurface>
   );
 }

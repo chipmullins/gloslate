@@ -4,7 +4,7 @@ import { Pressable, RefreshControl, ScrollView, Share, View } from 'react-native
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { ExpenseRow, shortDate } from '@/components/expense-row';
-import { BellIcon, ChevronIcon, HouseMark, PlusIcon, SendIcon, ShareIcon } from '@/components/icons';
+import { BellIcon, ChevronIcon, HouseMark, PlusIcon, SendIcon, ShareIcon, SparkleIcon } from '@/components/icons';
 import { ToastHost } from '@/components/toast-host';
 import { Avatar, Button, Card, Money, T } from '@/components/ui';
 import { HT } from '@/constants/theme';
@@ -130,14 +130,14 @@ export default function Home() {
   ) : null;
 
   const balanceCard = (
-    <Card dark style={{ alignItems: 'center', gap: 8, paddingTop: 24, paddingBottom: 20 }}>
+    <Card dark fireflies style={{ alignItems: 'center', gap: 8, paddingTop: 24, paddingBottom: 20 }}>
       <Pressable accessibilityRole="button" accessibilityLabel={`${headline} ${formatCents(Math.abs(net))}. See the details.`}
         disabled={!couple || !partner} onPress={() => partner && router.push(`/settle/${partner.id}` as Href)} style={{ alignItems: 'center', gap: 8 }}>
         {couple && partner ? <Avatar name={partner.first_name} index={byId.get(partner.id)?.index ?? 1} /> : null}
         <T v="strong" style={{ color: HT.color.darkCardMuted, fontSize: 14 }}>{headline}</T>
-        <Money cents={Math.abs(net)} size={wide ? 56 : 48} color="#FFFFFF" />
+        <Money cents={Math.abs(net)} size={wide ? 56 : 48} color={net > 0 ? HT.color.onDarkOwed : net < 0 ? HT.color.onDarkOwe : HT.color.onDarkText} />
         <T v="small" style={{ color: HT.color.darkCardMuted, textAlign: 'center' }}>
-          {net === 0 ? 'Nothing owed either way. Log the next expense and Tabitat does the math.' : 'Everything netted out, already subtracted both ways'}
+          {net === 0 ? 'Nothing owed either way. Log the next expense and Gloslate does the math.' : 'Everything netted out, already subtracted both ways'}
         </T>
       </Pressable>
       {couple && partner && net > 0 ? (
@@ -157,7 +157,7 @@ export default function Home() {
               <Pressable key={w.member_id} accessibilityRole="button" onPress={() => router.push(`/settle/${m.id}` as Href)}
                 style={({ pressed }) => ({ flexDirection: 'row', alignItems: 'center', gap: 10, minHeight: 52, opacity: pressed ? 0.7 : 1 })}>
                 <Avatar name={m.first_name} index={m.index} size={32} />
-                <T v="strong" style={{ color: '#FFFFFF', flex: 1 }}>{w.cents > 0 ? `${m.first_name} owes you` : `You owe ${m.first_name}`}</T>
+                <T v="strong" style={{ color: HT.color.onDarkText, flex: 1 }}>{w.cents > 0 ? `${m.first_name} owes you` : `You owe ${m.first_name}`}</T>
                 <Money cents={Math.abs(w.cents)} color={w.cents > 0 ? HT.color.onDarkOwed : HT.color.onDarkOwe} />
                 <ChevronIcon size={16} color={HT.color.darkCardMuted} />
               </Pressable>
@@ -235,7 +235,7 @@ export default function Home() {
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10, flexShrink: 1 }}>
               <HouseMark size={34} />
               <View style={{ flexShrink: 1 }}>
-                <T v="title" style={{ fontSize: 19, lineHeight: 23 }} accessibilityRole="header">Tabitat <T v="small" style={{ fontSize: 12, fontFamily: HT.font.semibold }}>by Glofly</T></T>
+                <T v="title" style={{ fontSize: 19, lineHeight: 23 }} accessibilityRole="header" accessibilityLabel="Gloslate by Glofly">gloslate <T v="small" style={{ fontSize: 10.5, fontFamily: HT.font.label, letterSpacing: 1 }}>BY GLOFLY</T></T>
                 <T v="small" numberOfLines={1}>{names(home.members)}</T>
               </View>
             </View>
@@ -281,7 +281,7 @@ export default function Home() {
           style={({ pressed }) => ({ minHeight: 58, paddingHorizontal: 36, borderRadius: HT.radius.pill, backgroundColor: HT.color.brand,
             flexDirection: 'row', alignItems: 'center', gap: 10, transform: [{ scale: pressed ? 0.97 : 1 }],
             shadowColor: HT.color.brand, shadowOpacity: 0.3, shadowRadius: 18, shadowOffset: { width: 0, height: 6 }, elevation: 6 })}>
-          <PlusIcon size={20} color="#FFFFFF" />
+          <SparkleIcon size={20} />
           <T v="strong" style={{ color: '#FFFFFF', fontSize: 16, fontFamily: HT.font.extrabold }}>Add</T>
         </Pressable>
       </View>

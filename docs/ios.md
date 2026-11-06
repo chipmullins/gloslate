@@ -15,14 +15,14 @@ git clone https://github.com/chipmullins/hometab.git   # first time only; afterw
 cd hometab/mobile
 npm install
 npx expo prebuild --platform ios --clean               # writes ios/ (never edit it by hand)
-open ios/Tabitat.xcworkspace
+open ios/Gloslate.xcworkspace
 ```
 
 In Xcode:
-1. Select the **Tabitat** project, then for each target (**Tabitat** and **ExpoWidgetsTarget**) open
+1. Select the **Gloslate** project, then for each target (**Gloslate** and **ExpoWidgetsTarget**) open
    **Signing & Capabilities**, tick **Automatically manage signing**, and choose your team
    (`4XK3F69URN`).
-2. **Tabitat** target → **General** → raise **Build** by 1 for every upload (1, 2, 3…).
+2. **Gloslate** target → **General** → raise **Build** by 1 for every upload (1, 2, 3…).
 3. Run it on your own iPhone: plug it in, pick it at the top, and press ▶. The first time, the
    iPhone asks you to turn on Developer Mode.
 4. Or send it to TestFlight: pick **Any iOS Device (arm64)**, then **Product → Archive** →

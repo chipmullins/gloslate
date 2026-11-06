@@ -83,8 +83,8 @@ export default function Counter() {
         <Money cents={theirShare} size={17} color={HT.color.onDarkOwed} sign />
       </View>
       <View style={{ height: 1, backgroundColor: HT.color.onDarkButton }} />
-      <T v="strong" style={{ color: '#FFFFFF', fontSize: 15 }}>{after === null ? ' ' : describe(after)}</T>
-      <Money cents={Math.abs(after ?? 0)} size={40} color="#FFFFFF" />
+      <T v="strong" style={{ color: HT.color.onDarkText, fontSize: 15 }}>{after === null ? ' ' : describe(after)}</T>
+      <Money cents={Math.abs(after ?? 0)} size={40} color={HT.color.onDarkText} />
     </Card>
   );
 

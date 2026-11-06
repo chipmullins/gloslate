@@ -1,4 +1,4 @@
-import Svg, { Path, Rect } from 'react-native-svg';
+import Svg, { Circle, Defs, Path, RadialGradient, Rect, Stop } from 'react-native-svg';
 
 import { HT } from '@/constants/theme';
 
@@ -20,18 +20,49 @@ export const CheckIcon = (p: IconProps) => <Stroke {...p} strokeWidth={p.strokeW
 export const ShareIcon = (p: IconProps) => <Stroke {...p} d="M12 3v12M7 8l5-5 5 5M5 13v6a2 2 0 002 2h10a2 2 0 002-2v-6" />;
 export const TrashIcon = (p: IconProps) => <Stroke {...p} d="M4 7h16M10 11v6M14 11v6M6 7l1 12a2 2 0 002 2h6a2 2 0 002-2l1-12M9 7V4h6v3" />;
 
-/** The receipt-house mark (logo direction A). */
-/** The Tabitat mark: a lowercase t that rises into a roof (logo B). */
+/**
+ * The Gloslate "clean slate" mark: a little slate with a check on a plum-night tile, and
+ * an amber 4-point sparkle with a soft halo at its top-right corner. (Kept under the old
+ * HouseMark name so screens don't change.) `inverted` = glass tile, for night surfaces.
+ * Small sizes use the heavier strokes from the brand canvas so it stays legible.
+ */
 export function HouseMark({ size = 32, inverted = false }: { size?: number; inverted?: boolean }) {
-  const bg = inverted ? '#FFFFFF' : HT.color.brand;
-  const fg = inverted ? HT.color.brand : '#FFFFFF';
-  const line = { fill: 'none', stroke: fg, strokeWidth: 8, strokeLinecap: 'round', strokeLinejoin: 'round' } as const;
+  const n = HT.color.night;
+  const id = inverted ? 'glMarkG' : 'glMark';
+  const small = size < 56;
   return (
     <Svg width={size} height={size} viewBox="0 0 100 100" accessibilityElementsHidden importantForAccessibility="no">
-      <Rect width={100} height={100} rx={22.5} fill={bg} />
-      <Path d="M22 47L50 23L78 47" {...line} />
-      <Path d="M50 34V68Q50 79 61 79H64" {...line} />
-      <Path d="M37 52H63" {...line} />
+      <Defs>
+        <RadialGradient id={`${id}Sky`} cx="30%" cy="0%" r="110%" fx="30%" fy="0%">
+          <Stop offset="0" stopColor={n.top} />
+          <Stop offset="0.55" stopColor={n.base} />
+          <Stop offset="1" stopColor={n.edge} />
+        </RadialGradient>
+        <RadialGradient id={`${id}Halo`}>
+          <Stop offset="0" stopColor={HT.color.glow} stopOpacity={0.55} />
+          <Stop offset="1" stopColor={HT.color.glow} stopOpacity={0} />
+        </RadialGradient>
+      </Defs>
+      {inverted ? (
+        <Rect x={0.5} y={0.5} width={99} height={99} rx={22.5} fill="#FFFFFF" fillOpacity={0.05} stroke="#FFFFFF" strokeOpacity={0.12} />
+      ) : (
+        <Rect width={100} height={100} rx={23} fill={`url(#${id}Sky)`} />
+      )}
+      <Rect x={small ? 19 : 20} y={30} width={small ? 58 : 56} height={small ? 48 : 46} rx={small ? 9.5 : 9}
+        fill={n.edge} stroke={HT.color.onDarkText} strokeWidth={small ? 4.5 : 3.5} />
+      <Path d="M34 53 L43 62 L61 43" fill="none" stroke={HT.color.onDarkText} strokeWidth={small ? 7 : 5} strokeLinecap="round" strokeLinejoin="round" />
+      {small ? null : <Circle cx={74} cy={29} r={20} fill={`url(#${id}Halo)`} />}
+      <Path d={small ? 'M74 14 Q75 28 89 29 Q75 30 74 44 Q73 30 59 29 Q73 28 74 14 Z' : 'M74 16 Q75 28 87 29 Q75 30 74 42 Q73 30 61 29 Q73 28 74 16 Z'}
+        fill={HT.color.glow} />
+    </Svg>
+  );
+}
+
+/** Gloslate's 4-point amber sparkle (the "Add" FAB icon, highlights). */
+export function SparkleIcon({ size = 20, color = HT.color.glow }: { size?: number; color?: string }) {
+  return (
+    <Svg width={size} height={size} viewBox="0 0 20 20" accessibilityElementsHidden importantForAccessibility="no">
+      <Path d="M10 2 Q11 9 18 10 Q11 11 10 18 Q9 11 2 10 Q9 9 10 2 Z" fill={color} />
     </Svg>
   );
 }

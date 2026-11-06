@@ -17,7 +17,7 @@ module Auth
       if @channel == "email"
         AuthMailer.code(@destination, code).deliver_later
       else
-        Sms.deliver(to: @destination, body: "#{code} is your Tabitat code. It works for 10 minutes.")
+        Sms.deliver(to: @destination, body: "#{code} is your Gloslate code. It works for 10 minutes.")
       end
       { channel: @channel, destination: @destination }
     end

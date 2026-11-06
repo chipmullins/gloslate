@@ -1,3 +1,3 @@
 class ApplicationMailer < ActionMailer::Base
-  default from: ENV.fetch("MAIL_FROM", "Tabitat <hello@tabitat.app>")
+  default from: ENV.fetch("MAIL_FROM", "Gloslate <hello@tabitat.app>")
 end

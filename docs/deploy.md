@@ -1,6 +1,6 @@
-# Deploying Tabitat to AWS
+# Deploying Gloslate to AWS
 
-**How it works:** one small EC2 server of Tabitat's own (`t3.micro`, upgradeable) runs staging and
+**How it works:** one small EC2 server of Gloslate's own (`t3.micro`, upgradeable) runs staging and
 production side by side with Docker Compose. Each has its own Postgres on a separate encrypted data
 disk, with nightly backups to S3 (kept 35 days). Caddy serves HTTPS with automatic certificates.
 Receipts and PDFs go to private S3 buckets, email goes through SES, and texts through SNS. Expect
@@ -13,15 +13,15 @@ the Glofly account, which blocks GitHub sign-in (OIDC) connections, doesn't matt
 
 ## It can't touch Glofly
 
-- Tabitat has its **own VPC, server, security group, buckets, IAM role and DNS zone**, all named
-  `tabitat-*` and tagged `Project=tabitat`. Glofly's servers can't reach Tabitat's, and the
+- Gloslate has its **own VPC, server, security group, buckets, IAM role and DNS zone**, all named
+  `tabitat-*` and tagged `Project=tabitat`. Glofly's servers can't reach Gloslate's, and the
   reverse is also true.
-- The server's role can only use Tabitat's buckets, send email from the Tabitat domain, and send
+- The server's role can only use Gloslate's buckets, send email from the Gloslate domain, and send
   texts.
 - There's no SSH. For emergencies, use **EC2 → the `tabitat` instance → Connect → Session
   Manager**.
 - Shared account-wide: SES sending reputation, the SMS monthly spending cap, service quotas, and
-  the bill (Tabitat is tagged and has its own budget alert).
+  the bill (Gloslate is tagged and has its own budget alert).
 
 ## One-time setup (Chip)
 
@@ -59,11 +59,11 @@ already in GitHub's registry from the last push.
 - `api/deploy/compose.yml` and `api/deploy/Caddyfile` describe the server. They also ship with the
   image, and the server takes them from the production image once one exists.
 
-## Finding Tabitat in AWS
+## Finding Gloslate in AWS
 
-- **Resource Groups & Tag Editor → Saved resource groups → Tabitat** lists every Tabitat resource.
+- **Resource Groups & Tag Editor → Saved resource groups → Tabitat** lists every Gloslate resource (the AWS names still say Tabitat).
 - **CloudWatch → Dashboards → Tabitat** shows CPU, health, network and disk.
-- **Billing → Cost Explorer**, filtered by tag `Project = tabitat`, shows Tabitat's costs (after
+- **Billing → Cost Explorer**, filtered by tag `Project = tabitat`, shows Gloslate's costs (after
   activating the `Project` cost allocation tag once).
 
 ## After launch

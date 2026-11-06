@@ -22,27 +22,35 @@ module Requests
       rows = lines.each_with_index.map do |l, i|
         y = 820 + (i * 64)
         color = l["cents"].negative? ? "#3A7457" : "#241A23"
-        %(<text x="120" y="#{y}" font-family="Manrope" font-weight="500" font-size="34" fill="#{color}">#{esc(l['description'].truncate(30))}</text>
-          <text x="960" y="#{y}" text-anchor="end" font-family="IBM Plex Mono" font-weight="500" font-size="34" fill="#{color}">#{esc(Hometab::Money.format(l['cents']))}</text>)
+        %(<text x="120" y="#{y}" font-family="DM Sans" font-weight="500" font-size="34" fill="#{color}">#{esc(l['description'].truncate(30))}</text>
+          <text x="960" y="#{y}" text-anchor="end" font-family="DM Sans Tabular" font-weight="500" font-size="34" fill="#{color}">#{esc(Hometab::Money.format(l['cents']))}</text>)
       end.join
       zig = (0..54).map { |i| "L#{80 + (i * 17)},#{i.even? ? 1180 : 1200}" }.join
+      # Plum night sky, the Gloslate mark (glass tile) and the "glo"+"slate" wordmark.
       <<~SVG
         <svg xmlns="http://www.w3.org/2000/svg" width="#{W}" height="#{H}" viewBox="0 0 #{W} #{H}">
-          <rect width="#{W}" height="#{H}" fill="#6B3A63"/>
-          <g transform="translate(80,84)">
-            <rect width="72" height="72" rx="20" fill="#FFFFFF"/>
-            <g transform="scale(0.72)">
-              <path d="M22 47 L50 23 L78 47" fill="none" stroke="#6B3A63" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/><path d="M50 34 V68 Q50 79 61 79 H64" fill="none" stroke="#6B3A63" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/><path d="M37 52 H63" fill="none" stroke="#6B3A63" stroke-width="8" stroke-linecap="round"/>
+          <defs>
+            <radialGradient id="sky" cx="30%" cy="0%" r="110%" gradientUnits="objectBoundingBox"><stop offset="0" stop-color="#4A2C5A"/><stop offset="0.55" stop-color="#2A1A33"/><stop offset="1" stop-color="#140C18"/></radialGradient>
+            <radialGradient id="halo"><stop offset="0" stop-color="#FFB547" stop-opacity="0.55"/><stop offset="1" stop-color="#FFB547" stop-opacity="0"/></radialGradient>
+          </defs>
+          <rect width="#{W}" height="#{H}" fill="url(#sky)"/>
+          <g transform="translate(80,80)">
+            <g transform="scale(0.8)">
+              <rect x="0.5" y="0.5" width="99" height="99" rx="22.5" fill="#FFFFFF" fill-opacity="0.05" stroke="#FFFFFF" stroke-opacity="0.12"/>
+              <rect x="20" y="30" width="56" height="46" rx="9" fill="#140C18" stroke="#F3EEF5" stroke-width="3.5"/>
+              <path d="M34 53 L43 62 L61 43" fill="none" stroke="#F3EEF5" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
+              <circle cx="74" cy="29" r="20" fill="url(#halo)"/>
+              <path d="M74 16 Q75 28 87 29 Q75 30 74 42 Q73 30 61 29 Q73 28 74 16 Z" fill="#FFB547"/>
             </g>
-            <text x="96" y="50" font-family="Manrope" font-weight="800" font-size="40" fill="#FFFFFF">Tabitat</text>
+            <text x="100" y="56" font-family="Outfit" font-weight="700" font-size="46" letter-spacing="-1.2" fill="#F3EEF5"><tspan fill="#FFB547">glo</tspan>slate</text>
           </g>
           <path d="M80,240 H1000 V1180 #{zig.sub(/\AL/, 'L')} L80,1180 Z" fill="#FFFFFF"/>
-          <text x="120" y="340" font-family="Manrope" font-weight="700" font-size="40" fill="#685A66">#{esc(req.requester.first_name)} is requesting</text>
-          <text x="120" y="420" font-family="Manrope" font-weight="500" font-size="30" fill="#685A66">from #{esc(req.recipient.first_name)} · #{req.created_at.strftime('%b %-d, %Y')}</text>
-          <text x="120" y="610" font-family="IBM Plex Mono" font-weight="600" font-size="150" letter-spacing="-5" fill="#241A23">#{esc(Hometab::Money.format(req.amount_cents))}</text>
+          <text x="120" y="340" font-family="Outfit" font-weight="600" font-size="42" fill="#685A66">#{esc(req.requester.first_name)} is requesting</text>
+          <text x="120" y="420" font-family="DM Sans" font-weight="500" font-size="30" fill="#685A66">from #{esc(req.recipient.first_name)} · #{req.created_at.strftime('%b %-d, %Y')}</text>
+          <text x="120" y="610" font-family="DM Sans Tabular" font-weight="700" font-size="150" letter-spacing="-4" fill="#241A23">#{esc(Hometab::Money.format(req.amount_cents))}</text>
           <line x1="120" y1="720" x2="960" y2="720" stroke="#D8CBD4" stroke-width="3" stroke-dasharray="10 10"/>
           #{rows}
-          <text x="540" y="1290" text-anchor="middle" font-family="Manrope" font-weight="700" font-size="32" fill="#E6D5E2">Tap to see the breakdown &amp; pay · tabitat.app</text>
+          <text x="540" y="1290" text-anchor="middle" font-family="DM Sans" font-weight="600" font-size="32" fill="#BBA9C4">Tap to see the breakdown &amp; pay · tabitat.app</text>
         </svg>
       SVG
     end

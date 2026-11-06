@@ -58,7 +58,7 @@ export async function api<T = unknown>(
       body: init.body ? JSON.stringify(init.body) : undefined,
     });
   } catch {
-    throw new ApiError(0, "Can't reach Tabitat. Check your connection.");
+    throw new ApiError(0, "Can't reach Gloslate. Check your connection.");
   }
   if (res.status === 204) return undefined as T;
   const data = await res.json().catch(() => ({}));

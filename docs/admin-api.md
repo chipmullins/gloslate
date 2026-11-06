@@ -1,6 +1,6 @@
-# Admin API (for Tabitat Control / HarborWorks Control)
+# Admin API (for Gloslate Control / HarborWorks Control)
 
-Built from day one so a staff console can connect later. Today there is no console; the API is the contract. It is designed so a future **HarborWorks Control** can front both Glofly and Tabitat with the same patterns.
+Built from day one so a staff console can connect later. Today there is no console; the API is the contract. It is designed so a future **HarborWorks Control** can front both Glofly and Gloslate with the same patterns.
 
 ## Status
 
@@ -18,7 +18,7 @@ Create the first admin on the server: `bin/rails staff:create EMAIL=you@example.
 
 ## About "reset password"
 
-Tabitat users have **no passwords** (sign-in is email/phone code, Apple, Google). The support equivalents are:
+Gloslate users have **no passwords** (sign-in is email/phone code, Apple, Google). The support equivalents are:
 
 | Need | Endpoint |
 | --- | --- |

@@ -1,4 +1,4 @@
-# Running Tabitat
+# Running Gloslate
 
 ## On your Mac (development)
 
@@ -55,4 +55,4 @@ In Expo Go, receipt scanning falls back to attaching the photo and typing the to
 
 - Privacy policy and terms pages (App Store requires a privacy policy URL).
 - One hour with a fintech attorney to confirm the link-out payment model (spec open question).
-- Tabitat trademark and the tabitat.app domain.
+- Gloslate trademark and the tabitat.app domain.
