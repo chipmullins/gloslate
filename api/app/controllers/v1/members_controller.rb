@@ -1,6 +1,8 @@
 module V1
   class MembersController < BaseController
     before_action :load_household
+    rate_limit to: 60, within: 1.hour, only: :create, name: "members", by: -> { current_user.id },
+               with: -> { render json: { error: "That's a lot at once. Try again in a bit." }, status: :too_many_requests }
 
     # Add a roommate by name before they join (placeholder).
     def create

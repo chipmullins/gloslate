@@ -20,7 +20,11 @@ module Households
 
       member = Household.transaction do
         @invite.lock!
-        m = if @member_id
+        former = household.members.where(user: @user).where.not(left_at: nil).first
+        m = if former
+              # Back again: their old spot (and history) comes back.
+              former.tap { _1.update!(left_at: nil, moved_out_on: nil) }
+            elsif @member_id
               household.members.current.find_by!(id: @member_id).tap do |p|
                 raise Hometab::Error, "That spot is already taken" unless p.placeholder?
 
@@ -30,7 +34,7 @@ module Households
               household.members.create!(user: @user, display_name: @user.first_name.presence || "Roommate")
             end
         @invite.update!(accepted_at: Time.current, accepted_by_user_id: @user.id)
-        LedgerEvent.record!(household:, kind: "member.joined", subject: m, actor: m, data: { claimed_placeholder: @member_id.present? })
+        LedgerEvent.record!(household:, kind: "member.joined", subject: m, actor: m, data: { claimed_placeholder: @member_id.present? && !former, rejoined: former.present? })
         m
       end
       AnalyticsEvent.track("member_joined", user: @user, household:)

@@ -1,6 +1,8 @@
 module V1
   class HouseholdsController < BaseController
     before_action :load_household, except: %i[index create]
+    rate_limit to: 20, within: 1.hour, only: :create, name: "households", by: -> { current_user.id },
+               with: -> { render json: { error: "That's a lot at once. Try again in a bit." }, status: :too_many_requests }
 
     def index
       # Homes first (the app's Home tab uses the first one), then newest groups.

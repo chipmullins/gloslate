@@ -7,7 +7,9 @@ module Households
       household = member.household
       raise Hometab::Forbidden, "Not a member of this #{household.noun}" unless household.members.current.exists?(id: actor.id)
 
-      open_pairs = household.debts.select { |d| [d.debtor, d.creditor].include?(member.id) }
+      # Simplified homes and groups settle by the plan: once someone's overall
+      # position is zero they're done, even if old pairwise lines remain.
+      open_pairs = household.open_transfers.select { |d| [d.debtor, d.creditor].include?(member.id) }
       net = open_pairs.sum { |d| d.creditor == member.id ? d.cents : -d.cents }
       if open_pairs.any?
         raise Hometab::Error, "#{member.first_name} has an open balance. Settle up first." unless forgive

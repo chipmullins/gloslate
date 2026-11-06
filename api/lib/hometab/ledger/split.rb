@@ -78,7 +78,8 @@ module Hometab
         if shares.key?(@payer)
           shares[@payer] += leftover
         else
-          @ids.cycle.take(leftover).each { |id| shares[id] += 1 }
+          # Only people actually in the split (weight > 0) absorb stray cents.
+          weights.select { |_, w| w.positive? }.keys.cycle.take(leftover).each { |id| shares[id] += 1 }
         end
         shares
       end

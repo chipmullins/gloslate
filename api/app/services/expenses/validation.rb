@@ -11,7 +11,11 @@ module Expenses
       unless participants.all? { |m| ids.include?(m.id) }
         raise Hometab::Error, "Everyone in an expense must be in this #{noun}"
       end
-      return if household.group? # trips and dinners: no move-in or move-out dates
+      if household.group? # trips and dinners: no move-in dates, but people who left are out
+        gone = ([payer] + participants).select(&:former?).uniq
+        raise Hometab::Error, "#{gone.map(&:first_name).to_sentence} left this group" if gone.any?
+        return
+      end
 
       inactive = participants.reject { |m| m.active_on?(spent_on) }
       return if inactive.empty?

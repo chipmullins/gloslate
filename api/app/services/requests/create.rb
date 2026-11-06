@@ -6,8 +6,12 @@ module Requests
       raise Hometab::Error, "Pick someone else" if requester.id == recipient.id
 
       b = Payments::Breakdown.call(household:, me: requester, other: recipient)
-      amount = household.owed_cents(recipient, requester)
-      raise Hometab::Error, "#{recipient.first_name} doesn't owe you anything right now" unless amount.positive?
+      owed = household.owed_cents(recipient, requester)
+      waiting = household.payments.pending.where(from_member: recipient, to_member: requester).sum(:amount_cents)
+      amount = owed - waiting
+      unless amount.positive?
+        raise Hometab::Error, waiting.positive? ? "#{recipient.first_name} already marked #{Hometab::Money.format(waiting)} paid. Confirm it first." : "#{recipient.first_name} doesn't owe you anything right now"
+      end
 
       lines = b[:items].reject { _1[:status] == "paid" }.map do |i|
         open = i[:cents].positive? ? i[:cents] - i[:paid_cents] : i[:cents] + i[:paid_cents]
@@ -17,7 +21,7 @@ module Requests
       grouped = summarize(lines)
       # Settling a group the quickest way can route money through people, so
       # the item list wouldn't add up to the amount: show the group as a whole.
-      if amount != b[:net_cents]
+      if household.simplified? && amount != b[:net_cents]
         grouped = [{ description: "Your part of #{household.name}, settled in the fewest payments", cents: amount }]
       end
 
@@ -26,7 +30,7 @@ module Requests
       LedgerEvent.record!(household:, kind: "request.sent", subject: req, actor: requester, data: { to: recipient.id, amount_cents: amount })
       Notifications::Notify.call(member: recipient, kind: "request_received",
                                  title: "#{requester.first_name} is requesting #{Hometab::Money.format(amount)}",
-                                 body: "Tap to see the breakdown and pay.", route: "/settle/#{requester.id}")
+                                 body: "Tap to see the breakdown and pay.", route: "/settle/#{requester.id}?hid=#{household.id}")
       AnalyticsEvent.track("request_sent", user: requester.user, household:)
       req
     end
