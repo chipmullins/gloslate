@@ -3,6 +3,23 @@
 	email {$ACME_EMAIL}
 }
 
+# Gloslate's domain.
+gloslate.app, api.gloslate.app, admin-api.gloslate.app, app.gloslate.app {
+	encode zstd gzip
+	reverse_proxy production-web:80
+}
+
+www.gloslate.app {
+	redir https://gloslate.app{uri} permanent
+}
+
+staging.gloslate.app {
+	encode zstd gzip
+	reverse_proxy staging-web:80
+}
+
+# The original domain: installed apps still call api.tabitat.app and people
+# have old request and invite links, so it keeps working.
 tabitat.app, api.tabitat.app, admin-api.tabitat.app, app.tabitat.app {
 	encode zstd gzip
 	reverse_proxy production-web:80
