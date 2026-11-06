@@ -341,6 +341,7 @@ Resources:
         - { Name: !Sub "admin-api.${Domain}", Type: A, TTL: "300", ResourceRecords: [!Ref PublicIp] }
         - { Name: !Sub "staging.${Domain}", Type: A, TTL: "300", ResourceRecords: [!Ref PublicIp] }
         - { Name: !Sub "www.${Domain}", Type: A, TTL: "300", ResourceRecords: [!Ref PublicIp] }
+        - { Name: !Sub "app.${Domain}", Type: A, TTL: "300", ResourceRecords: [!Ref PublicIp] }
   EmailRecords:
     Type: AWS::Route53::RecordSetGroup
     Condition: HasDomain
