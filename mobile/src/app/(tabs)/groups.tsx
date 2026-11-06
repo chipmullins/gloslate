@@ -47,7 +47,7 @@ export default function Friends() {
   const row = (g: HouseholdSummary, i: number, list: HouseholdSummary[], oneOnOne: boolean) => {
     const line = balanceLine(g, oneOnOne);
     const title = oneOnOne ? g.people?.[0] ?? g.name : g.name;
-    const sub = oneOnOne ? 'Just the two of you' : `${g.member_count} people${g.people?.length ? ` · ${g.people.slice(0, 3).join(', ')}${g.member_count > 4 ? '…' : ''}` : ''}`;
+    const sub = oneOnOne ? 'One-on-one' : `${g.member_count} people${g.people?.length ? ` · ${g.people.slice(0, 3).join(', ')}${g.member_count > 4 ? '…' : ''}` : ''}`;
     return (
       <Pressable key={g.id} accessibilityRole="button" accessibilityLabel={`${title}, ${line.text}${g.balance.net_cents ? ` ${Math.abs(g.balance.net_cents) / 100} dollars` : ''}`}
         onPress={() => router.push(`/group/${g.id}` as Href)}

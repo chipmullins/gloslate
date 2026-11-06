@@ -1,6 +1,6 @@
 import { router, useFocusEffect, type Href } from 'expo-router';
 import { useCallback, useEffect, useState } from 'react';
-import { Pressable, RefreshControl, ScrollView, Share, View } from 'react-native';
+import { Pressable, RefreshControl, ScrollView, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { ExpenseRow, shortDate } from '@/components/expense-row';
@@ -13,6 +13,7 @@ import { api, ApiError, type BillCycle, type Expense, type Household, type Membe
 import { formatCents } from '@/lib/money';
 import { useSession } from '@/lib/session';
 import { toast } from '@/lib/toast';
+import { shareLink } from '@/lib/share';
 import { updateBalanceWidget } from '@/widgets/balance';
 
 function names(members: Member[]) {
@@ -24,7 +25,7 @@ function names(members: Member[]) {
 
 export async function sendRequest(householdId: string, memberId: string) {
   const res = await api<{ data: { url: string; message: string } }>(`/v1/households/${householdId}/requests`, { body: { member_id: memberId } });
-  await Share.share({ message: res.data.message, url: res.data.url });
+  await shareLink(res.data.message, res.data.url);
 }
 
 type HomeSnapshot = { home: Household | null; recent: Expense[] | null; coming: BillCycle[]; pending: Payment[]; unread: number };
@@ -76,7 +77,7 @@ export default function Home() {
     if (!home) return;
     try {
       const res = await api<{ data: { url: string; message: string } }>(`/v1/households/${home.id}/invites`, { body: member ? { member_id: member.id } : {} });
-      await Share.share({ message: res.data.message, url: res.data.url });
+      await shareLink(res.data.message, res.data.url);
     } catch (e) {
       setError(e instanceof ApiError ? e.message : "Couldn't make an invite link.");
     }
