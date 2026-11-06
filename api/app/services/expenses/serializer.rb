@@ -10,7 +10,7 @@ module Expenses
 
     def call(expense, me:)
       shares = expense.shares.to_h { |s| [s.member_id, s.share_cents] }
-      { id: expense.id, amount_cents: expense.amount_cents, description: expense.description, category: expense.category,
+      { id: expense.id, household_id: expense.household_id, amount_cents: expense.amount_cents, description: expense.description, category: expense.category,
         spent_on: expense.spent_on, payer_id: expense.payer_id, created_by_id: expense.created_by_id,
         split_kind: expense.split_kind, split_weights: expense.split_weights, urgency: expense.urgency, note: expense.note,
         shares: shares.map { |m, c| { member_id: m, cents: c } }, effect_for_me_cents: effect(me.id, expense.payers_hash, shares),

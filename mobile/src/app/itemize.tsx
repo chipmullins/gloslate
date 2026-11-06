@@ -17,8 +17,8 @@ function toInput(c: number) {
 
 /** Tap who had each item. Tax and tip split in proportion to what each person ordered. */
 export default function Itemize() {
-  const { payerId } = useLocalSearchParams<{ payerId: string }>();
-  const { home } = useHousehold();
+  const { payerId, hid } = useLocalSearchParams<{ payerId: string; hid?: string }>();
+  const { home } = useHousehold(hid);
   const { wide } = useLayout();
   const draft = receiptDraft.get();
   const members = (home?.members ?? []).filter((m) => !m.former);

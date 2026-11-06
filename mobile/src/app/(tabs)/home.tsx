@@ -35,7 +35,7 @@ export default function Home() {
   const { households } = useSession();
   const { wide, gutter } = useLayout();
   // Start from what we showed last time (instant when switching tabs or reopening), then refresh.
-  const [snap] = useState(() => homeCache.get(households[0]?.id ?? '') ?? EMPTY);
+  const [snap] = useState(() => homeCache.get(households.find((h) => h.kind !== 'group')?.id ?? '') ?? EMPTY);
   const [home, setHome] = useState<Household | null>(snap.home);
   const [recent, setRecent] = useState<Expense[] | null>(snap.recent);
   const [coming, setComing] = useState<BillCycle[]>(snap.coming);
@@ -43,7 +43,7 @@ export default function Home() {
   const [unread, setUnread] = useState(snap.unread);
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const id = households[0]?.id;
+  const id = households.find((h) => h.kind !== 'group')?.id;
 
   const load = useCallback(async () => {
     if (!id) return;
@@ -91,6 +91,16 @@ export default function Home() {
     }
   }
 
+  if (!home && !id) {
+    // In a group but not a home: offer to set one up.
+    return (
+      <SafeAreaView style={{ flex: 1, backgroundColor: HT.color.ground, padding: 24, justifyContent: 'center', gap: 14 }}>
+        <T v="display" accessibilityRole="header">No home yet</T>
+        <T v="muted">Live with people? Set up your home to split rent, bills and groceries every month.</T>
+        <Button title="Set up your home" onPress={() => router.push('/setup' as Href)} />
+      </SafeAreaView>
+    );
+  }
   if (!home) {
     return <SafeAreaView style={{ flex: 1, backgroundColor: HT.color.ground }}>{error ? <T style={{ padding: 20 }}>{error}</T> : null}</SafeAreaView>;
   }

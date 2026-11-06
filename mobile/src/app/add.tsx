@@ -19,6 +19,9 @@ import { toast } from '@/lib/toast';
 type Kind = 'equal' | 'percent' | 'exact' | 'shares';
 const KIND_LABEL: Record<Kind, string> = { equal: 'Equal', percent: '%', exact: '$', shares: 'Shares' };
 
+/** "12.30": what cents-first inputs expect to keep typing onto. */
+const twoDp = (c: number) => `${Math.floor(c / 100)}.${String(c % 100).padStart(2, '0')}`;
+
 function centsToInput(c: number) {
   return c % 100 === 0 ? String(c / 100) : `${Math.floor(c / 100)}.${String(c % 100).padStart(2, '0')}`;
 }
@@ -30,13 +33,16 @@ function weightOf(kind: Kind, raw: string): number | null {
 }
 
 export default function Add() {
-  const { id } = useLocalSearchParams<{ id?: string }>();
+  const { id, hid } = useLocalSearchParams<{ id?: string; hid?: string }>();
   const editing = !!id;
-  const { home } = useHousehold();
+  const { home } = useHousehold(hid);
   const { wide } = useLayout();
 
   const [amount, setAmount] = useState('');
   const [payerId, setPayerId] = useState<string | null>(null);
+  // Several people paid: what each one put in, as typed.
+  const [multi, setMulti] = useState(false);
+  const [paid, setPaid] = useState<Record<string, string>>({});
   const [included, setIncluded] = useState<string[] | null>(null);
   const [category, setCategory] = useState('food');
   const [description, setDescription] = useState('');
@@ -89,7 +95,11 @@ export default function Add() {
     [home],
   );
   const me = home?.me;
-  const payer = payerId ?? me?.id ?? '';
+  const paidCents = useMemo(() => Object.fromEntries(members.map((m) => [m.id, parseCents(paid[m.id] ?? '') ?? 0])), [members, paid]);
+  const paidTotal = Object.values(paidCents).reduce((a, b) => a + b, 0);
+  // The biggest payer is the main one (they also take any odd cent), like the server.
+  const mainPayer = multi ? members.reduce<string | null>((best, m) => (paidCents[m.id] > (best ? paidCents[best] : 0) ? m.id : best), null) : null;
+  const payer = mainPayer ?? payerId ?? me?.id ?? '';
   const ids = included ?? members.map((m) => m.id);
   const cents = parseCents(amount) ?? 0;
   const couple = members.length === 2;
@@ -100,6 +110,10 @@ export default function Add() {
     api<{ data: Expense }>(`/v1/expenses/${id}`).then(({ data: e }) => {
       setAmount(centsToInput(e.amount_cents));
       setPayerId(e.payer_id);
+      if ((e.payers?.length ?? 0) > 1) {
+        setMulti(true);
+        setPaid(Object.fromEntries(e.payers!.map((p) => [p.member_id, twoDp(p.cents)])));
+      }
       setIncluded(e.shares.map((s) => s.member_id));
       setCategory(e.category);
       setDescription(e.description);
@@ -127,6 +141,9 @@ export default function Add() {
   const weightTotal = weights ? Object.values(weights).reduce((a, b) => a + b, 0) : 0;
   const splitIssue = (() => {
     if (ids.length === 0) return 'Pick at least one person';
+    if (multi && cents > 0 && paidTotal !== cents) {
+      return paidTotal < cents ? `${formatCents(cents - paidTotal)} left to say who paid` : `Who paid adds up to ${formatCents(paidTotal - cents)} too much`;
+    }
     if (kind === 'equal') return null;
     if (!weights) return kind === 'shares' ? 'Give everyone a whole number of shares' : 'Fill in everyone';
     if (kind === 'percent' && weightTotal !== 10000) return `Adds up to ${centsToInput(weightTotal)}%, needs 100%`;
@@ -136,7 +153,7 @@ export default function Add() {
   })();
 
   // Equal splits compute instantly; other splits ask the server (debounced).
-  const previewable = kind !== 'equal' && !splitIssue && cents > 0 && !!home;
+  const previewable = kind !== 'equal' && !multi && !splitIssue && cents > 0 && !!home;
   const idsKey = ids.join(',');
   const weightsKey = JSON.stringify(weights);
   const homeId = home?.id;
@@ -151,7 +168,9 @@ export default function Add() {
   }, [previewable, homeId, cents, payer, idsKey, kind, weightsKey]);
   const previewCents = previewable && preview?.key === `${cents}|${payer}|${idsKey}|${kind}|${weightsKey}` ? preview.cents : null;
 
-  const effect = kind === 'equal' && me ? effectFor(me.id, payer, equalSplit(cents, payer, ids)) : previewCents;
+  const effect = kind === 'equal' && me
+    ? multi ? (paidCents[me.id] ?? 0) - (equalSplit(cents, payer, ids)[me.id] ?? 0) : effectFor(me.id, payer, equalSplit(cents, payer, ids))
+    : previewCents;
   const perHead = ids.length ? Math.floor(cents / ids.length) : 0;
   const nameOf = (mid: string) => members.find((m) => m.id === mid)?.first_name ?? '';
 
@@ -162,6 +181,7 @@ export default function Add() {
     if (effect == null) return verb;
     if (effect === 0) return `${verb} · doesn't change your balance`;
     const owing = members.filter((m) => !m.you && ids.includes(m.id));
+    if (multi) return effect > 0 ? `${verb} · you're owed ${formatCents(effect)}` : `${verb} · you owe ${formatCents(-effect)}`;
     if (effect > 0) return couple || owing.length === 1 ? `${verb} · ${owing[0]?.first_name ?? 'They'} owes you ${formatCents(effect)}` : `${verb} · you're owed ${formatCents(effect)}`;
     return `${verb} · you owe ${nameOf(payer)} ${formatCents(-effect)}`;
   })();
@@ -172,7 +192,8 @@ export default function Add() {
     setError(null);
     const body = {
       amount_cents: cents, payer_id: payer, participant_ids: ids, split_kind: kind, split_weights: weights ?? {},
-      category, description: description.trim(), urgency: payer === me?.id ? urgency : 'tab',
+      category, description: description.trim(), urgency: payer === me?.id && !multi ? urgency : 'tab',
+      ...(multi ? { payers: members.filter((m) => paidCents[m.id] > 0).map((m) => ({ member_id: m.id, amount_cents: paidCents[m.id] })) } : {}),
       ...(itemization && kind === 'exact' ? { itemization } : {}),
     };
     try {
@@ -237,7 +258,7 @@ export default function Add() {
             <T v="strong" style={{ fontSize: 13, color: photoUri ? HT.color.brand : HT.color.ink }}>{photoUri ? 'Receipt attached' : 'Scan receipt'}</T>
           </Pressable>
           {photoUri && (scanItems > 1 || members.length > 2) ? (
-            <Pressable accessibilityRole="button" onPress={() => router.push(`/itemize?payerId=${payer}` as Href)}
+            <Pressable accessibilityRole="button" onPress={() => router.push(`/itemize?payerId=${payer}${hid ? `&hid=${hid}` : ''}` as Href)}
               style={({ pressed }) => ({ minHeight: 36, paddingHorizontal: 12, borderRadius: 18, justifyContent: 'center', backgroundColor: HT.color.surface,
                 borderWidth: 1, borderColor: HT.color.chipBorder, opacity: pressed ? 0.7 : 1 })}>
               <T v="strong" style={{ fontSize: 13 }}>{itemization ? 'Edit items' : 'Who had what'}</T>
@@ -248,10 +269,31 @@ export default function Add() {
     </View>
   );
 
+  const severalPaid = (
+    <View style={{ backgroundColor: HT.color.surface, borderRadius: HT.radius.card, padding: 16, gap: 10 }}>
+      <T v="muted">Put in what each person paid. It has to add up to {cents ? formatCents(cents) : 'the total'}.</T>
+      {members.map((m) => (
+        <View key={m.id} style={{ flexDirection: 'row', alignItems: 'center', gap: 10, minHeight: 48 }}>
+          <Avatar name={m.first_name} index={m.index} size={32} />
+          <T v="strong" style={{ flex: 1 }}>{m.you ? 'You' : m.first_name}</T>
+          <T v="muted">$</T>
+          <TextInput value={paid[m.id] ?? ''} onChangeText={(t) => setPaid((cur) => ({ ...cur, [m.id]: centsFirst(t) }))}
+            keyboardType="number-pad" placeholder="0.00" placeholderTextColor={HT.color.faint}
+            accessibilityLabel={`What ${m.you ? 'you' : m.first_name} paid`}
+            style={{ width: 110, height: 48, paddingVertical: 0, borderRadius: 12, borderWidth: 1, borderColor: HT.color.chipBorder, paddingHorizontal: 10,
+              textAlign: 'right', fontFamily: HT.font.mono, fontSize: 16, color: HT.color.ink }} />
+        </View>
+      ))}
+      {cents > 0 && paidTotal !== cents ? (
+        <T v="small" style={{ color: HT.color.youOwe }}>{paidTotal < cents ? `${formatCents(cents - paidTotal)} left` : `${formatCents(paidTotal - cents)} too much`}</T>
+      ) : null}
+    </View>
+  );
+
   const whoPaid = (
     <View style={{ gap: 8 }}>
       <T v="label" style={{ textAlign: 'center' }}>Who paid?</T>
-      {couple ? (
+      {multi ? severalPaid : couple ? (
         <View accessibilityRole="radiogroup" style={{ flexDirection: 'row', backgroundColor: HT.color.segment, borderRadius: HT.radius.tile, padding: 4, gap: 6 }}>
           {members.map((m) => {
             const on = payer === m.id;
@@ -280,6 +322,10 @@ export default function Add() {
           })}
         </View>
       )}
+      {members.length > 1 ? (
+        <Button kind="link" title={multi ? 'One person paid' : 'Several people paid'}
+          onPress={() => { setMulti((v) => !v); if (!multi && cents && me) setPaid({ [payerId ?? me.id]: twoDp(cents) }); }} />
+      ) : null}
     </View>
   );
 
@@ -293,7 +339,7 @@ export default function Add() {
     </View>
   );
 
-  const urgencyRow = payer === me.id ? (
+  const urgencyRow = payer === me.id && !multi ? (
     <View style={{ flexDirection: 'row', gap: 8, justifyContent: 'center' }}>
       {(['tab', 'soon'] as const).map((u) => (
         <Pressable key={u} accessibilityRole="radio" accessibilityLabel={u === 'tab' ? 'Add to tab' : 'Pay me back soon'} accessibilityState={{ checked: urgency === u }} onPress={() => setUrgency(u)} style={chip(urgency === u)}>
@@ -362,7 +408,7 @@ export default function Add() {
       <View style={{ flex: 1, width: '100%', maxWidth: wide ? 1000 : HT.maxWidth.form, alignSelf: 'center', paddingHorizontal: wide ? 32 : 20 }}>
         <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', minHeight: 52 }}>
           <IconButton label="Close" onPress={() => router.back()}><CloseIcon /></IconButton>
-          <T v="heading" accessibilityRole="header" style={{ fontSize: 16 }}>{editing ? 'Edit' : 'Add'}</T>
+          <T v="heading" accessibilityRole="header" style={{ fontSize: 16 }} numberOfLines={1}>{editing ? 'Edit' : home.kind === 'group' ? `Add to ${home.name}` : 'Add'}</T>
           <View style={{ width: 44 }} />
         </View>
 
