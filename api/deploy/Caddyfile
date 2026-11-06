@@ -3,7 +3,7 @@
 	email {$ACME_EMAIL}
 }
 
-tabitat.app, api.tabitat.app, admin-api.tabitat.app {
+tabitat.app, api.tabitat.app, admin-api.tabitat.app, app.tabitat.app {
 	encode zstd gzip
 	reverse_proxy production-web:80
 }

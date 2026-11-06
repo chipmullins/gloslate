@@ -3,3 +3,6 @@ node_modules/
 .env*
 !.env.example
 .claude/worktrees/
+
+# Built by the Release workflow from mobile/ (expo export --platform web)
+api/public/webapp/

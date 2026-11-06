@@ -2,7 +2,11 @@ import * as SecureStore from 'expo-secure-store';
 import { Platform } from 'react-native';
 
 // Release builds always reach the live server, even if no .env file was picked up.
-const BASE = process.env.EXPO_PUBLIC_API_URL || (__DEV__ ? 'http://localhost:3000' : 'https://api.tabitat.app');
+// The web app (app.tabitat.app) is served by the API server itself, so it
+// calls the API on its own origin: no cross-site requests.
+const BASE = Platform.OS === 'web' && !__DEV__
+  ? ''
+  : process.env.EXPO_PUBLIC_API_URL || (__DEV__ ? 'http://localhost:3000' : 'https://api.tabitat.app');
 const TOKEN_KEY = 'tabitat.session';
 
 export class ApiError extends Error {
@@ -11,16 +15,25 @@ export class ApiError extends Error {
   }
 }
 
-// SecureStore is native-only; web (dev preview) falls back to memory.
+// SecureStore is native-only. On the web the sign-in lives in this site's
+// storage (the page's strict content policy keeps other scripts out); if
+// storage is blocked (private mode), it lasts until the tab closes.
 let memoryToken: string | null = null;
+const webStorage = () => { try { return globalThis.localStorage ?? null; } catch { return null; } };
 export const tokenStore = {
   async get() {
-    if (Platform.OS === 'web') return memoryToken;
+    if (Platform.OS === 'web') {
+      try { return webStorage()?.getItem(TOKEN_KEY) ?? memoryToken; } catch { return memoryToken; }
+    }
     return SecureStore.getItemAsync(TOKEN_KEY);
   },
   async set(token: string | null) {
     if (Platform.OS === 'web') {
       memoryToken = token;
+      try {
+        if (token) webStorage()?.setItem(TOKEN_KEY, token);
+        else webStorage()?.removeItem(TOKEN_KEY);
+      } catch { /* memory only */ }
       return;
     }
     if (token) await SecureStore.setItemAsync(TOKEN_KEY, token);
