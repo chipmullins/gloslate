@@ -89,7 +89,11 @@ export type Balance = { net_cents: number; with: { member_id: string; cents: num
 
 /** A home (people who live together) or a group (a trip, dinners, friends). */
 export type HouseholdKind = 'home' | 'group';
-export type HouseholdSummary = { id: string; kind: HouseholdKind; name: string; member_count: number; balance: Balance; created_at?: string };
+export type HouseholdSummary = {
+  id: string; kind: HouseholdKind; name: string; member_count: number; balance: Balance; created_at?: string;
+  /** First names of everyone else in it (up to 5). */
+  people?: string[];
+};
 /** One payment in the quickest way to settle everyone up. */
 export type Transfer = { from_member_id: string; to_member_id: string; cents: number };
 

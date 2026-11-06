@@ -40,8 +40,9 @@ module V1
 
     def summary(h)
       me = h.members.find_by(user: current_user)
+      others = h.members.current.where.not(id: me.id).order(:created_at).limit(5).map(&:first_name)
       { id: h.id, kind: h.kind, name: h.name, member_count: h.members.current.count, balance: h.balance_for(me),
-        created_at: h.created_at }
+        people: others, created_at: h.created_at }
     end
 
     def detail(h)

@@ -1,5 +1,5 @@
 import * as Clipboard from 'expo-clipboard';
-import { router, useFocusEffect, useLocalSearchParams, type Href } from 'expo-router';
+import { Redirect, router, useFocusEffect, useLocalSearchParams, type Href } from 'expo-router';
 import { useCallback, useMemo, useRef, useState } from 'react';
 import { Linking, Pressable, View } from 'react-native';
 
@@ -29,8 +29,8 @@ function centsToInput(c: number) {
 
 /** Everything behind one person's balance, and how to settle it. */
 export default function Settle() {
-  const { memberId } = useLocalSearchParams<{ memberId: string }>();
-  const { home } = useHousehold();
+  const { memberId, hid } = useLocalSearchParams<{ memberId: string; hid?: string }>();
+  const { home } = useHousehold(hid);
   const { wide } = useLayout();
   const [b, setB] = useState<Breakdown | null>(null);
   const [pay, setPay] = useState<PayInfo | null>(null);
@@ -127,6 +127,15 @@ export default function Settle() {
       inFlight.current = false;
       setBusy(false);
     }
+  }
+
+  // Groups, and homes that settle the quickest way, pay by the plan rather
+  // than person-to-person totals: use the plan's settle screen.
+  if (home && (home.kind === 'group' || (home.simplify_debts && home.members.filter((m) => !m.former).length > 2))) {
+    const t = home.settle_plan.find((x) => [x.from_member_id, x.to_member_id].includes(home.me.id) && [x.from_member_id, x.to_member_id].includes(memberId));
+    const from = t?.from_member_id ?? memberId;
+    const to = t?.to_member_id ?? home.me.id;
+    return <Redirect href={`/group/settle?hid=${home.id}&from=${from}&to=${to}` as Href} />;
   }
 
   if (!home || !other || !b) return <Screen><ErrorNote message={error} /></Screen>;

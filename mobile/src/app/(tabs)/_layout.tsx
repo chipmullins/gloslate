@@ -7,7 +7,7 @@ import { ActivityIcon, CalendarIcon, HouseIcon, PersonIcon } from '@/components/
 import { HT } from '@/constants/theme';
 import { useLayout } from '@/hooks/use-layout';
 
-/** Home for the people you live with, Groups for trips and friends, then Activity, Bills, You. */
+/** Home for the people you live with, Friends for one-on-one tabs and groups, then Activity, Bills, You. */
 export default function TabsLayout() {
   const { wide } = useLayout();
   // Sized from the real safe area so labels never sit under the iPhone's home indicator.
@@ -27,7 +27,7 @@ export default function TabsLayout() {
         sceneStyle: { backgroundColor: HT.color.ground },
       }}>
       <Tabs.Screen name="home" options={{ title: 'Home', tabBarLabel: label('Home'), tabBarIcon: ({ color }) => <HouseIcon color={String(color)} size={22} /> }} />
-      <Tabs.Screen name="groups" options={{ title: 'Groups', tabBarLabel: label('Groups'), tabBarIcon: ({ color }) => <GroupIcon color={String(color)} size={22} /> }} />
+      <Tabs.Screen name="groups" options={{ title: 'Friends', tabBarLabel: label('Friends'), tabBarIcon: ({ color }) => <GroupIcon color={String(color)} size={22} /> }} />
       <Tabs.Screen name="activity" options={{ title: 'Activity', tabBarLabel: label('Activity'), tabBarIcon: ({ color }) => <ActivityIcon color={String(color)} size={22} /> }} />
       <Tabs.Screen name="bills" options={{ title: 'Bills', tabBarLabel: label('Bills'), tabBarIcon: ({ color }) => <CalendarIcon color={String(color)} size={22} /> }} />
       <Tabs.Screen name="you" options={{ title: 'You', tabBarLabel: label('You'), tabBarIcon: ({ color }) => <PersonIcon color={String(color)} size={22} /> }} />
