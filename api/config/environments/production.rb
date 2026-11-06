@@ -80,7 +80,7 @@ Rails.application.configure do
   config.active_record.attributes_for_inspect = [ :id ]
 
   # Enable DNS rebinding protection and other `Host` header attacks.
-  config.hosts = ENV.fetch("ALLOWED_HOSTS", "tabitat.app,api.tabitat.app,admin-api.tabitat.app").split(",")
+  config.hosts = ENV.fetch("ALLOWED_HOSTS", "tabitat.app,api.tabitat.app,admin-api.tabitat.app,app.tabitat.app").split(",")
   # config.hosts = [
   #   "example.com",     # Allow requests from example.com
   #   /.*\.example\.com/ # Allow requests from subdomains like `www.example.com`

@@ -35,6 +35,18 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      # The web version of the app (app.tabitat.app) ships inside the same image.
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: mobile/package-lock.json
+      - name: Build the web app
+        working-directory: mobile
+        run: |
+          npm ci
+          EXPO_OFFLINE=1 CI=1 npx expo export --platform web --output-dir ../api/public/webapp
+          test -f ../api/public/webapp/index.html
       - uses: docker/setup-buildx-action@v3
       - uses: docker/login-action@v3
         with:
@@ -61,7 +73,8 @@ jobs:
           grep -v '^#' api/deploy/staging.env > smoke.env
           docker run -d --name web --network smoke -p 8080:80 --env-file smoke.env \
             -e SECRET_KEY_BASE=$(openssl rand -hex 64) -e TABITAT_DATABASE_PASSWORD=pw \
-            -e S3_BUCKET=smoke -e AWS_REGION=us-east-1 "$IMAGE:sha-$GITHUB_SHA"
+            -e S3_BUCKET=smoke -e AWS_REGION=us-east-1 -e ALLOWED_HOSTS=staging.tabitat.app,app.smoke.test -e WEBAPP_HOSTS=app.smoke.test \
+            "$IMAGE:sha-$GITHUB_SHA"
           ok=""
           for i in $(seq 1 60); do curl -fsS -o /dev/null http://localhost:8080/up && ok=1 && break; sleep 3; done
           [ -n "$ok" ] || { docker logs web | tail -80; exit 1; }
@@ -70,6 +83,12 @@ jobs:
             echo "$path -> $code"; [ "$code" = 200 ] || { docker logs web | tail -80; exit 1; }
           done
           curl -fsS -H 'Host: staging.tabitat.app' http://localhost:8080/ | grep -q "Stop texting"
+          # The web app: the page, a deep link, and a bundle it points at.
+          for path in / /group/x /onboarding; do
+            curl -fsS -H 'Host: app.smoke.test' "http://localhost:8080$path" | grep -q "_expo/static/js" || { echo "web app $path missing"; exit 1; }
+          done
+          bundle=$(curl -fsS -H 'Host: app.smoke.test' http://localhost:8080/ | grep -o '/_expo/static/js/web/[^"]*\.js' | head -1)
+          curl -fsS -o /dev/null -H 'Host: app.smoke.test' "http://localhost:8080$bundle"
           # Background jobs start a few seconds after the web server; make sure they stay up.
           sleep 25
           [ "$(docker inspect -f '{{.State.Running}}' web)" = true ] || { docker logs web | tail -80; exit 1; }
