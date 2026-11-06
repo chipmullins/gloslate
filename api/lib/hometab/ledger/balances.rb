@@ -1,12 +1,15 @@
 # frozen_string_literal: true
 
+require_relative "expense_debts"
+
 module Hometab
   module Ledger
     # Computes who owes whom from ledger entries. Balances are never stored;
     # this is the only source of truth.
     #
     # Entries are plain hashes (the Rails models map to them):
-    #   expense: { type: :expense, payer_id:, shares: { id => cents } }
+    #   expense: { type: :expense, payer_id:, shares: { id => cents },
+    #              payers: { id => cents } (optional: several people paid) }
     #   payment: { type: :payment, from_id:, to_id:, amount_cents: }
     #            (only confirmed / pending-but-counted payments are passed in)
     #
@@ -30,11 +33,10 @@ module Hometab
         @entries.each do |e|
           case e.fetch(:type)
           when :expense
-            payer = e.fetch(:payer_id)
-            e.fetch(:shares).each do |member, cents|
-              next if member == payer || cents.zero?
-
-              add(ledger, debtor: member, creditor: payer, cents: cents)
+            shares = e.fetch(:shares)
+            payers = e[:payers] || { e.fetch(:payer_id) => shares.values.sum }
+            ExpenseDebts.call(payers:, shares:).each do |debtor, creditor, cents|
+              add(ledger, debtor:, creditor:, cents:)
             end
           when :payment
             # Paying someone reduces what you owe them.

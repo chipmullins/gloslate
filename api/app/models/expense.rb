@@ -22,8 +22,16 @@ class Expense < ApplicationRecord
   def deleted? = deleted_at.present?
   def self.human_category(c) = c.to_s.capitalize
 
+  # Who paid how much: { member_id => cents }. One payer unless several chipped in.
+  def payers_hash = paid_by.present? ? paid_by.transform_values(&:to_i) : { payer_id => amount_cents }
+
+  # [[debtor_id, creditor_id, cents]] for this one expense.
+  def debts
+    Hometab::Ledger::ExpenseDebts.call(payers: payers_hash, shares: shares.to_h { |s| [s.member_id, s.share_cents] })
+  end
+
   def snapshot
-    { amount_cents:, payer_id:, description:, category:, spent_on: spent_on.iso8601, split_kind:,
+    { amount_cents:, payer_id:, paid_by:, description:, category:, spent_on: spent_on.iso8601, split_kind:,
       split_weights:, urgency:, note:, shares: shares.to_h { |s| [s.member_id, s.share_cents] } }
   end
 end

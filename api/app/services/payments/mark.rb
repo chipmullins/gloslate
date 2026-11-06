@@ -86,7 +86,7 @@ module Payments
       waiting = @household.payments.pending.where(from_member: @from, to_member: @to).sum(:amount_cents)
       return if waiting.zero?
 
-      owed = [-Payments::Breakdown.call(household: @household, me: @from, other: @to)[:net_cents], 0].max
+      owed = @household.owed_cents(@from, @to)
       left = owed - waiting
       if left <= 0
         raise Hometab::Error, "You already marked #{Hometab::Money.format(waiting)} paid. Waiting on #{@to.first_name} to confirm."

@@ -1,5 +1,5 @@
 class AnalyticsEvent < ApplicationRecord
-  NAMES = %w[signed_up signed_in household_created member_joined expense_added request_sent request_page_viewed
+  NAMES = %w[signed_up signed_in household_created group_created member_joined expense_added request_sent request_page_viewed
              payment_marked payment_confirmed statement_generated].freeze
   validates :name, inclusion: { in: NAMES }
 

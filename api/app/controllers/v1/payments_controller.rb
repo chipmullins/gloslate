@@ -33,8 +33,8 @@ module V1
     # GET /v1/households/:household_id/pay/:member_id?amount_cents= — links to pay them
     def pay_info
       to = @household.members.find(params[:member_id])
-      owed = Payments::Breakdown.call(household: @household, me: @me, other: to)[:net_cents]
-      amount = params[:amount_cents].present? ? Integer(params[:amount_cents].to_s) : -owed
+      owed = @household.owed_cents(@me, to)
+      amount = params[:amount_cents].present? ? Integer(params[:amount_cents].to_s) : owed
       raise Hometab::Error, "You don't owe #{to.first_name} anything right now" unless amount.positive?
 
       render json: { data: Payments::PayLinks.call(to:, amount_cents: amount, memo: "Tabitat · #{@household.name}") }

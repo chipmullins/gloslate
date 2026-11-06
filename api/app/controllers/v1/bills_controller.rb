@@ -17,6 +17,8 @@ module V1
     # POST { name, kind, amount_cents?, due_day, payer_id?, split_kind?, split_weights?, participant_ids?, post_days_early?, category? }
     # or { preset: "rent", amount_cents: 180000 } — used by first-run "What bills do you split?"
     def create
+      raise Hometab::Error, "Groups don't have repeating bills. Add each thing as it happens." if @household.group?
+
       attrs = bill_attrs
       attrs = Bills::Create::PRESETS.fetch(params[:preset]).merge(attrs) if params[:preset].present?
       bill = Bills::Create.call(household: @household, actor: @me, attrs:)

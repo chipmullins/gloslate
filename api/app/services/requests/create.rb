@@ -6,7 +6,7 @@ module Requests
       raise Hometab::Error, "Pick someone else" if requester.id == recipient.id
 
       b = Payments::Breakdown.call(household:, me: requester, other: recipient)
-      amount = b[:net_cents]
+      amount = household.owed_cents(recipient, requester)
       raise Hometab::Error, "#{recipient.first_name} doesn't owe you anything right now" unless amount.positive?
 
       lines = b[:items].reject { _1[:status] == "paid" }.map do |i|
@@ -15,6 +15,11 @@ module Requests
       end
       lines << { description: "Paid already", cents: -b[:credit_cents][:theirs] } if b[:credit_cents][:theirs].positive?
       grouped = summarize(lines)
+      # Settling a group the quickest way can route money through people, so
+      # the item list wouldn't add up to the amount: show the group as a whole.
+      if amount != b[:net_cents]
+        grouped = [{ description: "Your part of #{household.name}, settled in the fewest payments", cents: amount }]
+      end
 
       req = PaymentRequest.create!(household:, requester:, recipient:, amount_cents: amount, breakdown: grouped,
                                    pay_methods: requester.handles)

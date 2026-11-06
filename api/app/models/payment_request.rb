@@ -13,6 +13,6 @@ class PaymentRequest < ApplicationRecord
 
   # What they owe now (may differ from the snapshot).
   def current_cents
-    -Payments::Breakdown.call(household:, me: recipient, other: requester)[:net_cents]
+    household.owed_cents(recipient, requester)
   end
 end

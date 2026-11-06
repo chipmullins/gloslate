@@ -4,15 +4,18 @@ module Expenses
   class Create
     def self.call(...) = new(...).call
 
-    def initialize(household:, actor:, amount_cents:, payer:, participants: nil, split_kind: nil,
+    def initialize(household:, actor:, amount_cents:, payer: nil, participants: nil, split_kind: nil,
                    split_weights: nil, description: "", category: "other", spent_on: Date.current,
-                   urgency: "tab", note: nil, client_id: nil, system: false, itemization: nil, notify: true)
-      @household, @actor, @payer = household, actor, payer
+                   urgency: "tab", note: nil, client_id: nil, system: false, itemization: nil, notify: true, payers: nil)
+      @household, @actor = household, actor
+      @payer, @paid_by = Payers.resolve(household, amount_cents, payers, payer)
+      raise Hometab::Error, "Who paid?" unless @payer
       @system = system # bill auto-posts: may include people who moved out mid-cycle (proration)
       @notify = notify # false when the caller sends one combined notification (Expenses::Counter)
       @amount_cents = amount_cents
       @spent_on = spent_on
-      @participants = participants || household.members.current.select { |m| m.active_on?(spent_on) }
+      @participants = participants ||
+                      (household.group? ? household.members.current.to_a : household.members.current.select { |m| m.active_on?(spent_on) })
       @split_kind = (split_kind || household.default_split_kind).to_s
       @split_weights = split_weights || (split_kind ? {} : household.default_split_weights)
       use_equal_if_usual_split_misfits! unless split_kind
@@ -29,7 +32,7 @@ module Expenses
 
       Expense.transaction do
         expense = @household.expenses.create!(
-          payer: @payer, created_by: @actor, amount_cents: @amount_cents, spent_on: @spent_on,
+          payer: @payer, paid_by: @paid_by, created_by: @actor, amount_cents: @amount_cents, spent_on: @spent_on,
           split_kind: @split_kind, split_weights: @split_weights, **@attrs
         )
         shares.each { |member_id, cents| expense.shares.create!(member_id:, share_cents: cents) }

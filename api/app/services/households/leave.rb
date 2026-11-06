@@ -5,7 +5,7 @@ module Households
   class Leave
     def self.call(member:, actor:, forgive: false)
       household = member.household
-      raise Hometab::Forbidden, "Not a member of this home" unless household.members.current.exists?(id: actor.id)
+      raise Hometab::Forbidden, "Not a member of this #{household.noun}" unless household.members.current.exists?(id: actor.id)
 
       open_pairs = household.debts.select { |d| [d.debtor, d.creditor].include?(member.id) }
       net = open_pairs.sum { |d| d.creditor == member.id ? d.cents : -d.cents }

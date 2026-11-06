@@ -51,8 +51,8 @@ class Member < ApplicationRecord
 
   def household_not_full
     return unless household
-    return if household.members.current.count < Household::MAX_MEMBERS
+    return if household.members.current.count < household.max_members
 
-    errors.add(:base, "A home can have up to #{Household::MAX_MEMBERS} people")
+    errors.add(:base, "A #{household.noun} can have up to #{household.max_members} people")
   end
 end

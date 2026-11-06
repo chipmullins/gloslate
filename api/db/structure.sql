@@ -244,6 +244,7 @@ CREATE TABLE public.expenses (
     updated_at timestamp(6) without time zone NOT NULL,
     client_id character varying,
     itemization jsonb,
+    paid_by jsonb,
     CONSTRAINT amount_positive CHECK ((amount_cents > 0)),
     CONSTRAINT split_kind_values CHECK (((split_kind)::text = ANY ((ARRAY['equal'::character varying, 'percent'::character varying, 'exact'::character varying, 'shares'::character varying])::text[]))),
     CONSTRAINT urgency_values CHECK (((urgency)::text = ANY ((ARRAY['soon'::character varying, 'tab'::character varying])::text[])))
@@ -264,6 +265,7 @@ CREATE TABLE public.households (
     simplify_debts boolean DEFAULT false NOT NULL,
     created_at timestamp(6) without time zone NOT NULL,
     updated_at timestamp(6) without time zone NOT NULL,
+    kind character varying DEFAULT 'home'::character varying NOT NULL,
     CONSTRAINT statement_day_range CHECK (((statement_day >= 1) AND (statement_day <= 28)))
 );
 
@@ -1477,6 +1479,7 @@ ALTER TABLE ONLY public.expenses
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
+('20261106050000'),
 ('20261105040000'),
 ('20261105030001'),
 ('20261105030000'),

@@ -33,10 +33,15 @@ module Payments
 
     private
 
+    # What `debtor` owes `payer` item by item. With one payer that's the
+    # debtor's share; when several people paid, it's this pair's part of it.
     def items_where(payer:, debtor:)
-      ExpenseShare.joins(:expense).merge(@household.expenses.active).where(member: debtor, expenses: { payer_id: payer.id })
-                  .where("share_cents > 0").includes(expense: :shares).order("expenses.spent_on, expenses.created_at")
-                  .map { |s| Item.new(expense: s.expense, cents: s.share_cents, paid_cents: 0) }
+      @household.expenses.active.includes(:shares).order(:spent_on, :created_at)
+                .where(id: ExpenseShare.where(member: debtor).where("share_cents > 0").select(:expense_id))
+                .filter_map do |e|
+                  cents = e.debts.sum { |d, c, x| d == debtor.id && c == payer.id ? x : 0 }
+                  Item.new(expense: e, cents:, paid_cents: 0) if cents.positive?
+                end
     end
 
     # Returns leftover credit.

@@ -5,7 +5,7 @@ module Statements
     module_function
 
     def run(today = Date.current)
-      Household.find_each do |h|
+      Household.homes.find_each do |h| # groups have no monthly statement
         generate_due(h, today)
       rescue StandardError => e
         Rails.logger.error("[statements] household=#{h.id} #{e.class}: #{e.message}")
