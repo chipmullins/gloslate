@@ -1,5 +1,5 @@
 """Render Gloslate's app icon, adaptive icon layers, splash and favicon PNGs from the
-"clean slate" mark (GloNightBrand canvas; same shapes as HouseMark in src/components/icons.tsx).
+"C · Bunny on the slate" mark (GloBunny canvas; same shapes as HouseMark in src/components/icons.tsx).
 
 usage (from mobile/): python3 -I scripts/render-icons.py      needs rsvg-convert
 """
@@ -14,22 +14,51 @@ SKY = ('<radialGradient id="sky" cx="30%" cy="0%" r="110%"><stop offset="0" stop
 HALO = ('<radialGradient id="halo"><stop offset="0" stop-color="#FFB547" stop-opacity="0.55"/>'
         '<stop offset="1" stop-color="#FFB547" stop-opacity="0"/></radialGradient>')
 
+FUR = "#F3EEF5"
+SLATE = "#140C18"
+GLOW = "#FFB547"
+
+
+def ellipse(cx, cy, rx, ry, fill, rot=None):
+    t = f' transform="rotate({rot} {cx} {cy})"' if rot is not None else ""
+    return f'<ellipse cx="{cx}" cy="{cy}" rx="{rx}" ry="{ry}"{t} fill="{fill}"/>'
+
+
+def circle(cx, cy, r, fill):
+    return f'<circle cx="{cx}" cy="{cy}" r="{r}" fill="{fill}"/>'
+
+
+def check(d, stroke, width):
+    return (f'<path d="{d}" fill="none" stroke="{stroke}" stroke-width="{width}" '
+            'stroke-linecap="round" stroke-linejoin="round"/>')
+
 
 def glyph(small=False, mono=False, halo=True):
-    """Slate + check + sparkle in the 100x100 icon space."""
-    if small:
-        slate = '<rect x="19" y="30" width="58" height="48" rx="9.5" fill="{f}" stroke="{s}" stroke-width="4.5"/>'
-        check = '<path d="M34 53 L43 62 L61 43" fill="none" stroke="{s}" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/>'
-        spark = '<path d="M74 14 Q75 28 89 29 Q75 30 74 44 Q73 30 59 29 Q73 28 74 14 Z" fill="{g}"/>'
-    else:
-        slate = '<rect x="20" y="30" width="56" height="46" rx="9" fill="{f}" stroke="{s}" stroke-width="3.5"/>'
-        check = '<path d="M34 53 L43 62 L61 43" fill="none" stroke="{s}" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>'
-        spark = '<path d="M74 16 Q75 28 87 29 Q75 30 74 42 Q73 30 61 29 Q73 28 74 16 Z" fill="{g}"/>'
+    """Bunny on the slate (with a check) + sparkle in the 100x100 icon space.
+
+    small=True  -> the canvas's 36px simplification (one ear, plain slate), for tiny sizes.
+    mono=True   -> Android themed icon: only alpha counts, so the slate is an outline with
+                   its check, and the bunny and sparkle are solid silhouettes on top
+                   (the 64px drawing's heavier shapes).
+    """
     if mono:
-        # Monochrome (Android themed icons): only alpha counts. The slate is an outline.
-        return (slate + check + spark).format(f="none", s="#FFFFFF", g="#FFFFFF")
-    h = '<circle cx="74" cy="29" r="20" fill="url(#halo)"/>' if halo else ""
-    return (slate + check).format(f="#140C18", s="#F3EEF5", g="") + h + spark.format(g="#FFB547")
+        w = "#FFFFFF"
+        return ('<rect x="16" y="50" width="68" height="38" rx="9" fill="none" stroke="#FFFFFF" stroke-width="6"/>'
+                + check("M36 69 L45 78 L64 59", w, 7)
+                + ellipse(40, 43, 13, 10, w) + circle(29, 45, 4, w) + circle(50, 33, 8.5, w)
+                + ellipse(47, 17, 3.8, 10.5, w, -8) + ellipse(55, 18, 3.8, 10, w, 14)
+                + f'<path d="M79 17 Q80 29 92 30 Q80 31 79 43 Q78 31 66 30 Q78 29 79 17 Z" fill="{w}"/>')
+    if small:
+        return (f'<rect x="14" y="52" width="72" height="38" rx="10" fill="{SLATE}" stroke="{FUR}" stroke-width="6"/>'
+                + ellipse(40, 44, 14, 11, FUR) + circle(51, 33, 9.5, FUR) + ellipse(50, 15, 5, 12, FUR, 4)
+                + f'<path d="M80 14 Q81 28 95 29 Q81 30 80 44 Q79 30 65 29 Q79 28 80 14 Z" fill="{GLOW}"/>')
+    h = '<circle cx="78" cy="30" r="16" fill="url(#halo)"/>' if halo else ""
+    return (f'<rect x="16" y="50" width="68" height="38" rx="9" fill="{SLATE}" stroke="{FUR}" stroke-width="3.5"/>'
+            + check("M36 69 L45 78 L64 59", FUR, 5)
+            + ellipse(40, 43, 13, 10, FUR) + circle(29, 45, 4, FUR) + circle(50, 33, 8, FUR)
+            + ellipse(47, 17, 3.4, 10.5, FUR, -8) + ellipse(55, 18, 3.4, 10, FUR, 14)
+            + circle(53, 32, 1.6, SLATE)
+            + h + f'<path d="M78 19 Q79 29 89 30 Q79 31 78 41 Q77 31 67 30 Q77 29 78 19 Z" fill="{GLOW}"/>')
 
 
 def svg(size, body, view="0 0 100 100"):
@@ -38,20 +67,24 @@ def svg(size, body, view="0 0 100 100"):
 
 
 def centered(scale, inner):
-    """Place the glyph (visual center ~ (54,46) in icon space) at the canvas center, scaled."""
-    return f'<g transform="translate(50 50) scale({scale}) translate(-54 -46)">{inner}</g>'
+    """Place the glyph (visual center ~ (52,48) in icon space) at the canvas center, scaled."""
+    return f'<g transform="translate(50 50) scale({scale}) translate(-52 -48)">{inner}</g>'
 
+
+# Android adaptive icons: only the center circle of 66/108 is safe from masks. The glyph's
+# farthest points from (52,48) (slate corners ~50 units; ear tips ~42) fit inside it at 0.6.
+ADAPTIVE = 0.6
 
 FILES = {
     # iOS / store icon: full-bleed square (the OS rounds the corners).
     "icon.png": svg(1024, '<rect width="100" height="100" fill="url(#sky)"/>' + glyph()),
-    # Android adaptive icon: sky background + glyph inside the 66/108 safe zone.
+    # Android adaptive icon: sky background + glyph inside the safe zone.
     "android-icon-background.png": svg(432, '<rect width="100" height="100" fill="url(#sky)"/>'),
-    "android-icon-foreground.png": svg(432, centered(0.66, glyph())),
-    "android-icon-monochrome.png": svg(432, centered(0.66, glyph(small=True, mono=True))),
+    "android-icon-foreground.png": svg(432, centered(ADAPTIVE, glyph())),
+    "android-icon-monochrome.png": svg(432, centered(ADAPTIVE, glyph(mono=True))),
     # Splash: glyph only; app.json sets the night background color.
-    "splash-icon.png": svg(400, centered(1.15, glyph())),
-    # Web favicon: rounded tile, heavier strokes for small sizes.
+    "splash-icon.png": svg(400, centered(0.95, glyph())),
+    # Web favicon: rounded tile, the small drawing.
     "favicon.png": svg(96, '<rect width="100" height="100" rx="23" fill="url(#sky)"/>' + glyph(small=True, halo=False)),
 }
 
