@@ -12,7 +12,10 @@
       "supportsTablet": true,
       "usesAppleSignIn": true,
       "associatedDomains": [
-        "applinks:tabitat.app"
+        "applinks:tabitat.app",
+        "applinks:app.tabitat.app",
+        "applinks:gloslate.app",
+        "applinks:app.gloslate.app"
       ],
       "infoPlist": {
         "ITSAppUsesNonExemptEncryption": false
@@ -36,6 +39,21 @@
             {
               "scheme": "https",
               "host": "tabitat.app",
+              "pathPrefix": "/i/"
+            },
+            {
+              "scheme": "https",
+              "host": "app.tabitat.app",
+              "pathPrefix": "/i/"
+            },
+            {
+              "scheme": "https",
+              "host": "gloslate.app",
+              "pathPrefix": "/i/"
+            },
+            {
+              "scheme": "https",
+              "host": "app.gloslate.app",
               "pathPrefix": "/i/"
             }
           ],
