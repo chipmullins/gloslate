@@ -37,10 +37,16 @@ module Requests
           <g transform="translate(80,80)">
             <g transform="scale(0.8)">
               <rect x="0.5" y="0.5" width="99" height="99" rx="22.5" fill="#FFFFFF" fill-opacity="0.05" stroke="#FFFFFF" stroke-opacity="0.12"/>
-              <rect x="20" y="30" width="56" height="46" rx="9" fill="#140C18" stroke="#F3EEF5" stroke-width="3.5"/>
-              <path d="M34 53 L43 62 L61 43" fill="none" stroke="#F3EEF5" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
-              <circle cx="74" cy="29" r="20" fill="url(#halo)"/>
-              <path d="M74 16 Q75 28 87 29 Q75 30 74 42 Q73 30 61 29 Q73 28 74 16 Z" fill="#FFB547"/>
+              <rect x="16" y="50" width="68" height="38" rx="9" fill="#140C18" stroke="#F3EEF5" stroke-width="4.5"/>
+              <path d="M36 69 L45 78 L64 59" fill="none" stroke="#F3EEF5" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/>
+              <ellipse cx="40" cy="43" rx="13" ry="10" fill="#F3EEF5"/>
+              <circle cx="29" cy="45" r="4" fill="#F3EEF5"/>
+              <circle cx="50" cy="33" r="8.5" fill="#F3EEF5"/>
+              <ellipse cx="47" cy="17" rx="3.8" ry="10.5" transform="rotate(-8 47 17)" fill="#F3EEF5"/>
+              <ellipse cx="55" cy="18" rx="3.8" ry="10" transform="rotate(14 55 18)" fill="#F3EEF5"/>
+              <circle cx="53" cy="32" r="1.6" fill="#140C18"/>
+              <circle cx="78" cy="30" r="16" fill="url(#halo)"/>
+              <path d="M78 19 Q79 29 89 30 Q79 31 78 41 Q77 31 67 30 Q77 29 78 19 Z" fill="#FFB547"/>
             </g>
             <text x="100" y="56" font-family="Outfit" font-weight="700" font-size="46" letter-spacing="-1.2" fill="#F3EEF5"><tspan fill="#FFB547">glo</tspan>slate</text>
           </g>
