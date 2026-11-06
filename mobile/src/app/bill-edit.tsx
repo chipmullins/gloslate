@@ -1,4 +1,4 @@
-import { router, useLocalSearchParams } from 'expo-router';
+import { useLocalSearchParams } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { Alert, Platform, Pressable, View } from 'react-native';
 
@@ -11,6 +11,7 @@ import { useLayout } from '@/hooks/use-layout';
 import { api, ApiError, type Bill } from '@/lib/api';
 import { centsFirst, formatCents, parseCents } from '@/lib/money';
 import { toast } from '@/lib/toast';
+import { goBack } from '@/lib/nav';
 
 const PRESETS = [
   { name: 'Rent', kind: 'fixed', category: 'rent', due_day: 1 },
@@ -58,7 +59,7 @@ export default function BillEdit() {
     try {
       if (id) await api(`/v1/bills/${id}`, { method: 'PATCH', body });
       else await api(`/v1/households/${home.id}/bills`, { body });
-      router.back();
+      goBack();
       toast.show({ text: id ? 'Bill updated. Everyone can see the change.' : `${name.trim()} added` });
     } catch (e) {
       setError(e instanceof ApiError ? e.message : 'Something went wrong.');
@@ -68,7 +69,7 @@ export default function BillEdit() {
   }
 
   async function remove() {
-    const go = async () => { await api(`/v1/bills/${id}`, { method: 'DELETE' }); router.back(); toast.show({ text: `${name} removed` }); };
+    const go = async () => { await api(`/v1/bills/${id}`, { method: 'DELETE' }); goBack(); toast.show({ text: `${name} removed` }); };
     if (Platform.OS === 'web') return go();
     Alert.alert(`Remove ${name}?`, 'Past months stay in the history. Future ones stop posting.', [{ text: 'Cancel', style: 'cancel' }, { text: 'Remove', style: 'destructive', onPress: go }]);
   }
@@ -82,7 +83,7 @@ export default function BillEdit() {
     <Screen maxWidth={wide ? 760 : HT.maxWidth.form} footer={<Button title={id ? 'Save bill' : 'Add bill'} onPress={save} loading={busy} disabled={!ready} />}>
       <View style={{ gap: 20 }}>
         <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
-          <IconButton label="Close" onPress={() => router.back()}><CloseIcon /></IconButton>
+          <IconButton label="Close" onPress={() => goBack()}><CloseIcon /></IconButton>
           <T v="heading" accessibilityRole="header">{id ? 'Edit bill' : 'New bill'}</T>
           <View style={{ width: 44 }} />
         </View>

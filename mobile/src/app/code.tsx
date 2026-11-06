@@ -1,4 +1,5 @@
 import { router, useLocalSearchParams } from 'expo-router';
+import type { Href } from 'expo-router';
 import { useRef, useState } from 'react';
 import { Platform, Pressable, Text, TextInput, View, type TextInputInstance } from 'react-native';
 
@@ -7,6 +8,7 @@ import { Button, ErrorNote, IconButton, Screen, T } from '@/components/ui';
 import { HT } from '@/constants/theme';
 import { api, ApiError, type SignInResult } from '@/lib/api';
 import { useSession } from '@/lib/session';
+import { goBack } from '@/lib/nav';
 
 const LENGTH = 6;
 
@@ -53,7 +55,7 @@ export default function Code() {
   return (
     <Screen maxWidth={HT.maxWidth.form}>
       <View style={{ gap: 24 }}>
-        <IconButton label="Back" onPress={() => router.back()}><BackIcon /></IconButton>
+        <IconButton label="Back" onPress={() => goBack('/welcome' as Href)}><BackIcon /></IconButton>
         <View style={{ gap: 8 }}>
           <T v="title" accessibilityRole="header">Enter the code</T>
           <T v="muted">We sent a 6-digit code to {channel === 'phone' ? 'your phone' : 'your email'}, {destination}.</T>

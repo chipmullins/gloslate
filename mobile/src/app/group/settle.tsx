@@ -11,6 +11,7 @@ import { api, ApiError, type PayInfo, type Payment } from '@/lib/api';
 import { centsFirst, formatCents, parseCents } from '@/lib/money';
 import { toast } from '@/lib/toast';
 import { sendRequest } from '@/app/(tabs)/home';
+import { goBack } from '@/lib/nav';
 
 const METHODS = [
   { key: 'venmo', label: 'Venmo' }, { key: 'cashapp', label: 'Cash App' }, { key: 'zelle', label: 'Zelle' }, { key: 'cash', label: 'Cash' }, { key: 'other', label: 'Other' },
@@ -77,7 +78,7 @@ export default function GroupSettle() {
       });
       toast.show({ text: receiverRecorded ? `Recorded ${formatCents(cents)} from ${otherName}` : `Marked as paid. ${otherName} will confirm.` });
       await reload();
-      router.back();
+      goBack(`/group/${hid}` as Href);
     } catch (e) {
       setError(e instanceof ApiError ? e.message : 'Something went wrong.');
     } finally {
@@ -121,7 +122,7 @@ export default function GroupSettle() {
   return (
     <Screen maxWidth={HT.maxWidth.form}>
       <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, minHeight: 52 }}>
-        <IconButton label="Back" onPress={() => router.back()}><BackIcon /></IconButton>
+        <IconButton label="Back" onPress={() => goBack(`/group/${hid}` as Href)}><BackIcon /></IconButton>
         <T v="heading" style={{ fontSize: 16 }} numberOfLines={1}>{group.name}</T>
       </View>
       <View style={{ gap: 16 }}>

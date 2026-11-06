@@ -1,4 +1,4 @@
-import { router, useLocalSearchParams } from 'expo-router';
+import { useLocalSearchParams } from 'expo-router';
 import { useState } from 'react';
 import { Pressable, TextInput, View } from 'react-native';
 
@@ -10,6 +10,7 @@ import { useLayout } from '@/hooks/use-layout';
 import { receiptDraft } from '@/lib/draft';
 import { centsFirst, formatCents, parseCents } from '@/lib/money';
 import { itemize, type AssignedItem } from '@/lib/receipt';
+import { goBack } from '@/lib/nav';
 
 function toInput(c: number) {
   return `${Math.floor(c / 100)}.${String(c % 100).padStart(2, '0')}`;
@@ -50,7 +51,7 @@ export default function Itemize() {
   function done() {
     const participantIds = Object.keys(split).filter((k) => split[k] > 0);
     receiptDraft.patch({ items, taxCents, tipCents, result: { amountCents: total, weights: split, participantIds } });
-    router.back();
+    goBack();
   }
 
   const list = (
@@ -118,7 +119,7 @@ export default function Itemize() {
     <Screen maxWidth={wide ? 1000 : HT.maxWidth.form} footer={<Button title={total ? `Use ${formatCents(total)}` : 'Add items'} onPress={done} disabled={!total || unassigned} />}>
       <View style={{ gap: 16 }}>
         <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
-          <IconButton label="Close" onPress={() => router.back()}><CloseIcon /></IconButton>
+          <IconButton label="Close" onPress={() => goBack()}><CloseIcon /></IconButton>
           <T v="heading" accessibilityRole="header">Who had what</T>
           <View style={{ width: 44 }} />
         </View>

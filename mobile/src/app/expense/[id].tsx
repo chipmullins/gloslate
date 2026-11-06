@@ -11,6 +11,7 @@ import { useLayout } from '@/hooks/use-layout';
 import { api, ApiError, categoryLabel, type Expense } from '@/lib/api';
 import { formatCents } from '@/lib/money';
 import { toast } from '@/lib/toast';
+import { goBack } from '@/lib/nav';
 
 const SPLIT_LABEL = { equal: 'Split equally', percent: 'Split by percentage', exact: 'Split by exact amounts', shares: 'Split by shares' };
 
@@ -40,7 +41,7 @@ export default function ExpenseDetail() {
     const go = async () => {
       try {
         await api(`/v1/expenses/${id}`, { method: 'DELETE' });
-        router.back();
+        goBack();
         toast.show({ text: 'Deleted', ms: 5000, action: { label: 'Undo', run: () => { api(`/v1/expenses/${id}/restore`, { body: {} }); } } });
       } catch (err) {
         setError(err instanceof ApiError ? err.message : 'Something went wrong.');
@@ -148,7 +149,7 @@ export default function ExpenseDetail() {
   return (
     <Screen maxWidth={wide ? 980 : HT.maxWidth.form}>
       <View style={{ gap: 18 }}>
-        <IconButton label="Back" onPress={() => router.back()}><BackIcon /></IconButton>
+        <IconButton label="Back" onPress={() => goBack()}><BackIcon /></IconButton>
         <ErrorNote message={error} />
         {wide ? (
           <View style={{ flexDirection: 'row', gap: 24, alignItems: 'flex-start' }}>

@@ -1,4 +1,4 @@
-import { router, useLocalSearchParams } from 'expo-router';
+import { useLocalSearchParams } from 'expo-router';
 import { useEffect, useMemo, useState } from 'react';
 import { View } from 'react-native';
 
@@ -11,6 +11,7 @@ import { api, ApiError, type Breakdown } from '@/lib/api';
 import { centsFirst, formatCents, parseCents } from '@/lib/money';
 import { equalSplit, newClientId } from '@/lib/split';
 import { toast } from '@/lib/toast';
+import { goBack } from '@/lib/nav';
 
 const MAX_ITEMS = 10;
 type Row = { key: string; description: string; amount: string };
@@ -61,7 +62,7 @@ export default function Counter() {
       const res = await api<{ data: { after_cents: number } }>(`/v1/households/${home.id}/expenses/counter`, {
         body: { member_id: other.id, items: filled.map((i) => ({ description: i.description.trim(), amount_cents: i.cents, client_id: i.key })) },
       });
-      router.back();
+      goBack();
       toast.show({ text: `Added. ${describe(res.data.after_cents)}. ${other.first_name} has been told.`, ms: 4500 });
     } catch (e) {
       setError(e instanceof ApiError ? e.message : 'Something went wrong.');
@@ -117,7 +118,7 @@ export default function Counter() {
       footer={<Button title={filled.length ? `Add ${filled.length} item${filled.length > 1 ? 's' : ''} · ${formatCents(total)}` : 'Add what you paid for'} onPress={save} loading={busy} disabled={!filled.length || before === null} />}>
       <View style={{ gap: 18 }}>
         <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
-          <IconButton label="Close" onPress={() => router.back()}><CloseIcon /></IconButton>
+          <IconButton label="Close" onPress={() => goBack()}><CloseIcon /></IconButton>
           <T v="heading" accessibilityRole="header">I paid for some things too</T>
           <View style={{ width: 44 }} />
         </View>

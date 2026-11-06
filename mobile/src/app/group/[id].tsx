@@ -13,6 +13,7 @@ import { useLayout } from '@/hooks/use-layout';
 import { api, ApiError, type Expense, type Transfer } from '@/lib/api';
 import { formatCents } from '@/lib/money';
 import { shareLink } from '@/lib/share';
+import { goBack } from '@/lib/nav';
 
 /** One group: where you stand, the fewest payments to settle everyone, and what's been spent. */
 export default function GroupScreen() {
@@ -169,7 +170,7 @@ export default function GroupScreen() {
       <ScrollView contentContainerStyle={{ paddingBottom: 40 }} keyboardShouldPersistTaps="handled">
         <View style={{ width: '100%', maxWidth: HT.maxWidth.content, alignSelf: 'center', paddingHorizontal: gutter, paddingTop: 8, gap: 18 }}>
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, minHeight: 52 }}>
-            <IconButton label="Back" onPress={() => router.back()}><BackIcon /></IconButton>
+            <IconButton label="Back" onPress={() => goBack('/groups' as Href)}><BackIcon /></IconButton>
             <T v="display" accessibilityRole="header" numberOfLines={1} style={{ flex: 1, fontSize: 26 }}>
               {group.members.filter((m) => !m.former).length === 2 ? group.members.find((m) => !m.you && !m.former)?.display_name ?? group.name : group.name}
             </T>

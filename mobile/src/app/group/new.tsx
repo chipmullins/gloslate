@@ -8,6 +8,7 @@ import { Button, ErrorNote, Field, IconButton, T } from '@/components/ui';
 import { HT } from '@/constants/theme';
 import { api, ApiError, type Household } from '@/lib/api';
 import { useSession } from '@/lib/session';
+import { goBack } from '@/lib/nav';
 
 const MAX_PEOPLE = 19; // plus you = 20
 
@@ -49,7 +50,7 @@ export default function NewGroup() {
       <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={{ flex: 1 }}>
         <View style={{ flex: 1, width: '100%', maxWidth: HT.maxWidth.form, alignSelf: 'center', paddingHorizontal: 20 }}>
           <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', minHeight: 52 }}>
-            <IconButton label="Close" onPress={() => router.back()}><CloseIcon /></IconButton>
+            <IconButton label="Close" onPress={() => goBack('/groups' as Href)}><CloseIcon /></IconButton>
             <T v="heading" accessibilityRole="header" style={{ fontSize: 16 }}>New group</T>
             <View style={{ width: 44 }} />
           </View>

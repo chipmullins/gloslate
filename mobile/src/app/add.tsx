@@ -15,6 +15,7 @@ import { scanReceipt } from '@/lib/receipt-scan';
 import { centsFirst, formatCents, parseCents } from '@/lib/money';
 import { effectFor, equalSplit, newClientId } from '@/lib/split';
 import { toast } from '@/lib/toast';
+import { goBack } from '@/lib/nav';
 
 type Kind = 'equal' | 'percent' | 'exact' | 'shares';
 const KIND_LABEL: Record<Kind, string> = { equal: 'Equal', percent: '%', exact: '$', shares: 'Shares' };
@@ -199,13 +200,13 @@ export default function Add() {
     try {
       if (editing) {
         await api(`/v1/expenses/${id}`, { method: 'PATCH', body });
-        router.back();
+        goBack((hid ? `/group/${hid}` : '/home') as Href);
         toast.show({ text: 'Saved. Everyone in it can see the change.' });
       } else {
         const res = await api<{ data: Expense }>(`/v1/households/${home.id}/expenses`, { body: { ...body, client_id: clientId.current } });
         if (photoUri) uploadReceipt(res.data.id, photoUri).catch(() => toast.show({ text: "Saved, but the receipt photo didn't upload." }));
         receiptDraft.set(null);
-        router.back();
+        goBack((hid ? `/group/${hid}` : '/home') as Href);
         const what = res.data.description || CATEGORIES.find((c) => c.key === category)?.label || 'Expense';
         toast.show({
           text: `Added ${what}`,
@@ -407,7 +408,7 @@ export default function Add() {
     <SafeAreaView style={{ flex: 1, backgroundColor: HT.color.ground }} edges={['top', 'left', 'right', 'bottom']}>
       <View style={{ flex: 1, width: '100%', maxWidth: wide ? 1000 : HT.maxWidth.form, alignSelf: 'center', paddingHorizontal: wide ? 32 : 20 }}>
         <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', minHeight: 52 }}>
-          <IconButton label="Close" onPress={() => router.back()}><CloseIcon /></IconButton>
+          <IconButton label="Close" onPress={() => goBack((hid ? `/group/${hid}` : '/home') as Href)}><CloseIcon /></IconButton>
           <T v="heading" accessibilityRole="header" style={{ fontSize: 16 }} numberOfLines={1}>{editing ? 'Edit' : home.kind === 'group' ? `Add to ${home.name}` : 'Add'}</T>
           <View style={{ width: 44 }} />
         </View>

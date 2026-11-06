@@ -6,6 +6,7 @@ import { BackIcon } from '@/components/icons';
 import { Card, IconButton, Screen, T } from '@/components/ui';
 import { HT } from '@/constants/theme';
 import { api, type NotificationItem } from '@/lib/api';
+import { goBack } from '@/lib/nav';
 
 export default function Notifications() {
   const [items, setItems] = useState<NotificationItem[] | null>(null);
@@ -20,7 +21,7 @@ export default function Notifications() {
   return (
     <Screen maxWidth={HT.maxWidth.form}>
       <View style={{ gap: 18 }}>
-        <IconButton label="Back" onPress={() => router.back()}><BackIcon /></IconButton>
+        <IconButton label="Back" onPress={() => goBack()}><BackIcon /></IconButton>
         <T v="display" accessibilityRole="header">Notifications</T>
         <Card style={{ paddingVertical: 4 }}>
           {items && items.length === 0 ? <T v="muted" style={{ paddingVertical: 20, textAlign: 'center' }}>Nothing yet. When someone adds an expense with you in it, you'll see it here.</T> : null}
