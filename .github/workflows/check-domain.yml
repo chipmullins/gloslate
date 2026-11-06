@@ -1,0 +1,25 @@
+name: Check domain
+# Run by hand: shows what the internet sees for a domain (nameservers, addresses, HTTPS).
+on:
+  workflow_dispatch:
+    inputs:
+      domain:
+        description: Domain to check
+        default: gloslate.app
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Nameservers and addresses
+        run: |
+          d="${{ inputs.domain }}"
+          echo "== nameservers (from the .app registry) =="; dig +short NS "$d" @ns-tld1.charlestonroadregistry.com || true
+          echo "== nameservers (public DNS) =="; dig +short NS "$d" @1.1.1.1
+          for h in "$d" "www.$d" "api.$d" "app.$d" "staging.$d"; do echo "== $h =="; dig +short A "$h" @1.1.1.1; done
+          echo "== email DKIM/DMARC =="; dig +short TXT "_dmarc.$d" @1.1.1.1
+      - name: HTTPS
+        run: |
+          d="${{ inputs.domain }}"
+          for u in "https://$d/up" "https://api.$d/up" "https://app.$d/" "https://www.$d/"; do
+            printf '%s -> ' "$u"; curl -sS -m 15 -o /dev/null -w '%{http_code} (cert ok)\n' "$u" || echo "not yet"
+          done
