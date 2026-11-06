@@ -8,7 +8,7 @@ module Hometab
   # Any path that isn't a built file gets index.html: the app's router takes
   # it from there (deep links like /group/<id> work on refresh).
   class WebApp
-    PASS_THROUGH = %r{\A/(v1|up|r|rails)(/|\z)} # the API, health check, request pages, Active Storage
+    PASS_THROUGH = %r{\A/(v1|up|r|i|rails|\.well-known)(/|\z)} # API, health check, request + invite pages, Active Storage, app-link files
 
     # Locked down because the signed-in token lives in the browser: scripts
     # only from this origin, nothing can frame the app.

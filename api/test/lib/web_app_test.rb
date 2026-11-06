@@ -34,7 +34,7 @@ class WebAppTest < ActiveSupport::TestCase
   end
 
   test "the API, request pages and health check pass through" do
-    %w[/v1/households /r/abc /up].each { |path| assert_equal '{"api":true}', get(path).body }
+    %w[/v1/households /r/abc /i/abc /up /.well-known/apple-app-site-association].each { |path| assert_equal '{"api":true}', get(path).body }
   end
 
   test "other hosts are untouched" do
