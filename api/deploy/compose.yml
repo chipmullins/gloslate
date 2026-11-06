@@ -1,4 +1,4 @@
-# Tabitat on its server. The server's updater (infra/aws/tabitat.yml) copies this
+# Gloslate on its server. The server's updater (infra/aws/tabitat.yml) copies this
 # file out of the newest app image every few minutes and runs `docker compose up`.
 # Secrets live only on the server, in /data/env/*.secrets.env (made on first boot).
 name: tabitat

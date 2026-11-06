@@ -1,18 +1,36 @@
-/* Tabitat tokens — mirrors mobile/src/constants/theme.ts */
-@font-face { font-family: "Manrope"; font-weight: 500; src: url("/fonts/Manrope_500Medium.ttf") format("truetype"); font-display: swap; }
-@font-face { font-family: "Manrope"; font-weight: 700; src: url("/fonts/Manrope_700Bold.ttf") format("truetype"); font-display: swap; }
-@font-face { font-family: "Manrope"; font-weight: 800; src: url("/fonts/Manrope_800ExtraBold.ttf") format("truetype"); font-display: swap; }
+/* Gloslate tokens (Plum Night) — mirrors mobile/src/constants/theme.ts */
+@font-face { font-family: "Outfit"; font-weight: 600; src: url("/fonts/Outfit_600SemiBold.ttf") format("truetype"); font-display: swap; }
+@font-face { font-family: "Outfit"; font-weight: 700; src: url("/fonts/Outfit_700Bold.ttf") format("truetype"); font-display: swap; }
+@font-face { font-family: "Outfit"; font-weight: 800; src: url("/fonts/Outfit_800ExtraBold.ttf") format("truetype"); font-display: swap; }
+@font-face { font-family: "DM Sans"; font-weight: 400; src: url("/fonts/DMSans_400Regular.ttf") format("truetype"); font-display: swap; }
+@font-face { font-family: "DM Sans"; font-weight: 500; src: url("/fonts/DMSans_500Medium.ttf") format("truetype"); font-display: swap; }
+@font-face { font-family: "DM Sans"; font-weight: 600; src: url("/fonts/DMSans_600SemiBold.ttf") format("truetype"); font-display: swap; }
+@font-face { font-family: "DM Sans"; font-weight: 700 800; src: url("/fonts/DMSans_700Bold.ttf") format("truetype"); font-display: swap; }
+/* DM Sans has no tnum feature, so money uses copies with fixed-width digits (mobile/scripts/tabular-font.py). */
+@font-face { font-family: "DM Sans Tabular"; font-weight: 400 500; src: url("/fonts/DMSansTabular_500Medium.ttf") format("truetype"); font-display: swap; }
+@font-face { font-family: "DM Sans Tabular"; font-weight: 600 800; src: url("/fonts/DMSansTabular_700Bold.ttf") format("truetype"); font-display: swap; }
 @font-face { font-family: "IBM Plex Mono"; font-weight: 500; src: url("/fonts/IBMPlexMono_500Medium.ttf") format("truetype"); font-display: swap; }
-@font-face { font-family: "IBM Plex Mono"; font-weight: 600; src: url("/fonts/IBMPlexMono_600SemiBold.ttf") format("truetype"); font-display: swap; }
 :root {
   --ground: #F6F2F4; --surface: #FFFFFF; --ink: #241A23; --muted: #685A66; --brand: #6B3A63; --brand-deep: #552D4F;
-  --brand-tint: #EFE3EC; --on-brand-muted: #E6D5E2; --owed: #3A7457; --you-owe: #A8441C; --hairline: #E9E0E6; --chip-border: #DCCFD8;
-  --on-dark-owed: #A9D9BD;
-  --ui: "Manrope", system-ui, -apple-system, "Segoe UI", sans-serif; --mono: "IBM Plex Mono", ui-monospace, monospace;
+  --brand-tint: #EFE3EC; --on-brand-muted: #E6D5E2; --owed: #3A7457; --you-owe: #B4472A; --hairline: #E9E0E6; --chip-border: #DCCFD8;
+  /* Night sky: hero surfaces. Amber glow = sparkle, highlights, the primary action on night. Never "you owe". */
+  --night-top: #4A2C5A; --night: #2A1A33; --night-edge: #140C18;
+  --night-sky: radial-gradient(ellipse at 30% 0%, #4A2C5A 0%, #2A1A33 55%, #140C18 100%);
+  --on-dark: #F3EEF5; --on-dark-muted: #BBA9C4; --on-dark-owed: #A9D9BD; --on-dark-owe: #FF9E80;
+  --glass: #FFFFFF14; --glass-border: #FFFFFF24;
+  --glow: #FFB547; --glow-halo: #FFB54755; --on-glow: #2A1A33;
+  --display: "Outfit", "DM Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --ui: "DM Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --num: "DM Sans Tabular", "DM Sans", system-ui, sans-serif;
+  --label: "IBM Plex Mono", ui-monospace, monospace;
+  --mono: var(--num); /* old name: money used to be mono */
 }
 * { box-sizing: border-box; }
 body { margin: 0; font-family: var(--ui); color: var(--ink); background: var(--ground); -webkit-font-smoothing: antialiased; }
-.money { font-family: var(--mono); font-variant-numeric: tabular-nums; }
+h1, h2, h3, .display { font-family: var(--display); }
+.money { font-family: var(--num); font-variant-numeric: tabular-nums; }
+.night { background: var(--night-sky); color: var(--on-dark); }
+.glo { color: var(--glow); text-shadow: 0 0 16px #FFB54799; }
 a { color: var(--brand); }
 button, .btn { font: inherit; cursor: pointer; }
 .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }

@@ -31,7 +31,7 @@ export default function ExpenseDetail() {
   const members = home?.members ?? [];
   const nameOf = (mid: string | null) => {
     const m = members.find((x) => x.id === mid);
-    return m ? (m.you ? 'You' : m.first_name) : mid ? 'Former member' : 'Tabitat';
+    return m ? (m.you ? 'You' : m.first_name) : mid ? 'Former member' : 'Gloslate';
   };
   const indexOf = (mid: string) => Math.max(0, members.findIndex((x) => x.id === mid));
   const initialOf = (mid: string | null) => members.find((x) => x.id === mid)?.first_name ?? '?';

@@ -1,6 +1,6 @@
 name: Release
 
-# Builds Tabitat's server image and stores it in GitHub's package registry.
+# Builds Gloslate's server image and stores it in GitHub's package registry.
 # The server checks the registry every 2 minutes and updates itself, so
 # nothing here needs (or has) any access to AWS.
 #

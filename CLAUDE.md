@@ -1,8 +1,8 @@
-# Tabitat — notes for Claude
+# Gloslate — notes for Claude
 
-Tabitat keeps a running tab of shared home costs for 2–5 people, does the math, and tells each person what to send. Payment happens in Venmo / Cash App / Zelle. **Tabitat never holds or moves money.**
+Gloslate keeps a running tab of shared home costs for 2–5 people, does the math, and tells each person what to send. Payment happens in Venmo / Cash App / Zelle. **Gloslate never holds or moves money.**
 
-Owner: Chip Mullins. Brand line: "Tabitat by Glofly". Legal owner: HarborWorks.
+Owner: Chip Mullins. Brand line: "Gloslate by Glofly". Legal owner: HarborWorks.
 
 ## Source of truth
 
@@ -27,19 +27,21 @@ docs/     decisions, admin API, Glofly integration, runbooks
 2. **Append-only ledger.** Expenses, edits, deletions, payments are events. Balances are always computed, never stored as editable numbers. Edits keep old/new values.
 3. **Split / netting / simplify-debts logic is pure and heavily tested** before UI is built on it.
 4. **Statements are frozen.** Later changes become adjustment lines on the next statement.
-5. **No money movement.** Copy says a payment was *marked* or *confirmed by a person*, never verified by Tabitat.
+5. **No money movement.** Copy says a payment was *marked* or *confirmed by a person*, never verified by Gloslate.
 6. **Auth is provider-agnostic.** `users` has many `identities (provider, provider_uid)`. Launch providers: email, phone, apple, google. `glofly` drops in later with no schema change.
 7. **Request pages** are public by unguessable token; show first names, amounts, breakdown only.
 8. **Admin API from day one** (see `docs/admin-api.md`). Staff are a separate auth realm from app users; every staff action is audit-logged.
 9. **Never modify the Glofly repo or backend.** Track required Glofly changes in `docs/glofly-integration.md`.
 
-Renamed from HomeTab on Nov 4, 2026. The repo (`chipmullins/hometab`), the Ruby namespace (`Hometab::`, `lib/hometab/`) and dev/test database names keep the old name on purpose; everything users, stores or AWS see says Tabitat (`tabitat.app`, bundle ID `app.tabitat`, scheme `tabitat://`, AWS names `tabitat-*`).
+Renamed from HomeTab on Nov 4, 2026. The repo (`chipmullins/hometab`), the Ruby namespace (`Hometab::`, `lib/hometab/`) and dev/test database names keep the old name on purpose; at that point everything users, stores or AWS saw said Tabitat.
 
-## Design system (layout from canvas v3; colors and logo from the Tabitat logo canvas)
+Renamed Tabitat → **Gloslate** on Nov 6, 2026. Everything users see says Gloslate. The domain is still `tabitat.app` (`api.tabitat.app`, `support@tabitat.app`) until the owner switches it; bundle ID `app.tabitat`, scheme `tabitat://`, Expo slug, AWS names `tabitat-*`, env files (`MAIL_FROM`) and GitHub artifact names are unchanged on purpose.
 
-- Logo: **B, the t-roof monogram** (a lowercase t rising into a roof), white on brand. Source: `HouseMark` in `mobile/src/components/icons.tsx` and `api/app/views/public/_mark.html.erb`. Logo canvas: https://claude.ai/artifact/QihYwPjZp7mtBypJJLwZBm
-- Fonts: **Manrope** (UI, 400–800), **IBM Plex Mono** (all money amounts, 500–600)
-- Colors (**Plum & Sage**): ground `#F6F2F4`, ink `#241A23`, muted `#685A66`, brand plum `#6B3A63`, plum tint `#EFE3EC`, owed-to-you sage `#3A7457`, you-owe `#A8441C`, hairline `#E9E0E6`, chip border `#DCCFD8`, dark card `#241A23` (owed on dark `#A9D9BD`). Owed-to-you is no longer the brand color: use `owedToYou` / `--owed` for money owed to you, never `brand`.
+## Design system (layout from canvas v3; Plum Night colors, logo and fonts from the GloNight brand canvas)
+
+- Logo: the **clean slate** (a near-black slate with an off-white check on a plum-night tile, amber sparkle + halo top-right); `inverted` = glass tile for night surfaces. Wordmark: "glo" amber + "slate" off-white, Outfit 700. Source: `HouseMark` (old name kept) in `mobile/src/components/icons.tsx` and `api/app/views/public/_mark.html.erb`. App icon PNGs: `mobile/scripts/render-icons.py`.
+- Fonts: **Outfit** (headings, names, titles, wordmark: `HT.font.display*`), **DM Sans** (everything else, 400–700). Money: DM Sans with fixed-width digits (`HT.font.mono`/`monoBold` → "DM Sans Tabular", made by `mobile/scripts/tabular-font.py` since DM Sans has no `tnum`); `Money` also sets tabular-nums. **IBM Plex Mono** only for tiny caps labels (`HT.font.label`, "BY GLOFLY").
+- Colors (**Plum Night**): everyday screens stay light: ground `#F6F2F4`, ink `#241A23`, muted `#685A66`, brand plum `#6B3A63`, plum tint `#EFE3EC`, owed-to-you sage `#3A7457`, you-owe coral `#B4472A`, hairline `#E9E0E6`, chip border `#DCCFD8`. Hero surfaces (balance card, settle summary, sign-in, site hero) are the night sky `#4A2C5A → #2A1A33 → #140C18`: use `<NightSurface>` / `Card dark` in the app, `var(--night-sky)` on the web, never a flat dark color. On night: text `#F3EEF5` / `#BBA9C4`, owed `#A9D9BD`, owe `#FF9E80`, glass buttons `#FFFFFF14`. **Amber `#FFB547` (glow) is only the glow**: logo sparkle, highlights, the primary action on night (Request, I paid; `Button kind="onDark"`). It never means "you owe". Owed-to-you is no longer the brand color: use `owedToYou` / `--owed` for money owed to you, never `brand`.
 - Radii: cards 24, tiles 14, buttons 15–16, pill FAB 29
 - Touch targets ≥ 44pt. Icons: stroke SVG, no emoji.
 - **Every screen adapts** to iPhone, iPad, Android phones/tablets and foldables via `useLayout()` (`mobile/src/hooks/use-layout.ts`): ≥700dp wide = two columns / side-by-side; content capped (`HT.maxWidth`); rotation, iPad split view and fold changes re-render. Check phone (390), small Android (360), unfolded foldable (~884) and iPad portrait/landscape.

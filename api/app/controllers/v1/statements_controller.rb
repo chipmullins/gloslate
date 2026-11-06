@@ -11,7 +11,7 @@ module V1
       me = current_user.members.find_by!(household_id: s.household_id)
       raise ActiveRecord::RecordNotFound if me.former? && s.period_start > me.left_at.to_date
       if params[:format] == "pdf"
-        send_data Statements::Pdf.render(s), type: "application/pdf", filename: "Tabitat-#{s.period_start.strftime('%Y-%m')}.pdf"
+        send_data Statements::Pdf.render(s), type: "application/pdf", filename: "Gloslate-#{s.period_start.strftime('%Y-%m')}.pdf"
       else
         render json: { data: s.as_api_json(me:) }
       end
@@ -40,7 +40,7 @@ module V1
     # GET /v1/households/:id/export.csv?year=2026
     def export
       year = params.fetch(:year, Date.current.year).to_i
-      send_data Statements::CsvExport.call(@household, year:), type: "text/csv", filename: "Tabitat-#{@household.name.parameterize}-#{year}.csv"
+      send_data Statements::CsvExport.call(@household, year:), type: "text/csv", filename: "Gloslate-#{@household.name.parameterize}-#{year}.csv"
     end
 
     private

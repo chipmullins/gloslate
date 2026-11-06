@@ -1,6 +1,6 @@
 module Payments
   # Opens the receiver's own payment app with amount and memo filled in.
-  # Tabitat never moves money; these are plain links.
+  # Gloslate never moves money; these are plain links.
   module PayLinks
     module_function
 

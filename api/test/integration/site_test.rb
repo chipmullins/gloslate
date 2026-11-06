@@ -6,9 +6,10 @@ class SiteTest < ActionDispatch::IntegrationTest
       get path
       assert_response :success, path
       assert_includes response.body, text
-      assert_includes response.body, "Tabitat"
+      assert_includes response.body, "Gloslate"
       assert_includes response.body, 'href="/privacy"'
       refute_includes response.body, "HomeTab"
+      refute_includes response.body, "Tabitat"
     end
   end
 
