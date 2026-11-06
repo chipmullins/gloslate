@@ -1,5 +1,5 @@
 <% content_for :title, "Support · Gloslate" %>
-<% content_for :head do %><meta name="description" content="Get help with Gloslate: signing in, roommates, payments, and your account."><% end %>
+<% content_for :head do %><meta name="description" content="Get help with Gloslate: signing in, people and groups, payments, and your account."><% end %>
 <% content_for :styles do %><style><%= raw File.read(Rails.root.join("app/assets/stylesheets/site.css")) %></style><% end %>
 <% support = ENV.fetch("SUPPORT_EMAIL", "support@tabitat.app") %>
 <%= render "public/site_nav" %>
@@ -18,8 +18,9 @@
   <p><b>My code didn't arrive.</b> Codes come from Gloslate by text or email within a minute. Check your spam folder, make sure the number or email is typed correctly, then tap Send again. Codes expire after 10 minutes.</p>
   <p><b>I changed phone numbers.</b> Sign in another way you've set up, like your email, Apple or Google. If you can't sign in at all, email us and we'll help you get back in.</p>
 
-  <h2>Roommates</h2>
-  <p><b>Adding someone.</b> On Home, tap Invite and send them the link. You can add them by first name first, and log expenses before they join.</p>
+  <h2>People and groups</h2>
+  <p><b>Adding someone.</b> On Home, tap Invite and send them the link. In a group, tap Add someone. You can add people by first name first, and log expenses before they join.</p>
+  <p><b>Trips and one-on-one tabs.</b> Open Friends. Start a group for a trip (everyone adds what they paid, and Gloslate finds the fewest payments to settle), or tap Settle up with someone for just one person.</p>
   <p><b>Someone moved out.</b> Settle up first. Bills split by the days each person lived there, and their history stays on your statements.</p>
 
   <h2>Payments</h2>

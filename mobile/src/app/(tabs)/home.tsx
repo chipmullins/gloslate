@@ -238,7 +238,7 @@ export default function Home() {
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10, flexShrink: 1 }}>
               <HouseMark size={34} />
               <View style={{ flexShrink: 1 }}>
-                <T v="title" style={{ fontSize: 19, lineHeight: 23 }} accessibilityRole="header" accessibilityLabel="Gloslate by Glofly">gloslate <T v="small" style={{ fontSize: 10.5, fontFamily: HT.font.label, letterSpacing: 1 }}>BY GLOFLY</T></T>
+                <T v="title" style={{ fontSize: 19, lineHeight: 23 }} accessibilityRole="header" accessibilityLabel="Gloslate by Glofly">gloslate<T v="small" style={{ fontSize: 12, fontFamily: HT.font.medium, color: HT.color.muted }}>  by Glofly</T></T>
                 <T v="small" numberOfLines={1}>{names(home.members)}</T>
               </View>
             </View>
