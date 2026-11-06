@@ -11,6 +11,7 @@ import { useHousehold } from '@/hooks/use-household';
 import { api, ApiError, type BillCycle } from '@/lib/api';
 import { formatCents, parseCents } from '@/lib/money';
 import { toast } from '@/lib/toast';
+import { goBack } from '@/lib/nav';
 
 /** One month of a bill: enter the amount, change it for this month only, or skip it. */
 export default function BillCycleScreen() {
@@ -29,7 +30,7 @@ export default function BillCycleScreen() {
   async function run(fn: () => Promise<unknown>, done: string) {
     setBusy(true);
     setError(null);
-    try { await fn(); router.back(); toast.show({ text: done }); } catch (e) { setError(e instanceof ApiError ? e.message : 'Something went wrong.'); } finally { setBusy(false); }
+    try { await fn(); goBack(); toast.show({ text: done }); } catch (e) { setError(e instanceof ApiError ? e.message : 'Something went wrong.'); } finally { setBusy(false); }
   }
 
   if (!c) return <Screen><ErrorNote message={error} /></Screen>;
@@ -41,7 +42,7 @@ export default function BillCycleScreen() {
     <Screen maxWidth={HT.maxWidth.form} scroll={false}>
       <View style={{ flex: 1, gap: 16, paddingBottom: 12 }}>
         <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
-          <IconButton label="Close" onPress={() => router.back()}><CloseIcon /></IconButton>
+          <IconButton label="Close" onPress={() => goBack()}><CloseIcon /></IconButton>
           <T v="heading" accessibilityRole="header">{c.name} · {shortDate(c.due_on)}</T>
           <View style={{ width: 44 }} />
         </View>

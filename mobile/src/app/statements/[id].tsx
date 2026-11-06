@@ -1,4 +1,4 @@
-import { router, useLocalSearchParams } from 'expo-router';
+import { useLocalSearchParams } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { Pressable, View } from 'react-native';
 
@@ -10,6 +10,7 @@ import { useLayout } from '@/hooks/use-layout';
 import { api, type Statement } from '@/lib/api';
 import { downloadAndShare } from '@/lib/files';
 import { formatCents } from '@/lib/money';
+import { goBack } from '@/lib/nav';
 
 /** A frozen monthly statement. Your view by default; the whole house one tap away. */
 export default function StatementScreen() {
@@ -100,7 +101,7 @@ export default function StatementScreen() {
   return (
     <Screen maxWidth={wide ? 1000 : HT.maxWidth.form}>
       <View style={{ gap: 18 }}>
-        <IconButton label="Back" onPress={() => router.back()}><BackIcon /></IconButton>
+        <IconButton label="Back" onPress={() => goBack()}><BackIcon /></IconButton>
         <ErrorNote message={error} />
         {wide ? (
           <View style={{ flexDirection: 'row', gap: 24, alignItems: 'flex-start' }}>

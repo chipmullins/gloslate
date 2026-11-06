@@ -1,4 +1,4 @@
-import { router, useLocalSearchParams } from 'expo-router';
+import { useLocalSearchParams } from 'expo-router';
 import { useCallback, useEffect, useState } from 'react';
 import { View } from 'react-native';
 
@@ -8,6 +8,7 @@ import { HT } from '@/constants/theme';
 import { useHousehold } from '@/hooks/use-household';
 import { api, ApiError, type Payment } from '@/lib/api';
 import { toast } from '@/lib/toast';
+import { goBack } from '@/lib/nav';
 
 const METHOD = { venmo: 'Venmo', cashapp: 'Cash App', zelle: 'Zelle', cash: 'Cash', other: 'Other', forgiven: 'Forgiven' } as Record<string, string>;
 
@@ -49,7 +50,7 @@ export default function PaymentDetail() {
   return (
     <Screen maxWidth={HT.maxWidth.form}>
       <View style={{ gap: 18 }}>
-        <IconButton label="Back" onPress={() => router.back()}><BackIcon /></IconButton>
+        <IconButton label="Back" onPress={() => goBack()}><BackIcon /></IconButton>
         <Card style={{ alignItems: 'center', gap: 6, paddingVertical: 26 }}>
           <T v="muted">{name(p.from_member_id)} paid {name(p.to_member_id) === 'You' ? 'you' : name(p.to_member_id)} · {METHOD[p.method] ?? p.method}</T>
           <Money cents={p.amount_cents} size={44} />

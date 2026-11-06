@@ -13,6 +13,7 @@ import { api, ApiError, type Breakdown, type PayInfo } from '@/lib/api';
 import { centsFirst, formatCents, parseCents } from '@/lib/money';
 import { toast } from '@/lib/toast';
 import { sendRequest } from '@/app/(tabs)/home';
+import { goBack } from '@/lib/nav';
 
 const METHODS = [
   { key: 'venmo', label: 'Venmo' }, { key: 'cashapp', label: 'Cash App' }, { key: 'zelle', label: 'Zelle' }, { key: 'cash', label: 'Cash' }, { key: 'other', label: 'Other' },
@@ -279,7 +280,7 @@ export default function Settle() {
   return (
     <Screen maxWidth={wide ? 1000 : HT.maxWidth.form}>
       <View style={{ gap: 18 }}>
-        <IconButton label="Back" onPress={() => router.back()}><BackIcon /></IconButton>
+        <IconButton label="Back" onPress={() => goBack()}><BackIcon /></IconButton>
         <ErrorNote message={error} />
         {wide ? (
           <View style={{ flexDirection: 'row', gap: 24, alignItems: 'flex-start' }}>
