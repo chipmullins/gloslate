@@ -119,7 +119,7 @@
     },
     "extra": {
       "eas": {
-        "projectId": ""
+        "projectId": "be830f45-fa72-4252-aac5-da99f10c91d5"
       }
     },
     "runtimeVersion": {
@@ -130,7 +130,9 @@
       "fallbackToCacheTimeout": 0,
       "requestHeaders": {
         "expo-channel-name": "production"
-      }
-    }
+      },
+      "url": "https://u.expo.dev/be830f45-fa72-4252-aac5-da99f10c91d5"
+    },
+    "owner": "chipmullins"
   }
 }
