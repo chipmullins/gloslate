@@ -45,7 +45,7 @@ export default function PaymentHandles() {
         <Steps total={3} current={3} />
         <View style={{ gap: 8 }}>
           <T v="display" accessibilityRole="header">How should people pay you?</T>
-          <T v="muted">These fill in the Pay buttons when someone settles up with you. Tabitat never touches the money.</T>
+          <T v="muted">These fill in the Pay buttons when someone settles up with you. Gloslate never touches the money.</T>
         </View>
         <View style={{ gap: 16, flexDirection: wide ? 'row' : 'column', flexWrap: 'wrap' }}>
           <View style={{ flexBasis: wide ? '47%' : 'auto', flexGrow: 1 }}>

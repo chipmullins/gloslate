@@ -46,7 +46,7 @@ export default function Bills() {
             borderRadius: HT.radius.tile, padding: 14, opacity: pressed ? 0.75 : 1 })}>
           <View style={{ flex: 1 }}>
             <T v="strong" style={{ color: c.missing ? HT.color.youOwe : HT.color.brand }}>{c.name} {c.missing ? 'amount missing' : 'bill in?'}</T>
-            <T v="small">{c.you_pay ? 'Enter the amount and Tabitat splits it' : `${nameOf(c.payer_id)} enters this one`}</T>
+            <T v="small">{c.you_pay ? 'Enter the amount and Gloslate splits it' : `${nameOf(c.payer_id)} enters this one`}</T>
           </View>
           <ChevronIcon size={18} color={c.missing ? HT.color.youOwe : HT.color.brand} />
         </Pressable>

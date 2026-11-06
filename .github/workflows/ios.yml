@@ -1,6 +1,6 @@
 name: iPhone app
 
-# Builds Tabitat for iPhone in Expo's cloud (EAS) and uploads it to TestFlight.
+# Builds Gloslate for iPhone in Expo's cloud (EAS) and uploads it to TestFlight.
 # Needs repo secrets: EXPO_TOKEN, ASC_KEY_ID, ASC_ISSUER_ID, ASC_KEY_P8 (see docs/ios.md).
 on:
   workflow_dispatch:

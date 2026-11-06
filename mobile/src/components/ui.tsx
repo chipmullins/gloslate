@@ -17,6 +17,7 @@ import {
   type TextStyle,
   type ViewStyle,
 } from 'react-native';
+import { LinearGradient } from 'expo-linear-gradient';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { HT } from '@/constants/theme';
@@ -26,9 +27,9 @@ import { formatCents } from '@/lib/money';
 // ---------- Text ----------
 
 const variants = StyleSheet.create({
-  display: { fontFamily: HT.font.extrabold, fontSize: 30, lineHeight: 36, letterSpacing: -0.6, color: HT.color.ink },
-  title: { fontFamily: HT.font.extrabold, fontSize: 22, lineHeight: 28, letterSpacing: -0.4, color: HT.color.ink },
-  heading: { fontFamily: HT.font.extrabold, fontSize: 15, lineHeight: 20, color: HT.color.ink },
+  display: { fontFamily: HT.font.displayBold, fontSize: 30, lineHeight: 36, letterSpacing: -0.6, color: HT.color.ink },
+  title: { fontFamily: HT.font.displayBold, fontSize: 22, lineHeight: 28, letterSpacing: -0.4, color: HT.color.ink },
+  heading: { fontFamily: HT.font.displayBold, fontSize: 15.5, lineHeight: 20, color: HT.color.ink },
   body: { fontFamily: HT.font.medium, fontSize: 15, lineHeight: 22, color: HT.color.ink },
   strong: { fontFamily: HT.font.bold, fontSize: 15, lineHeight: 22, color: HT.color.ink },
   muted: { fontFamily: HT.font.medium, fontSize: 13.5, lineHeight: 19, color: HT.color.muted },
@@ -42,7 +43,7 @@ export function T({ v = 'body', style, ...rest }: TextProps & { v?: Variant }) {
   return <Text maxFontSizeMultiplier={1.6} {...rest} style={[variants[v], style]} />;
 }
 
-/** All money renders in the mono face. */
+/** All money renders in DM Sans with tabular numbers, so digits line up. */
 export function Money({ cents, size = 15, color = HT.color.ink, sign, style }: {
   cents: number; size?: number; color?: string; sign?: boolean; style?: StyleProp<TextStyle>;
 }) {
@@ -59,7 +60,7 @@ export function Money({ cents, size = 15, color = HT.color.ink, sign, style }: {
 // ---------- Layout ----------
 
 /**
- * Safe-area screen with the Tabitat ground. Content is centered and capped so
+ * Safe-area screen with the Gloslate ground. Content is centered and capped so
  * it never stretches edge-to-edge on iPad / tablets / unfolded foldables.
  */
 export function Screen({ children, scroll = true, maxWidth = HT.maxWidth.content, footer, background = HT.color.ground }: {
@@ -85,17 +86,53 @@ export function Screen({ children, scroll = true, maxWidth = HT.maxWidth.content
   );
 }
 
-export function Card({ children, style, dark }: { children: ReactNode; style?: StyleProp<ViewStyle>; dark?: boolean }) {
+/** Faint static amber "fireflies" for night surfaces (decorative; no motion, so nothing to reduce). */
+const FIREFLIES: { left: `${number}%`; top: `${number}%` }[] = [
+  { left: '84%', top: '12%' },
+  { left: '9%', top: '22%' },
+  { left: '73%', top: '58%' },
+  { left: '18%', top: '74%' },
+];
+
+function Fireflies() {
   return (
-    <View style={[{ backgroundColor: dark ? HT.color.darkCard : HT.color.surface, borderRadius: HT.radius.card, padding: 20 }, style]}>
+    <>
+      {FIREFLIES.map((p, i) => (
+        <View key={i} pointerEvents="none" accessibilityElementsHidden importantForAccessibility="no-hide-descendants"
+          style={{ position: 'absolute', left: p.left, top: p.top, width: 5, height: 5, borderRadius: 2.5, backgroundColor: HT.color.glow,
+            opacity: 0.5, shadowColor: HT.color.glow, shadowOpacity: 1, shadowRadius: 5, shadowOffset: { width: 0, height: 0 } }} />
+      ))}
+    </>
+  );
+}
+
+/**
+ * The plum night sky: a diagonal gradient approximating the web's
+ * radial-gradient(ellipse at 30% 0%, #4A2C5A, #2A1A33 55%, #140C18). Use it for every
+ * dark/hero surface instead of a flat HT.color.darkCard background.
+ */
+export function NightSurface({ children, style, fireflies }: { children?: ReactNode; style?: StyleProp<ViewStyle>; fireflies?: boolean }) {
+  const n = HT.color.night;
+  return (
+    <View style={[{ backgroundColor: n.base, overflow: 'hidden' }, style]}>
+      <LinearGradient pointerEvents="none" colors={[n.top, n.base, n.edge]} locations={[0, 0.55, 1]}
+        start={{ x: 0.15, y: 0 }} end={{ x: 0.85, y: 1 }} style={StyleSheet.absoluteFill} />
+      {fireflies ? <Fireflies /> : null}
       {children}
     </View>
   );
 }
 
+export function Card({ children, style, dark, fireflies }: { children: ReactNode; style?: StyleProp<ViewStyle>; dark?: boolean; fireflies?: boolean }) {
+  const base = { borderRadius: HT.radius.card, padding: 20 };
+  if (dark) return <NightSurface fireflies={fireflies} style={[base, style]}>{children}</NightSurface>;
+  return <View style={[{ backgroundColor: HT.color.surface }, base, style]}>{children}</View>;
+}
+
 // ---------- Controls ----------
 
-type ButtonKind = 'primary' | 'secondary' | 'onDark' | 'link';
+/** onDark = the amber glow action on night surfaces (Request, I paid); glass = the secondary action there. */
+type ButtonKind = 'primary' | 'secondary' | 'onDark' | 'glass' | 'link';
 
 export function Button({ title, onPress, kind = 'primary', loading, disabled, icon, style, accessibilityLabel }: {
   title: string; onPress: () => void; kind?: ButtonKind; loading?: boolean; disabled?: boolean;
@@ -104,9 +141,13 @@ export function Button({ title, onPress, kind = 'primary', loading, disabled, ic
   const palette = {
     primary: { bg: HT.color.brand, fg: '#FFFFFF', border: 'transparent' },
     secondary: { bg: HT.color.surface, fg: HT.color.ink, border: HT.color.chipBorder },
-    onDark: { bg: '#FFFFFF', fg: HT.color.ink, border: 'transparent' },
+    onDark: { bg: HT.color.glow, fg: HT.color.onGlow, border: 'transparent' },
+    glass: { bg: HT.color.onDarkButton, fg: HT.color.onDarkText, border: HT.color.onDarkBorder },
     link: { bg: 'transparent', fg: HT.color.brand, border: 'transparent' },
   }[kind];
+  const glow = kind === 'onDark'
+    ? { shadowColor: HT.color.glow, shadowOpacity: 0.4, shadowRadius: 11, shadowOffset: { width: 0, height: 0 } }
+    : null;
   const off = disabled || loading;
   return (
     <Pressable
@@ -123,7 +164,7 @@ export function Button({ title, onPress, kind = 'primary', loading, disabled, ic
           minHeight: kind === 'link' ? HT.minTouch : 54,
           borderRadius: HT.radius.button,
           backgroundColor: palette.bg,
-          borderWidth: kind === 'secondary' ? 1 : 0,
+          borderWidth: kind === 'secondary' || kind === 'glass' ? 1 : 0,
           borderColor: palette.border,
           flexDirection: 'row',
           alignItems: 'center',
@@ -133,6 +174,7 @@ export function Button({ title, onPress, kind = 'primary', loading, disabled, ic
           opacity: off ? 0.5 : pressed ? 0.85 : 1,
           transform: [{ scale: pressed && kind !== 'link' ? 0.985 : 1 }],
         },
+        glow,
         style,
       ]}>
       {loading ? <ActivityIndicator color={palette.fg} /> : icon}
@@ -191,7 +233,7 @@ export function Avatar({ name, index = 0, size = 44 }: { name: string; index?: n
       accessibilityElementsHidden
       importantForAccessibility="no"
       style={{ width: size, height: size, borderRadius: size / 2, backgroundColor: c.bg, alignItems: 'center', justifyContent: 'center' }}>
-      <Text style={{ fontFamily: HT.font.extrabold, fontSize: size * 0.36, color: c.fg }}>{(name.trim()[0] ?? '?').toUpperCase()}</Text>
+      <Text style={{ fontFamily: HT.font.displayBold, fontSize: size * 0.36, color: c.fg }}>{(name.trim()[0] ?? '?').toUpperCase()}</Text>
     </View>
   );
 }

@@ -17,7 +17,7 @@ class AwsApiTest < ActiveSupport::TestCase
   test "email goes to SES as the raw message" do
     sent = nil
     Hometab::AwsApi.stub_call = ->(**kw) { sent = kw }
-    mail = Mail.new { from "Tabitat <hello@tabitat.app>"; to "a@example.com"; subject "Hi"; body "123456" }
+    mail = Mail.new { from "Gloslate <hello@tabitat.app>"; to "a@example.com"; subject "Hi"; body "123456" }
     Hometab::SesDelivery.new.deliver!(mail)
     payload = JSON.parse(sent[:body])
     assert_equal "ses", sent[:service]
@@ -30,7 +30,7 @@ class AwsApiTest < ActiveSupport::TestCase
   test "texts go to SNS as transactional, straight to the phone" do
     sent = nil
     Hometab::AwsApi.stub_call = ->(**kw) { sent = kw }
-    Hometab::AwsApi.send_sms(to: "+18595550101", body: "123456 is your Tabitat code.")
+    Hometab::AwsApi.send_sms(to: "+18595550101", body: "123456 is your Gloslate code.")
     form = URI.decode_www_form(sent[:body]).to_h
     assert_equal "+18595550101", form["PhoneNumber"]
     assert_equal "Transactional", form["MessageAttributes.entry.1.Value.StringValue"]

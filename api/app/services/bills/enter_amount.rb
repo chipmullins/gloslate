@@ -1,6 +1,6 @@
 module Bills
   # The payer types the variable amount ("$112.46"); it posts immediately and
-  # Tabitat learns the usual arrival day from the last few months.
+  # Gloslate learns the usual arrival day from the last few months.
   module EnterAmount
     module_function
 

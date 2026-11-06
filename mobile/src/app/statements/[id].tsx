@@ -31,7 +31,7 @@ export default function StatementScreen() {
   const header = (
     <Card dark style={{ gap: 6, alignItems: 'center', paddingVertical: 24 }}>
       <T v="strong" style={{ color: HT.color.darkCardMuted }}>{s.title}</T>
-      <T v="title" style={{ color: '#fff', textAlign: 'center' }}>{s.summary}</T>
+      <T v="title" style={{ color: HT.color.onDarkText, textAlign: 'center' }}>{s.summary}</T>
       <T v="small" style={{ color: HT.color.darkCardMuted }}>{shortDate(s.period_start)} – {shortDate(s.period_end)} · frozen record</T>
     </Card>
   );
@@ -94,7 +94,7 @@ export default function StatementScreen() {
 
   const exportBtn = (
     <Button title="Download PDF" kind="secondary" icon={<DownloadIcon size={18} />}
-      onPress={() => downloadAndShare(`/v1/statements/${s.id}.pdf`, `Tabitat-${s.period_start.slice(0, 7)}.pdf`, 'application/pdf').catch(() => setError("Couldn't download the PDF."))} />
+      onPress={() => downloadAndShare(`/v1/statements/${s.id}.pdf`, `Gloslate-${s.period_start.slice(0, 7)}.pdf`, 'application/pdf').catch(() => setError("Couldn't download the PDF."))} />
   );
 
   return (

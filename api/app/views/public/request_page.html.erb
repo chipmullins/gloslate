@@ -1,28 +1,29 @@
-<% content_for :title, "#{@req.requester.first_name} is requesting #{money(@req.amount_cents)} · Tabitat" %>
-<% content_for :theme, "#6B3A63" %>
-<% content_for :body_class, "on-brand" %>
+<% content_for :title, "#{@req.requester.first_name} is requesting #{money(@req.amount_cents)} · Gloslate" %>
+<% content_for :theme, "#2A1A33" %>
+<% content_for :body_class, "on-night" %>
 <% content_for :head do %>
   <meta name="robots" content="noindex">
   <meta property="og:title" content="<%= @req.requester.first_name %> is requesting <%= money(@req.amount_cents) %>">
-  <meta property="og:description" content="Tap to see the breakdown & pay. Tabitat never holds your money.">
+  <meta property="og:description" content="Tap to see the breakdown & pay. Gloslate never holds your money.">
   <meta property="og:image" content="<%= @req.image_url %>">
   <meta property="og:image:width" content="1080"><meta property="og:image:height" content="1350">
   <meta name="twitter:card" content="summary_large_image">
 <% end %>
 <% content_for :styles do %>
 <style>
-  body.on-brand { background: var(--brand); min-height: 100vh; }
+  body.on-night { background: var(--night-edge) var(--night-sky) no-repeat; background-size: 100% 100vh; min-height: 100vh; color: var(--on-dark); }
   .wrap { max-width: 440px; margin: 0 auto; padding: max(20px, env(safe-area-inset-top)) 20px 28px; display: flex; flex-direction: column; gap: 18px; min-height: 100vh; }
-  .top { display: flex; align-items: center; justify-content: space-between; color: #fff; }
-  .brand { display: flex; align-items: center; gap: 8px; font-weight: 800; font-size: 17px; letter-spacing: -0.02em; }
-  .top small { color: var(--on-brand-muted); font-weight: 700; font-size: 12px; }
+  .top { display: flex; align-items: center; justify-content: space-between; color: var(--on-dark); }
+  .brand { display: flex; align-items: center; gap: 8px; font-family: var(--display); font-weight: 700; font-size: 19px; letter-spacing: -0.02em; }
+  .brand small { font-family: var(--label); font-weight: 500; font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--on-dark-muted); margin-left: 2px; }
+  .top > small { color: var(--on-dark-muted); font-weight: 600; font-size: 12px; }
   .ticket { background: #fff; border-radius: 22px 22px 0 0; padding: 24px 22px 22px; }
   .zig { display: block; width: 100%; height: 12px; margin-top: -1px; }
   .who { display: flex; align-items: center; gap: 10px; }
-  .avatar { width: 40px; height: 40px; border-radius: 50%; background: var(--brand-tint); color: var(--brand); font-weight: 800; display: grid; place-items: center; }
-  .who b { display: block; font-size: 15px; } .who span { font-size: 12px; color: var(--muted); }
-  .amount { font-family: var(--mono); font-weight: 600; font-size: clamp(40px, 13vw, 52px); letter-spacing: -0.03em; margin: 14px 0 12px; }
-  .lines { border-top: 1px dashed #D8CBD4; padding-top: 14px; display: flex; flex-direction: column; gap: 9px; font-size: 14px; }
+  .avatar { width: 40px; height: 40px; border-radius: 50%; background: var(--brand-tint); color: var(--brand); font-family: var(--display); font-weight: 700; display: grid; place-items: center; }
+  .who b { display: block; font-family: var(--display); font-weight: 600; font-size: 16px; color: var(--ink); } .who span { font-size: 12px; color: var(--muted); }
+  .amount { font-family: var(--num); font-variant-numeric: tabular-nums; font-weight: 700; color: var(--ink); font-size: clamp(40px, 13vw, 52px); letter-spacing: -0.03em; margin: 14px 0 12px; }
+  .lines { color: var(--ink); border-top: 1px dashed #D8CBD4; padding-top: 14px; display: flex; flex-direction: column; gap: 9px; font-size: 14px; }
   .line { display: flex; justify-content: space-between; gap: 12px; } .line .money { white-space: nowrap; }
   .line.credit { color: var(--owed); font-weight: 700; }
   .line .of { display: block; margin-top: 2px; font-size: 12px; font-weight: 600; color: var(--muted); }
@@ -30,34 +31,34 @@
   .line.total { font-weight: 800; border-top: 1px solid var(--hairline); padding-top: 9px; }
   .updated { margin-top: 12px; background: #FBEBDD; color: var(--you-owe); border-radius: 12px; padding: 10px 12px; font-size: 13px; font-weight: 700; }
   .pay { display: flex; flex-direction: column; gap: 10px; }
-  .primary { min-height: 56px; border-radius: 16px; border: 0; background: #fff; color: var(--ink); font-size: 16px; font-weight: 800; display: flex; align-items: center; justify-content: center; text-decoration: none; }
+  .primary { min-height: 56px; border-radius: 16px; border: 0; background: var(--glow); color: var(--on-glow); box-shadow: 0 0 22px var(--glow-halo); font-size: 16px; font-weight: 700; display: flex; align-items: center; justify-content: center; text-decoration: none; }
   .apps { display: grid; grid-template-columns: repeat(auto-fit, minmax(90px, 1fr)); gap: 8px; }
-  .app { min-height: 48px; border-radius: 12px; border: 1px solid #9C6E94; background: transparent; color: #fff; font-size: 14px; font-weight: 700; display: flex; align-items: center; justify-content: center; text-decoration: none; }
-  .hint { font-size: 12px; color: var(--on-brand-muted); text-align: center; margin: 0; }
-  .zelle { display: none; background: var(--brand-deep); color: #fff; border-radius: 14px; padding: 14px 16px; font-size: 14px; }
+  .app { min-height: 48px; border-radius: 12px; border: 1px solid var(--glass-border); background: var(--glass); color: var(--on-dark); font-size: 14px; font-weight: 700; display: flex; align-items: center; justify-content: center; text-decoration: none; }
+  .hint { font-size: 12px; color: var(--on-dark-muted); text-align: center; margin: 0; }
+  .zelle { display: none; background: var(--glass); border: 1px solid var(--glass-border); color: var(--on-dark); border-radius: 14px; padding: 14px 16px; font-size: 14px; }
   .zelle.open { display: block; } .zelle code { font-family: var(--mono); font-size: 15px; }
-  details.paid summary { list-style: none; text-align: center; color: #fff; font-weight: 700; font-size: 14px; text-decoration: underline; cursor: pointer; min-height: 44px; display: grid; place-items: center; }
-  details.paid summary.paid-cta { text-decoration: none; min-height: 54px; border-radius: 16px; border: 2px solid rgba(255,255,255,.9); font-size: 16px; font-weight: 800; margin-top: 4px; }
+  details.paid summary { list-style: none; text-align: center; color: var(--on-dark); font-weight: 700; font-size: 14px; text-decoration: underline; cursor: pointer; min-height: 44px; display: grid; place-items: center; }
+  details.paid summary.paid-cta { text-decoration: none; min-height: 54px; border-radius: 16px; border: 1px solid var(--glass-border); background: var(--glass); font-size: 16px; font-weight: 700; margin-top: 4px; }
   details.paid[open] summary.paid-cta { border-color: transparent; }
   .nudge { background: #fff; color: var(--ink); border-radius: 16px; padding: 14px 16px; font-weight: 700; display: none; margin-top: 10px; }
   .nudge.show { display: block; animation: nudge .5s ease-out both; }
   @keyframes nudge { 0% { transform: translateY(8px); opacity: 0 } 100% { transform: none; opacity: 1 } }
   details.paid summary::-webkit-details-marker { display: none; }
-  .paidform { background: #fff; border-radius: 18px; padding: 16px; display: flex; flex-direction: column; gap: 10px; }
+  .paidform { background: #fff; color: var(--ink); border-radius: 18px; padding: 16px; display: flex; flex-direction: column; gap: 10px; }
   .paidform label { font-size: 12.5px; font-weight: 700; color: var(--muted); }
   .paidform input, .paidform select { min-height: 48px; border-radius: 12px; border: 1px solid var(--chip-border); padding: 0 14px; font: inherit; font-size: 16px; width: 100%; background: #fff; }
   .paidform button { min-height: 52px; border-radius: 14px; border: 0; background: var(--brand); color: #fff; font-weight: 800; font-size: 15px; }
-  .done { background: #fff; border-radius: 18px; padding: 18px; text-align: center; font-weight: 700; }
+  .done { background: #fff; color: var(--ink); border-radius: 18px; padding: 18px; text-align: center; font-weight: 700; }
   .spacer { flex: 1; }
-  .promo { background: var(--brand-deep); border-radius: 16px; padding: 14px 16px; display: flex; align-items: center; gap: 12px; color: #fff; }
-  .promo div { flex: 1; } .promo b { display: block; font-size: 13.5px; } .promo span { font-size: 12px; color: var(--on-brand-muted); }
-  .promo a { min-height: 40px; padding: 0 14px; border-radius: 12px; background: #fff; color: var(--ink); font-weight: 800; font-size: 13px; text-decoration: none; display: flex; align-items: center; }
-  .fine { font-size: 11.5px; color: var(--on-brand-muted); text-align: center; margin: 0; }
+  .promo { background: var(--glass); border: 1px solid var(--glass-border); border-radius: 16px; padding: 14px 16px; display: flex; align-items: center; gap: 12px; color: var(--on-dark); }
+  .promo div { flex: 1; } .promo b { display: block; font-size: 13.5px; } .promo span { font-size: 12px; color: var(--on-dark-muted); }
+  .promo a { min-height: 44px; padding: 0 14px; border-radius: 12px; background: var(--on-dark); color: var(--night-edge); font-weight: 700; font-size: 13px; text-decoration: none; display: flex; align-items: center; }
+  .fine { font-size: 11.5px; color: var(--on-dark-muted); text-align: center; margin: 0; }
 </style>
 <% end %>
 <main class="wrap">
   <div class="top">
-    <span class="brand"><%= render "public/mark", size: 28, inverted: true %>Tabitat <small style="font-weight:600;font-size:12px;opacity:.75">by Glofly</small></span>
+    <span class="brand" aria-label="Gloslate by Glofly"><%= render "public/mark", size: 28, inverted: true %>gloslate <small>by Glofly</small></span>
     <small>tabitat.app</small>
   </div>
 
@@ -128,16 +129,16 @@
     </details>
     <details class="paid">
       <summary>Paid for some things too?</summary>
-      <p style="margin:10px 0 0;line-height:1.5">Add what you covered in the Tabitat app (on <%= @req.requester.first_name %>'s balance, tap <b>I paid for some things too</b>). It's split between you two and this total updates by itself.</p>
+      <p style="margin:10px 0 0;line-height:1.5">Add what you covered in the Gloslate app (on <%= @req.requester.first_name %>'s balance, tap <b>I paid for some things too</b>). It's split between you two and this total updates by itself.</p>
     </details>
   <% end %>
 
   <div class="spacer"></div>
   <div class="promo">
-    <div><b>Split bills without the math</b><span>Track who owes who with Tabitat</span></div>
+    <div><b>Split bills without the math</b><span>Track who owes who with Gloslate</span></div>
     <a href="/">Get the app</a>
   </div>
-  <p class="fine">Tabitat never holds or moves money. Payments are marked and confirmed by the people involved.</p>
+  <p class="fine">Gloslate never holds or moves money. Payments are marked and confirmed by the people involved.</p>
 </main>
 <script>
   // Prefer the payment app; fall back to its website if it isn't installed.

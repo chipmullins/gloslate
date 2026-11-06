@@ -1,6 +1,6 @@
 name: Android app
 
-# Builds an installable Tabitat .apk (no Google Play needed). Download it from the
+# Builds an installable Gloslate .apk (no Google Play needed; the artifact keeps its Tabitat-android name). Download it from the
 # run's "Artifacts" section and send it to whoever needs it; they open it on their
 # phone and allow "install unknown apps" once.
 on:

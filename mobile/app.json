@@ -1,6 +1,6 @@
 {
   "expo": {
-    "name": "Tabitat",
+    "name": "Gloslate",
     "slug": "tabitat",
     "version": "1.0.0",
     "orientation": "default",
@@ -21,7 +21,7 @@
     },
     "android": {
       "adaptiveIcon": {
-        "backgroundColor": "#6B3A63",
+        "backgroundColor": "#2A1A33",
         "foregroundImage": "./assets/images/android-icon-foreground.png",
         "backgroundImage": "./assets/images/android-icon-background.png",
         "monochromeImage": "./assets/images/android-icon-monochrome.png"
@@ -61,7 +61,7 @@
       [
         "expo-splash-screen",
         {
-          "backgroundColor": "#6B3A63",
+          "backgroundColor": "#2A1A33",
           "image": "./assets/images/splash-icon.png",
           "imageWidth": 76
         }
@@ -78,14 +78,14 @@
       [
         "expo-local-authentication",
         {
-          "faceIDPermission": "Tabitat uses Face ID to lock the app so only you can see your balances."
+          "faceIDPermission": "Gloslate uses Face ID to lock the app so only you can see your balances."
         }
       ],
       [
         "expo-image-picker",
         {
-          "cameraPermission": "Tabitat uses the camera to scan receipts. The text is read on your phone.",
-          "photosPermission": "Tabitat lets you attach a receipt photo from your library."
+          "cameraPermission": "Gloslate uses the camera to scan receipts. The text is read on your phone.",
+          "photosPermission": "Gloslate lets you attach a receipt photo from your library."
         }
       ],
       [
@@ -95,7 +95,7 @@
           "widgets": [
             {
               "name": "BalanceWidget",
-              "displayName": "Tabitat balance",
+              "displayName": "Gloslate balance",
               "description": "Who owes who, at a glance.",
               "supportedFamilies": [
                 "systemSmall",

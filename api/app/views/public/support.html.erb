@@ -1,5 +1,5 @@
-<% content_for :title, "Support · Tabitat" %>
-<% content_for :head do %><meta name="description" content="Get help with Tabitat: signing in, roommates, payments, and your account."><% end %>
+<% content_for :title, "Support · Gloslate" %>
+<% content_for :head do %><meta name="description" content="Get help with Gloslate: signing in, roommates, payments, and your account."><% end %>
 <% content_for :styles do %><style><%= raw File.read(Rails.root.join("app/assets/stylesheets/site.css")) %></style><% end %>
 <% support = ENV.fetch("SUPPORT_EMAIL", "support@tabitat.app") %>
 <%= render "public/site_nav" %>
@@ -15,7 +15,7 @@
   </div>
 
   <h2>Signing in</h2>
-  <p><b>My code didn't arrive.</b> Codes come from Tabitat by text or email within a minute. Check your spam folder, make sure the number or email is typed correctly, then tap Send again. Codes expire after 10 minutes.</p>
+  <p><b>My code didn't arrive.</b> Codes come from Gloslate by text or email within a minute. Check your spam folder, make sure the number or email is typed correctly, then tap Send again. Codes expire after 10 minutes.</p>
   <p><b>I changed phone numbers.</b> Sign in another way you've set up, like your email, Apple or Google. If you can't sign in at all, email us and we'll help you get back in.</p>
 
   <h2>Roommates</h2>
@@ -23,7 +23,7 @@
   <p><b>Someone moved out.</b> Settle up first. Bills split by the days each person lived there, and their history stays on your statements.</p>
 
   <h2>Payments</h2>
-  <p><b>A payment is wrong.</b> Open it and tap <i>Something is wrong</i> (or <i>I didn't get this</i> while it's pending). You can do that for 30 days. Tabitat never moves money, so it can't reverse a payment made in Venmo, Cash App or Zelle. For that, contact the payment app.</p>
+  <p><b>A payment is wrong.</b> Open it and tap <i>Something is wrong</i> (or <i>I didn't get this</i> while it's pending). You can do that for 30 days. Gloslate never moves money, so it can't reverse a payment made in Venmo, Cash App or Zelle. For that, contact the payment app.</p>
   <p><b>Someone says they paid.</b> It shows as pending until the person who received it confirms it.</p>
 
   <h2>Your account</h2>
