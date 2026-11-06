@@ -142,12 +142,12 @@ export default function Settle() {
     <Card dark style={{ alignItems: 'center', gap: 8, paddingVertical: 24 }}>
       <Avatar name={other.first_name} index={otherIndex} />
       <T v="strong" style={{ color: HT.color.darkCardMuted }}>{headline}</T>
-      <Money cents={Math.abs(net)} size={48} color="#FFFFFF" />
+      <Money cents={Math.abs(net)} size={48} color={net > 0 ? HT.color.onDarkOwed : net < 0 ? HT.color.onDarkOwe : HT.color.onDarkText} />
       {b.credit_cents.theirs > 0 ? <T v="small" style={{ color: HT.color.onDarkOwed }}>{other.first_name} has {formatCents(b.credit_cents.theirs)} credit from overpaying</T> : null}
       {b.credit_cents.mine > 0 ? <T v="small" style={{ color: HT.color.onDarkOwed }}>You have {formatCents(b.credit_cents.mine)} credit</T> : null}
       {pendingPay ? (
         <Pressable onPress={() => router.push(`/payments/${pendingPay.id}` as Href)} style={{ marginTop: 6, backgroundColor: HT.color.onDarkButton, borderRadius: 12, paddingHorizontal: 12, paddingVertical: 8 }}>
-          <T v="small" style={{ color: '#FFFFFF' }}>Pending · {formatCents(pendingPay.amount_cents)} waiting on {pendingPay.you_sent ? other.first_name : 'you'} to confirm</T>
+          <T v="small" style={{ color: HT.color.onDarkText }}>Pending · {formatCents(pendingPay.amount_cents)} waiting on {pendingPay.you_sent ? other.first_name : 'you'} to confirm</T>
         </Pressable>
       ) : null}
     </Card>
@@ -178,7 +178,7 @@ export default function Settle() {
       ) : (
         <Button kind="secondary" title={`${other.first_name} paid me: mark it received`} icon={<CheckIcon size={18} color={HT.color.ink} />} onPress={() => setRecording(true)} />
       )}
-      <T v="small">Tabitat never moves money. A payment you record counts as confirmed by you.</T>
+      <T v="small">Gloslate never moves money. A payment you record counts as confirmed by you.</T>
     </Card>
   ) : net < 0 && pay && left <= 0 ? (
     <Card style={{ gap: 12 }}>
@@ -208,7 +208,7 @@ export default function Settle() {
       <View style={{ height: 1, backgroundColor: HT.color.hairline }} />
       {opened ? <T v="strong">Sent it? Let {other.first_name} know.</T> : null}
       {methodChips}
-      <Button title="I paid" kind={opened ? 'primary' : 'secondary'} icon={<CheckIcon size={18} color={opened ? '#fff' : HT.color.ink} />} onPress={() => markPaid(false)} loading={busy} />
+      <Button title="I paid" kind={opened ? 'onDark' : 'secondary'} icon={<CheckIcon size={18} color={opened ? HT.color.onGlow : HT.color.ink} />} onPress={() => markPaid(false)} loading={busy} />
     </Card>
   ) : null;
 

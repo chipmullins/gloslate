@@ -1,12 +1,13 @@
-import { IBMPlexMono_500Medium, IBMPlexMono_600SemiBold, useFonts as usePlexFonts } from '@expo-google-fonts/ibm-plex-mono';
 import {
-  Manrope_400Regular,
-  Manrope_500Medium,
-  Manrope_600SemiBold,
-  Manrope_700Bold,
-  Manrope_800ExtraBold,
-  useFonts as useManropeFonts,
-} from '@expo-google-fonts/manrope';
+  DMSans_400Regular,
+  DMSans_500Medium,
+  DMSans_600SemiBold,
+  DMSans_700Bold,
+  useFonts as useDMSansFonts,
+} from '@expo-google-fonts/dm-sans';
+import { IBMPlexMono_500Medium, useFonts as usePlexFonts } from '@expo-google-fonts/ibm-plex-mono';
+import { Outfit_600SemiBold, Outfit_700Bold, Outfit_800ExtraBold, useFonts as useOutfitFonts } from '@expo-google-fonts/outfit';
+import { useFonts } from 'expo-font';
 import { Stack } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { StatusBar } from 'expo-status-bar';
@@ -23,10 +24,15 @@ SplashScreen.preventAutoHideAsync().catch(() => {});
 const MODAL = { presentation: 'modal', animation: 'slide_from_bottom' } as const;
 
 function Root() {
-  const [manrope] = useManropeFonts({ Manrope_400Regular, Manrope_500Medium, Manrope_600SemiBold, Manrope_700Bold, Manrope_800ExtraBold });
-  const [plex] = usePlexFonts({ IBMPlexMono_500Medium, IBMPlexMono_600SemiBold });
+  const [dmSans] = useDMSansFonts({ DMSans_400Regular, DMSans_500Medium, DMSans_600SemiBold, DMSans_700Bold });
+  const [outfit] = useOutfitFonts({ Outfit_600SemiBold, Outfit_700Bold, Outfit_800ExtraBold });
+  const [plex] = usePlexFonts({ IBMPlexMono_500Medium });
+  const [tabular] = useFonts({
+    DMSansTabular_500Medium: require('../../assets/fonts/DMSansTabular_500Medium.ttf'),
+    DMSansTabular_700Bold: require('../../assets/fonts/DMSansTabular_700Bold.ttf'),
+  });
   const { ready, user } = useSession();
-  const loaded = manrope && plex && ready;
+  const loaded = dmSans && outfit && plex && tabular && ready;
 
   useEffect(() => {
     if (loaded) SplashScreen.hideAsync().catch(() => {});

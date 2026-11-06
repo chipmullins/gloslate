@@ -30,7 +30,7 @@ class PublicController < ActionController::Base
     end
     @current = @req.current_cents
     @pay_amount = [@current, 0].max
-    @links = @pay_amount.positive? ? Payments::PayLinks.call(to: @req.requester, amount_cents: @pay_amount, memo: "Tabitat · #{@req.household.name}")[:links] : {}
+    @links = @pay_amount.positive? ? Payments::PayLinks.call(to: @req.requester, amount_cents: @pay_amount, memo: "Gloslate · #{@req.household.name}")[:links] : {}
     @marked = params[:marked].present?
     response.headers["Cache-Control"] = "no-store"
     response.headers["Referrer-Policy"] = "no-referrer"

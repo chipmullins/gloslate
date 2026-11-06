@@ -35,7 +35,7 @@ export function Keypad({ onKey, onClear, compact }: { onKey: (k: string) => void
           {k === 'del' ? (
             <BackspaceIcon size={24} />
           ) : (
-            <Text style={{ fontFamily: HT.font.mono, fontSize: 24, color: HT.color.ink }}>{k}</Text>
+            <Text style={{ fontFamily: HT.font.mono, fontSize: 24, color: HT.color.ink, fontVariant: ['tabular-nums'] }}>{k}</Text>
           )}
         </Pressable>
       ))}

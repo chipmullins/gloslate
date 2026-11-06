@@ -27,7 +27,7 @@ export default function PaymentDetail() {
 
   const name = (mid: string | null) => {
     const m = home?.members.find((x) => x.id === mid);
-    return m ? (m.you ? 'You' : m.first_name) : 'Tabitat';
+    return m ? (m.you ? 'You' : m.first_name) : 'Gloslate';
   };
 
   async function act(path: string, body: object = {}, done?: string) {
@@ -56,7 +56,7 @@ export default function PaymentDetail() {
           <View style={{ backgroundColor: p.status === 'disputed' ? '#FBEBDD' : p.status === 'pending' ? HT.color.segment : HT.color.brandTint, borderRadius: 12, paddingHorizontal: 12, paddingVertical: 6 }}>
             <T v="strong" style={{ fontSize: 13.5, color: p.status === 'disputed' ? HT.color.youOwe : p.status === 'pending' ? HT.color.ink : HT.color.brand }}>{status}</T>
           </View>
-          <T v="small" style={{ textAlign: 'center' }}>Marked by a person. Tabitat never sees or moves the money.</T>
+          <T v="small" style={{ textAlign: 'center' }}>Marked by a person. Gloslate never sees or moves the money.</T>
         </Card>
         <ErrorNote message={error} />
         {p.can_confirm ? <Button title="Yes, I got it" onPress={() => act('confirm', {}, 'Confirmed')} /> : null}

@@ -7,7 +7,7 @@ import { parseReceipt, type ParsedReceipt } from '@/lib/receipt';
 export async function scanReceipt(source: 'camera' | 'library'): Promise<{ uri: string; parsed: ParsedReceipt | null } | null> {
   if (source === 'camera') {
     const perm = await ImagePicker.requestCameraPermissionsAsync();
-    if (!perm.granted) throw new Error('Tabitat needs the camera to scan receipts. You can turn it on in Settings.');
+    if (!perm.granted) throw new Error('Gloslate needs the camera to scan receipts. You can turn it on in Settings.');
   }
   const opts: ImagePicker.ImagePickerOptions = { mediaTypes: ['images'], quality: 0.8, allowsEditing: false };
   const res = source === 'camera' ? await ImagePicker.launchCameraAsync(opts) : await ImagePicker.launchImageLibraryAsync(opts);

@@ -1,6 +1,6 @@
 name: Link Expo project (once)
 
-# Creates (or finds) the Expo project for Tabitat and prints its ID, which goes
+# Creates (or finds) the Expo project for Gloslate and prints its ID, which goes
 # into mobile/app.json. Needs repo secret EXPO_TOKEN.
 on: workflow_dispatch
 

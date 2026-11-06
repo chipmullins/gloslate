@@ -12,7 +12,7 @@ module Hometab
 
     def new_secret = Array.new(32) { ALPHABET[SecureRandom.random_number(32)] }.join
 
-    def provisioning_uri(secret, account:, issuer: "Tabitat Control")
+    def provisioning_uri(secret, account:, issuer: "Gloslate Control")
       "otpauth://totp/#{ERB::Util.url_encode("#{issuer}:#{account}")}?secret=#{secret}&issuer=#{ERB::Util.url_encode(issuer)}"
     end
 

@@ -15,15 +15,17 @@ module Statements
       d = statement.data
       names = d["names"]
       money = ->(c) { Hometab::Money.format(c).sub("−", "-") }
-      Prawn::Document.new(page_size: "LETTER", margin: 54, info: { Title: "Tabitat #{statement.title} statement" }) do |pdf|
-        pdf.font_families.update("Manrope" => { normal: FONTS.join("Manrope_500Medium.ttf").to_s, bold: FONTS.join("Manrope_800ExtraBold.ttf").to_s },
-                                 "Plex" => { normal: FONTS.join("IBMPlexMono_500Medium.ttf").to_s, bold: FONTS.join("IBMPlexMono_600SemiBold.ttf").to_s })
-        pdf.font "Manrope"
+      Prawn::Document.new(page_size: "LETTER", margin: 54, info: { Title: "Gloslate #{statement.title} statement" }) do |pdf|
+        pdf.font_families.update("DM Sans" => { normal: FONTS.join("DMSans_500Medium.ttf").to_s, bold: FONTS.join("DMSans_700Bold.ttf").to_s },
+                                 "Outfit" => { normal: FONTS.join("Outfit_600SemiBold.ttf").to_s, bold: FONTS.join("Outfit_700Bold.ttf").to_s },
+                                 # Money columns: DM Sans with fixed-width digits so they line up.
+                                 "Num" => { normal: FONTS.join("DMSansTabular_500Medium.ttf").to_s, bold: FONTS.join("DMSansTabular_700Bold.ttf").to_s })
+        pdf.font "DM Sans"
         pdf.fill_color BRAND
-        pdf.text "Tabitat", size: 14, style: :bold
+        pdf.font("Outfit") { pdf.text "Gloslate", size: 15, style: :bold }
         pdf.fill_color INK
         pdf.move_down 6
-        pdf.text "#{statement.household.name} · #{statement.title}", size: 22, style: :bold
+        pdf.font("Outfit") { pdf.text "#{statement.household.name} · #{statement.title}", size: 22, style: :bold }
         pdf.fill_color MUTED
         pdf.text "#{statement.period_start.strftime('%b %-d')} – #{statement.period_end.strftime('%b %-d, %Y')} · generated #{statement.generated_at.strftime('%b %-d, %Y')}", size: 10
         pdf.fill_color INK
@@ -65,7 +67,7 @@ module Statements
 
         pdf.move_down 20
         pdf.fill_color MUTED
-        pdf.text "Payments are marked and confirmed by the people involved. Tabitat never holds or moves money.", size: 8.5
+        pdf.text "Payments are marked and confirmed by the people involved. Gloslate never holds or moves money.", size: 8.5
       end.render
     end
 
@@ -76,7 +78,7 @@ module Statements
         t.row(0).borders = [:bottom]
         t.row(0).border_width = 0.5
         right.each { |c| t.column(c).align = :right }
-        right.each { |c| t.column(c).rows(1..-1).font = "Plex" }
+        right.each { |c| t.column(c).rows(1..-1).font = "Num" }
       end
     end
   end

@@ -65,7 +65,7 @@ export default function Code() {
             return (
               <View key={i} style={{ flex: 1, aspectRatio: 0.82, maxHeight: 72, borderRadius: HT.radius.tile, backgroundColor: HT.color.surface,
                 borderWidth: active ? 2 : 1, borderColor: active ? HT.color.brand : HT.color.chipBorder, alignItems: 'center', justifyContent: 'center' }}>
-                <Text style={{ fontFamily: HT.font.monoBold, fontSize: 26, color: HT.color.ink }}>{code[i] ?? ''}</Text>
+                <Text style={{ fontFamily: HT.font.monoBold, fontSize: 26, color: HT.color.ink, fontVariant: ['tabular-nums'] }}>{code[i] ?? ''}</Text>
               </View>
             );
           })}
