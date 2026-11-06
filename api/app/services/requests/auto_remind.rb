@@ -18,24 +18,27 @@ module Requests
     end
 
     def remind_household(h, now)
-      h.debts.each do |d|
+      h.open_transfers.each do |d|
         creditor = h.members.find(d.creditor)
         debtor = h.members.find(d.debtor)
         next unless creditor.auto_remind && debtor.user_id && !debtor.former?
         next if h.payments.pending.where(from_member: debtor, to_member: creditor).exists?
         next if recently_reminded?(debtor, creditor, now)
 
-        oldest = h.expenses.active.where(payer: creditor).joins(:shares).where(expense_shares: { member_id: debtor.id })
-                  .where("expense_shares.share_cents > 0").minimum(:spent_on)
-        soon = h.expenses.active.where(payer: creditor, urgency: "soon").where(created_at: ..(now - EVERY))
-                .joins(:shares).where(expense_shares: { member_id: debtor.id }).exists?
+        # Items the creditor paid for (alone or with others) that the debtor is in.
+        # In a simplified home or group the plan can route money through
+        # people, so any item the debtor is in counts toward "how long".
+        paid_by_creditor = h.simplified? ? h.expenses.active : h.expenses.active.where("expenses.payer_id = :c OR jsonb_exists(expenses.paid_by, :c)", c: creditor.id)
+        theirs = paid_by_creditor.joins(:shares).where(expense_shares: { member_id: debtor.id }).where("expense_shares.share_cents > 0")
+        oldest = theirs.minimum(:spent_on)
+        soon = theirs.where(urgency: "soon").where(created_at: ..(now - EVERY)).exists?
         over_amount = d.cents >= creditor.remind_threshold_cents
         over_days = oldest && (now.to_date - oldest).to_i >= creditor.remind_after_days
         next unless over_amount || over_days || soon
 
         Notifications::Notify.call(member: debtor, kind: "reminder",
                                    title: "Quick nudge from Gloslate", body: "You owe #{creditor.first_name} #{Hometab::Money.format(d.cents)}. Settle up anytime.",
-                                   route: "/settle/#{creditor.id}").tap do |n|
+                                   route: "/settle/#{creditor.id}?hid=#{h.id}").tap do |n|
           n&.update!(data: n.data.merge("creditor_member_id" => creditor.id))
         end
       end

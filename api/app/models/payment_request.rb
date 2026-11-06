@@ -13,6 +13,12 @@ class PaymentRequest < ApplicationRecord
 
   # What they owe now (may differ from the snapshot).
   def current_cents
-    household.owed_cents(recipient, requester)
+    return household.owed_cents(recipient, requester) unless household.simplified?
+
+    # Simplified: the plan can reroute who pays whom after this was sent. The
+    # request stays good for what's left of it, as long as they still owe overall.
+    paid = household.payments.where(from_member: recipient, to_member: requester, status: %w[pending confirmed])
+                    .where(marked_at: created_at..).sum(:amount_cents)
+    [[amount_cents - paid, -household.net_position(recipient)].min, 0].max
   end
 end

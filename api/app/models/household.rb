@@ -30,6 +30,13 @@ class Household < ApplicationRecord
   # With 3+ people and simplify on, everyone settles by the fewest transfers.
   def simplified? = simplify_debts && members.count > 2
 
+  # Everyone's overall position: positive = owed money, negative = owes.
+  def net_position(member) = Hometab::Ledger::Balances.net_positions(debts)[member.id] || 0
+
+  # Who settles with whom: the quickest-path plan when simplified, otherwise
+  # the direct debts between each pair.
+  def open_transfers = simplified? ? settle_plan : debts
+
   # What `from` should pay `to` right now: the quickest-path transfer when
   # simplified, otherwise what they owe each other directly. Never negative.
   def owed_cents(from, to)

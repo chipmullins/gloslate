@@ -10,7 +10,7 @@ module Expenses
 
       paying = raw.select { |_, c| c.positive? }
       raise Hometab::Error, "Add how much someone paid" if paying.empty?
-      ids = household.members.pluck(:id)
+      ids = household.members.current.pluck(:id) # people who left can't pay for new things
       raise Hometab::Error, "Everyone who paid must be in this #{household.noun}" unless paying.keys.all? { ids.include?(_1.id) }
       total = paying.values.sum
       unless total == amount_cents

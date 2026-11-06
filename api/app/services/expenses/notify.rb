@@ -12,11 +12,21 @@ module Expenses
                                    title: "#{actor.first_name} added #{what}",
                                    body: "You're in for #{Hometab::Money.format(s.share_cents)}", route: "/expense/#{expense.id}")
       end
+      # Co-payers who aren't in the split still hear that their part was recorded.
+      in_split = expense.shares.select { _1.share_cents.positive? }.map(&:member_id)
+      expense.payers_hash.each do |member_id, cents|
+        next if member_id == actor.id || in_split.include?(member_id)
+        m = expense.household.members.find_by(id: member_id) or next
+        Notifications::Notify.call(member: m, kind: "expense_added", batch: actor.id, cents:,
+                                   title: "#{actor.first_name} added #{what}",
+                                   body: "Recorded that you paid #{Hometab::Money.format(cents)}", route: "/expense/#{expense.id}")
+      end
     end
 
     def changed(expense, actor, verb)
       what = expense.description.presence || Expense.human_category(expense.category)
-      expense.household.members.where(id: expense.shares.select(:member_id)).where.not(id: actor.id).each do |m|
+      ids = expense.shares.pluck(:member_id) | expense.payers_hash.keys
+      expense.household.members.where(id: ids).where.not(id: actor.id).each do |m|
         Notifications::Notify.call(member: m, kind: "expense_edited", title: "#{actor.first_name} #{verb} #{what}",
                                    body: "Tap to see what changed.", route: "/expense/#{expense.id}")
       end

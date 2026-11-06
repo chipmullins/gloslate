@@ -3,7 +3,7 @@ module Payments
   # has been paid. Payments apply to the items they name first, then to the
   # oldest open items ("$450 of $900 paid"). Overpayment shows as credit.
   class Breakdown
-    Item = Struct.new(:expense, :cents, :paid_cents, keyword_init: true) do
+    Item = Struct.new(:expense, :cents, :paid_cents, :creditor_id, keyword_init: true) do
       def status = paid_cents >= cents ? "paid" : paid_cents.positive? ? "partial" : "open"
     end
 
@@ -40,7 +40,7 @@ module Payments
                 .where(id: ExpenseShare.where(member: debtor).where("share_cents > 0").select(:expense_id))
                 .filter_map do |e|
                   cents = e.debts.sum { |d, c, x| d == debtor.id && c == payer.id ? x : 0 }
-                  Item.new(expense: e, cents:, paid_cents: 0) if cents.positive?
+                  Item.new(expense: e, cents:, paid_cents: 0, creditor_id: payer.id) if cents.positive?
                 end
     end
 
@@ -74,7 +74,8 @@ module Payments
       e = item.expense
       { expense_id: e.id, description: e.description.presence || e.category.capitalize, category: e.category,
         spent_on: e.spent_on, created_at: e.created_at, payer_id: e.payer_id, cents: sign * item.cents,
-        total_cents: e.amount_cents, split_count: e.shares.count { _1.share_cents.positive? },
+        # "Chip paid $X": with several payers, X is what this person paid.
+        total_cents: e.payers_hash.size > 1 && item.creditor_id ? e.payers_hash[item.creditor_id] : e.amount_cents, split_count: e.shares.count { _1.share_cents.positive? },
         paid_cents: item.paid_cents, status: item.status }
     end
   end
