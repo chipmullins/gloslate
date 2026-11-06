@@ -12,15 +12,22 @@ export function shortDate(iso: string) {
 
 export function ExpenseRow({ e, members, onPress, last }: { e: Expense; members: Member[]; onPress: () => void; last?: boolean }) {
   const payer = members.find((m) => m.id === e.payer_id);
-  const who = payer?.you ? 'you paid' : `${payer?.first_name ?? 'Former member'} paid`;
+  const several = (e.payers?.length ?? 0) > 1;
+  const payerNames = (e.payers ?? []).map((p) => members.find((m) => m.id === p.member_id)).map((m) => (m?.you ? 'you' : m?.first_name ?? 'Former member'));
+  const who = several
+    ? `${payerNames.length > 2 ? `${payerNames.length} people` : payerNames.join(' & ')} paid`
+    : payer?.you ? 'you paid' : `${payer?.first_name ?? 'Former member'} paid`;
+  const inIt = e.shares.some((s) => s.cents > 0 && members.find((m) => m.id === s.member_id)?.you) || (e.payers ?? []).some((p) => members.find((m) => m.id === p.member_id)?.you);
   const color = e.effect_for_me_cents > 0 ? HT.color.owedToYou : e.effect_for_me_cents < 0 ? HT.color.youOwe : HT.color.muted;
   const title = e.description || categoryLabel(e.category);
   // Say it in words ("Coleman owes you") instead of a bare +/− number.
   const name = (id: string) => members.find((m) => m.id === id)?.first_name ?? 'Former member';
   const others = e.shares.filter((s) => s.cents > 0 && s.member_id !== e.payer_id && !members.find((m) => m.id === s.member_id)?.you);
-  const caption = e.effect_for_me_cents > 0
-    ? (others.length === 1 ? `${name(others[0].member_id)} owes you` : `${others.length} people owe you`)
-    : e.effect_for_me_cents < 0 ? `You owe ${name(e.payer_id)}` : null;
+  const caption = several
+    ? (e.effect_for_me_cents > 0 ? "You're owed" : e.effect_for_me_cents < 0 ? 'You owe' : null)
+    : e.effect_for_me_cents > 0
+      ? (others.length === 1 ? `${name(others[0].member_id)} owes you` : `${others.length} people owe you`)
+      : e.effect_for_me_cents < 0 ? `You owe ${name(e.payer_id)}` : null;
   return (
     <Pressable
       accessibilityRole="button"
@@ -33,7 +40,7 @@ export function ExpenseRow({ e, members, onPress, last }: { e: Expense; members:
         <T v="small">{shortDate(e.spent_on)} · {who}{e.edited ? ' · edited' : ''}{e.urgency === 'soon' ? ' · pay back soon' : ''}</T>
       </View>
       {e.effect_for_me_cents === 0 ? (
-        <T v="small">not in it</T>
+        <T v="small">{inIt ? 'even' : 'not in it'}</T>
       ) : (
         <View style={{ alignItems: 'flex-end', gap: 1 }}>
           <T v="small" style={{ color, fontFamily: HT.font.bold, fontSize: 12 }}>{caption}</T>

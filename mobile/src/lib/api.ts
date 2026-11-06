@@ -74,13 +74,19 @@ export type Member = {
 
 export type Balance = { net_cents: number; with: { member_id: string; cents: number }[] };
 
-export type HouseholdSummary = { id: string; name: string; member_count: number; balance: Balance };
+/** A home (people who live together) or a group (a trip, dinners, friends). */
+export type HouseholdKind = 'home' | 'group';
+export type HouseholdSummary = { id: string; kind: HouseholdKind; name: string; member_count: number; balance: Balance; created_at?: string };
+/** One payment in the quickest way to settle everyone up. */
+export type Transfer = { from_member_id: string; to_member_id: string; cents: number };
 
 export type Household = HouseholdSummary & {
   me: Member;
   members: Member[];
   simplify_debts: boolean;
   statement_day: number;
+  settle_plan: Transfer[];
+  total_spent_cents: number;
 };
 
 export type User = {
@@ -112,6 +118,7 @@ export type InvitePreview = {
 
 export type Expense = {
   id: string;
+  household_id?: string;
   amount_cents: number;
   description: string;
   category: string;
@@ -123,6 +130,8 @@ export type Expense = {
   urgency: 'soon' | 'tab';
   note: string | null;
   shares: { member_id: string; cents: number }[];
+  /** Who paid how much; one entry unless several people chipped in. */
+  payers?: { member_id: string; cents: number }[];
   effect_for_me_cents: number;
   edited: boolean;
   deleted: boolean;
@@ -153,7 +162,7 @@ export type BillCycle = {
   you_pay: boolean; can_manage: boolean; missing: boolean; hint_cents: number | null; overridden: boolean;
 };
 export type Payment = {
-  id: string; from_member_id: string; to_member_id: string; amount_cents: number; method: string;
+  id: string; household_id?: string; from_member_id: string; to_member_id: string; amount_cents: number; method: string;
   status: 'pending' | 'confirmed' | 'disputed'; note: string | null; marked_at: string; confirmed_at: string | null;
   auto_confirm_at: string | null; auto_confirmed: boolean; you_sent: boolean; you_received: boolean;
   can_confirm: boolean; can_dispute: boolean;

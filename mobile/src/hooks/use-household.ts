@@ -8,10 +8,13 @@ import { useSession } from '@/lib/session';
 // refreshes in the background, instead of starting blank and waiting.
 const cache = new Map<string, Household>();
 
-/** The current home (first one for now), reloaded whenever the screen gains focus. */
-export function useHousehold() {
+/**
+ * A home or group, reloaded whenever the screen gains focus. With no id it's
+ * your home (the first one that isn't a group).
+ */
+export function useHousehold(householdId?: string) {
   const { households } = useSession();
-  const id = households[0]?.id;
+  const id = householdId || households.find((h) => h.kind !== 'group')?.id;
   const [home, setHomeState] = useState<Household | null>(() => (id ? cache.get(id) ?? null : null));
   const setHome = useCallback((h: Household | null) => {
     if (h) cache.set(h.id, h);

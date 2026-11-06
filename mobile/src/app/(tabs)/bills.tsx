@@ -16,7 +16,7 @@ import { useSession } from '@/lib/session';
 export default function Bills() {
   const { households } = useSession();
   const { wide, gutter } = useLayout();
-  const id = households[0]?.id;
+  const id = households.find((h) => h.kind !== 'group')?.id;
   const [bills, setBills] = useState<Bill[] | null>(null);
   const [coming, setComing] = useState<BillCycle[]>([]);
   const [home, setHome] = useState<Household | null>(null);

@@ -15,7 +15,7 @@ import { useSession } from '@/lib/session';
 export default function Activity() {
   const { households } = useSession();
   const { wide, gutter } = useLayout();
-  const id = households[0]?.id;
+  const id = households.find((h) => h.kind !== 'group')?.id;
   const [home, setHome] = useState<Household | null>(null);
   const [q, setQ] = useState('');
   const [category, setCategory] = useState<string | null>(null);
@@ -23,6 +23,21 @@ export default function Activity() {
   const [items, setItems] = useState<Expense[]>([]);
   const [next, setNext] = useState<string | null>(null);
   const [statements, setStatements] = useState<StatementSummary[]>([]);
+  // Home: this home's history and statements. Everyone: the home plus every group.
+  const [scope, setScope] = useState<'home' | 'all'>(id ? 'home' : 'all');
+  const [all, setAll] = useState<{ e: Expense; place: Household }[] | null>(null);
+  const hasGroups = households.some((h) => h.kind === 'group');
+
+  const searchAll = useCallback(async () => {
+    const params = new URLSearchParams();
+    if (q.trim()) params.set('q', q.trim());
+    if (category) params.set('category', category);
+    const places = await Promise.all(households.map((h) => api<{ data: Household }>(`/v1/households/${h.id}`).then((r) => r.data).catch(() => null)));
+    const lists = await Promise.all(places.map((place) => (place
+      ? api<{ data: Expense[] }>(`/v1/households/${place.id}/history?${params}`).then((r) => r.data.map((e) => ({ e, place }))).catch(() => [])
+      : Promise.resolve([]))));
+    setAll(lists.flat().sort((a, b) => (a.e.created_at < b.e.created_at ? 1 : -1)).slice(0, 80));
+  }, [households, q, category]);
 
   const search = useCallback(async (before?: string) => {
     if (!id) return;
@@ -41,7 +56,10 @@ export default function Activity() {
     api<{ data: Household }>(`/v1/households/${id}`).then((r) => setHome(r.data)).catch(() => {});
     api<{ data: StatementSummary[] }>(`/v1/households/${id}/statements`).then((r) => setStatements(r.data)).catch(() => {});
   }, [id]));
-  useEffect(() => { const t = setTimeout(() => { search().catch(() => {}); }, 250); return () => clearTimeout(t); }, [search]);
+  useEffect(() => {
+    const t = setTimeout(() => { (scope === 'all' ? searchAll() : search()).catch(() => {}); }, 250);
+    return () => clearTimeout(t);
+  }, [scope, search, searchAll]);
 
   const chip = (on: boolean) => ({ minHeight: 36, paddingHorizontal: 12, borderRadius: 18, justifyContent: 'center' as const, borderWidth: on ? 1.5 : 1,
     borderColor: on ? HT.color.brand : HT.color.chipBorder, backgroundColor: on ? HT.color.brandTint : HT.color.surface });
@@ -73,7 +91,7 @@ export default function Activity() {
           style={{ flex: 1, height: 48, paddingVertical: 0, fontFamily: HT.font.semibold, fontSize: 15.5, color: HT.color.ink }} />
       </View>
       <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 8 }}>
-        {(home?.members ?? []).filter((m) => !m.former).map((m) => (
+        {(scope === 'home' ? home?.members ?? [] : []).filter((m) => !m.former).map((m) => (
           <Pressable key={m.id} accessibilityRole="button" accessibilityState={{ selected: person === m.id }} onPress={() => setPerson(person === m.id ? null : m.id)} style={chip(person === m.id)}>
             <T v="strong" style={{ fontSize: 13, color: person === m.id ? HT.color.brand : HT.color.ink }}>{m.you ? 'You' : m.first_name}</T>
           </Pressable>
@@ -85,11 +103,23 @@ export default function Activity() {
           </Pressable>
         ))}
       </ScrollView>
-      <Card style={{ paddingVertical: 4 }}>
-        {items.length === 0 ? <T v="muted" style={{ paddingVertical: 16, textAlign: 'center' }}>{q || category || person ? 'Nothing matches' : 'Nothing logged yet'}</T> : null}
-        {items.map((e, i) => <ExpenseRow key={e.id} e={e} members={home?.members ?? []} last={i === items.length - 1} onPress={() => router.push(`/expense/${e.id}` as Href)} />)}
-      </Card>
-      {next ? <Button title="Show older" kind="secondary" onPress={() => search(next)} /> : null}
+      {scope === 'all' ? (
+        <Card style={{ paddingVertical: 4 }}>
+          {all?.length === 0 ? <T v="muted" style={{ paddingVertical: 16, textAlign: 'center' }}>{q || category ? 'Nothing matches' : 'Nothing logged yet'}</T> : null}
+          {(all ?? []).map(({ e, place }, i) => (
+            <View key={e.id}>
+              <T v="small" style={{ paddingTop: 10, color: HT.color.brand }}>{place.name}</T>
+              <ExpenseRow e={e} members={place.members} last={i === (all?.length ?? 0) - 1} onPress={() => router.push(`/expense/${e.id}` as Href)} />
+            </View>
+          ))}
+        </Card>
+      ) : (
+        <Card style={{ paddingVertical: 4 }}>
+          {items.length === 0 ? <T v="muted" style={{ paddingVertical: 16, textAlign: 'center' }}>{q || category || person ? 'Nothing matches' : 'Nothing logged yet'}</T> : null}
+          {items.map((e, i) => <ExpenseRow key={e.id} e={e} members={home?.members ?? []} last={i === items.length - 1} onPress={() => router.push(`/expense/${e.id}` as Href)} />)}
+        </Card>
+      )}
+      {scope === 'home' && next ? <Button title="Show older" kind="secondary" onPress={() => search(next)} /> : null}
     </View>
   );
 
@@ -98,7 +128,17 @@ export default function Activity() {
       <ScrollView contentContainerStyle={{ paddingBottom: 32 }} keyboardShouldPersistTaps="handled">
         <View style={{ width: '100%', maxWidth: HT.maxWidth.content, alignSelf: 'center', paddingHorizontal: gutter, paddingTop: 16, gap: 18 }}>
           <T v="display" accessibilityRole="header">Activity</T>
-          {wide ? (
+          {id && hasGroups ? (
+            <View accessibilityRole="radiogroup" style={{ flexDirection: 'row', backgroundColor: HT.color.segment, borderRadius: HT.radius.tile, padding: 4, gap: 4, maxWidth: 360 }}>
+              {(['home', 'all'] as const).map((k) => (
+                <Pressable key={k} accessibilityRole="radio" accessibilityState={{ checked: scope === k }} onPress={() => setScope(k)}
+                  style={{ flex: 1, minHeight: 40, borderRadius: 10, alignItems: 'center', justifyContent: 'center', backgroundColor: scope === k ? HT.color.surface : 'transparent' }}>
+                  <T v="strong" style={{ fontSize: 14, color: scope === k ? HT.color.ink : HT.color.muted }}>{k === 'home' ? 'Home' : 'Everyone'}</T>
+                </Pressable>
+              ))}
+            </View>
+          ) : null}
+          {scope === 'all' ? history : wide ? (
             <View style={{ flexDirection: 'row', gap: 24, alignItems: 'flex-start' }}>
               <View style={{ flex: 6 }}>{history}</View>
               <View style={{ flex: 4 }}>{statementList}</View>

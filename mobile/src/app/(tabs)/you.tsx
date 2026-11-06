@@ -47,7 +47,7 @@ function Toggle({ label, hint, value, onChange }: { label: string; hint?: string
 export default function You() {
   const { user, households, refresh, signOut } = useSession();
   const { wide, gutter } = useLayout();
-  const id = households[0]?.id;
+  const id = households.find((h) => h.kind !== 'group')?.id;
   const [home, setHome] = useState<Household | null>(null);
   const [me, setMe] = useState<Member | null>(null);
   const [firstName, setFirstName] = useState(user?.first_name ?? '');

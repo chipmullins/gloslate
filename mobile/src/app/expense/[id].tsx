@@ -16,9 +16,9 @@ const SPLIT_LABEL = { equal: 'Split equally', percent: 'Split by percentage', ex
 
 export default function ExpenseDetail() {
   const { id } = useLocalSearchParams<{ id: string }>();
-  const { home } = useHousehold();
   const { wide } = useLayout();
   const [e, setE] = useState<Expense | null>(null);
+  const { home } = useHousehold(e?.household_id); // a group's item shows the group's people
   const [error, setError] = useState<string | null>(null);
   const [flagging, setFlagging] = useState(false);
   const [flagNote, setFlagNote] = useState('');
@@ -72,7 +72,11 @@ export default function ExpenseDetail() {
       <T v="muted">{categoryLabel(e.category)} · {shortDate(e.spent_on)}</T>
       <Money cents={e.amount_cents} size={44} />
       <T v="strong">{title}</T>
-      <T v="small">{nameOf(e.payer_id)} paid · {SPLIT_LABEL[e.split_kind]}</T>
+      <T v="small">
+        {(e.payers?.length ?? 0) > 1
+          ? e.payers!.map((p) => `${nameOf(p.member_id)} paid ${formatCents(p.cents)}`).join(' · ')
+          : `${nameOf(e.payer_id)} paid`} · {SPLIT_LABEL[e.split_kind]}
+      </T>
       {e.effect_for_me_cents !== 0 ? (
         <View style={{ marginTop: 8, backgroundColor: e.effect_for_me_cents > 0 ? HT.color.owedTint : '#FBEBDD', borderRadius: 12, paddingHorizontal: 12, paddingVertical: 6 }}>
           <T v="strong" style={{ color: e.effect_for_me_cents > 0 ? HT.color.owedToYou : HT.color.youOwe, fontSize: 14 }}>
@@ -126,7 +130,7 @@ export default function ExpenseDetail() {
 
   const actions = e.can_edit ? (
     <View style={{ flexDirection: 'row', gap: 10 }}>
-      <Button title="Edit" kind="secondary" icon={<PencilIcon size={18} />} onPress={() => router.push(`/add?id=${e.id}` as Href)} style={{ flex: 1 }} />
+      <Button title="Edit" kind="secondary" icon={<PencilIcon size={18} />} onPress={() => router.push(`/add?id=${e.id}${e.household_id ? `&hid=${e.household_id}` : ''}` as Href)} style={{ flex: 1 }} />
       <Button title="Delete" kind="secondary" icon={<TrashIcon size={18} color={HT.color.danger} />} onPress={remove} style={{ flex: 1 }} />
     </View>
   ) : flagging ? (

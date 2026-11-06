@@ -50,6 +50,8 @@ function Root() {
           <Stack.Screen name="itemize" options={MODAL} />
           <Stack.Screen name="bill-edit" options={MODAL} />
           <Stack.Screen name="counter" options={MODAL} />
+          <Stack.Screen name="group/new" options={MODAL} />
+          <Stack.Screen name="request-friend" options={MODAL} />
         </Stack>
       </LockGate>
     </>

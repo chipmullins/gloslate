@@ -14,8 +14,8 @@ const METHOD = { venmo: 'Venmo', cashapp: 'Cash App', zelle: 'Zelle', cash: 'Cas
 /** Confirm, question, or talk about one payment. */
 export default function PaymentDetail() {
   const { id } = useLocalSearchParams<{ id: string }>();
-  const { home } = useHousehold();
   const [p, setP] = useState<Payment | null>(null);
+  const { home } = useHousehold(p?.household_id); // a group's payment shows the group's people
   const [note, setNote] = useState('');
   const [disputing, setDisputing] = useState(false);
   const [error, setError] = useState<string | null>(null);
