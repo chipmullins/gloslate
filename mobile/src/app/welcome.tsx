@@ -74,7 +74,7 @@ export default function Welcome() {
                 style={{ fontFamily: HT.font.displayBold, fontSize: 30, lineHeight: 34, letterSpacing: -0.9, color: HT.color.onDarkText }}>
                 <Text style={{ color: HT.color.glow, textShadowColor: HT.color.glowHalo, textShadowRadius: 12, textShadowOffset: { width: 0, height: 0 } }}>glo</Text>slate
               </Text>
-              <T v="small" style={{ fontFamily: HT.font.label, fontSize: 11, letterSpacing: 1.1, color: HT.color.darkCardMuted }}>BY GLOFLY</T>
+              <T v="small" style={{ fontFamily: HT.font.medium, fontSize: 13, marginTop: 2, color: HT.color.darkCardMuted }}>by Glofly</T>
             </View>
           </View>
           <T v="display" style={{ fontSize: wide ? 44 : 36, lineHeight: wide ? 50 : 42, color: HT.color.onDarkText }} accessibilityRole="header">
