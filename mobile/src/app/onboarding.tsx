@@ -93,7 +93,7 @@ export default function Onboarding() {
       <T v="muted">You can do all three. This just picks where to begin.</T>
       {[
         { icon: <HouseIcon size={22} color={HT.color.brand} />, title: 'I live with people', sub: 'Set up your home', to: '/setup' },
-        { icon: <SendIcon size={20} color={HT.color.brand} />, title: 'Someone owes me', sub: 'Send a quick request', to: '/request-friend' },
+        { icon: <SendIcon size={20} color={HT.color.brand} />, title: 'Settle up with someone', sub: 'One person owes the other', to: '/request-friend' },
         { icon: <GroupIcon size={22} color={HT.color.brand} />, title: 'A trip or a group', sub: 'Split it between friends', to: '/group/new' },
       ].map((c) => (
         <Pressable key={c.to} accessibilityRole="button" accessibilityLabel={`${c.title}. ${c.sub}`} onPress={() => router.push(c.to as Href)}

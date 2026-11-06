@@ -169,7 +169,9 @@ export default function GroupScreen() {
         <View style={{ width: '100%', maxWidth: HT.maxWidth.content, alignSelf: 'center', paddingHorizontal: gutter, paddingTop: 8, gap: 18 }}>
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, minHeight: 52 }}>
             <IconButton label="Back" onPress={() => router.back()}><BackIcon /></IconButton>
-            <T v="display" accessibilityRole="header" numberOfLines={1} style={{ flex: 1, fontSize: 26 }}>{group.name}</T>
+            <T v="display" accessibilityRole="header" numberOfLines={1} style={{ flex: 1, fontSize: 26 }}>
+              {group.members.filter((m) => !m.former).length === 2 ? group.members.find((m) => !m.you && !m.former)?.display_name ?? group.name : group.name}
+            </T>
           </View>
           {wide ? (
             <View style={{ flexDirection: 'row', gap: 24, alignItems: 'flex-start' }}>

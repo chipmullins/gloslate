@@ -50,5 +50,5 @@ test('cash-register entry fills from the cents', async () => {
   assert.equal(centsFirst('180000'), '1800.00');
   assert.equal(centsFirst(''), '');
   assert.equal(centsFirst('0.0'), '');
-  assert.equal(parseCents(centsFirst('123456789999')), 123456789);
+  assert.equal(parseCents(centsFirst('123456789999')), 12345678);
 });

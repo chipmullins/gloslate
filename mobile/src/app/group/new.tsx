@@ -20,13 +20,15 @@ export default function NewGroup() {
   const [people, setPeople] = useState<{ key: number; name: string }[]>([{ key: 0, name: '' }, { key: 1, name: '' }]);
   const nextKey = useRef(2);
   const [busy, setBusy] = useState(false);
+  const inFlight = useRef(false);
   const [error, setError] = useState<string | null>(null);
 
   const names = people.map((p) => p.name.trim()).filter(Boolean);
   const ready = name.trim().length > 0 && names.length > 0 && (!needsName || myName.trim().length > 0);
 
   async function create() {
-    if (!ready || busy) return;
+    if (!ready || inFlight.current) return;
+    inFlight.current = true;
     setBusy(true);
     setError(null);
     try {
@@ -37,6 +39,7 @@ export default function NewGroup() {
     } catch (e) {
       setError(e instanceof ApiError ? e.message : 'Something went wrong.');
     } finally {
+      inFlight.current = false;
       setBusy(false);
     }
   }

@@ -15,7 +15,7 @@ export function formatCents(cents: number, opts: { sign?: boolean } = {}): strin
  * so nobody has to type the decimal point. Returns a dollar string for parseCents.
  */
 export function centsFirst(input: string): string {
-  const digits = input.replace(/\D/g, '').replace(/^0+/, '').slice(0, 9);
+  const digits = input.replace(/\D/g, '').replace(/^0+/, '').slice(0, 8); // up to $999,999.99, under the server's $1M ceiling
   if (!digits) return '';
   const padded = digits.padStart(3, '0');
   return `${Number(padded.slice(0, -2))}.${padded.slice(-2)}`;
