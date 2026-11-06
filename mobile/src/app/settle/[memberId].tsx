@@ -1,6 +1,6 @@
 import * as Clipboard from 'expo-clipboard';
 import { router, useFocusEffect, useLocalSearchParams, type Href } from 'expo-router';
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useMemo, useRef, useState } from 'react';
 import { Linking, Pressable, View } from 'react-native';
 
 import { shortDate } from '@/components/expense-row';
@@ -17,6 +17,11 @@ import { sendRequest } from '@/app/(tabs)/home';
 const METHODS = [
   { key: 'venmo', label: 'Venmo' }, { key: 'cashapp', label: 'Cash App' }, { key: 'zelle', label: 'Zelle' }, { key: 'cash', label: 'Cash' }, { key: 'other', label: 'Other' },
 ];
+
+/** What you've marked paid to this person that they haven't confirmed yet. */
+function waitingFrom(b: Breakdown) {
+  return b.payments.filter((p) => p.status === 'pending' && p.you_sent).reduce((s, p) => s + p.amount_cents, 0);
+}
 
 function centsToInput(c: number) {
   return `${Math.floor(c / 100)}.${String(c % 100).padStart(2, '0')}`;
@@ -35,6 +40,7 @@ export default function Settle() {
   const [opened, setOpened] = useState(false);
   const [recording, setRecording] = useState(false);
   const [busy, setBusy] = useState(false);
+  const inFlight = useRef(false);
   const [error, setError] = useState<string | null>(null);
 
   const other = home?.members.find((m) => m.id === memberId);
@@ -48,7 +54,8 @@ export default function Settle() {
       if (r.data.net_cents < 0) {
         const p = await api<{ data: PayInfo }>(`/v1/households/${home.id}/pay/${memberId}`);
         setPay(p.data);
-        setAmount((a) => a || centsToInput(-r.data.net_cents));
+        const left = -r.data.net_cents - waitingFrom(r.data);
+        setAmount((a) => a || (left > 0 ? centsToInput(left) : ''));
         setMethod(p.data.links.venmo ? 'venmo' : p.data.links.cashapp ? 'cashapp' : p.data.links.zelle ? 'zelle' : 'cash');
       } else {
         setPay(null);
@@ -97,6 +104,8 @@ export default function Settle() {
     if (!home || !other) return;
     const cents = parseCents(amount);
     if (!cents) return setError('Enter the amount');
+    if (inFlight.current) return;
+    inFlight.current = true;
     setBusy(true);
     setError(null);
     try {
@@ -115,6 +124,7 @@ export default function Settle() {
     } catch (e) {
       setError(e instanceof ApiError ? e.message : 'Something went wrong.');
     } finally {
+      inFlight.current = false;
       setBusy(false);
     }
   }
@@ -125,6 +135,8 @@ export default function Settle() {
   const theyOwe = net > 0;
   const headline = net === 0 ? `You and ${other.first_name} are even` : theyOwe ? `${other.first_name} owes you` : `You owe ${other.first_name}`;
   const pendingPay = b.payments.find((p) => p.status === 'pending');
+  const waiting = waitingFrom(b);
+  const left = -net - waiting; // what's still unmarked when you owe
 
   const summary = (
     <Card dark style={{ alignItems: 'center', gap: 8, paddingVertical: 24 }}>
@@ -168,8 +180,20 @@ export default function Settle() {
       )}
       <T v="small">Tabitat never moves money. A payment you record counts as confirmed by you.</T>
     </Card>
+  ) : net < 0 && pay && left <= 0 ? (
+    <Card style={{ gap: 12 }}>
+      <View style={{ flexDirection: 'row', gap: 10, alignItems: 'center' }}>
+        <CheckIcon size={20} color={HT.color.owedToYou} />
+        <T v="strong" style={{ flex: 1 }}>You marked {formatCents(waiting)} paid. Waiting on {other.first_name} to confirm.</T>
+      </View>
+      <T v="small">It counts once {other.first_name} confirms, or on its own after 3 days.</T>
+      <Button kind="secondary" title="I paid for some things too" icon={<PlusIcon size={16} />}
+        accessibilityLabel={`Add things you paid for, to subtract from what you owe ${other.first_name}`}
+        onPress={() => router.push(`/counter?memberId=${other.id}` as Href)} />
+    </Card>
   ) : net < 0 && pay ? (
     <Card style={{ gap: 12 }}>
+      {waiting > 0 ? <T v="small">{formatCents(waiting)} is already waiting on {other.first_name}. {formatCents(left)} left to mark.</T> : null}
       <Button kind="secondary" title="I paid for some things too" icon={<PlusIcon size={16} />}
         accessibilityLabel={`Add things you paid for, to subtract from what you owe ${other.first_name}`}
         onPress={() => router.push(`/counter?memberId=${other.id}` as Href)} />

@@ -28,7 +28,15 @@ module Payments
 
       by_receiver = @actor.id == @to.id
       now = Time.current
-      Payment.transaction do
+      created = true
+      payment = Payment.transaction do
+        # One "I paid" at a time per home, so a double tap can't slip two in.
+        @household.lock!
+        if (dupe = recent_duplicate(now))
+          created = false
+          next dupe
+        end
+        guard_against_overmarking! unless by_receiver
         payment = @household.payments.create!(
           from_member: @from, to_member: @to, recorded_by: @actor, amount_cents: @amount_cents,
           method: @method, note: @note, marked_at: now,
@@ -45,7 +53,10 @@ module Payments
                             subject: payment, actor: @actor,
                             data: { from: @from.id, to: @to.id, amount_cents: @amount_cents, method: @method })
         payment
-      end.tap do |payment|
+      end
+      return payment unless created
+
+      payment.tap do |payment|
         amount = Hometab::Money.format(@amount_cents)
         if by_receiver
           Notifications::Notify.call(member: @from, kind: "payment_confirmed", title: "#{@to.first_name} recorded your #{amount}",
@@ -55,6 +66,32 @@ module Payments
                                      body: "Confirm?", route: "/payments/#{payment.id}")
         end
         AnalyticsEvent.track("payment_marked", user: @actor.user, household: @household)
+      end
+    end
+
+    DUPLICATE_WINDOW = 2.minutes
+
+    private
+
+    # The same person recording the same payment again within a couple of
+    # minutes is a double tap or a retry: hand back the first one.
+    def recent_duplicate(now)
+      @household.payments.where(from_member: @from, to_member: @to, recorded_by: @actor, amount_cents: @amount_cents,
+                                status: %w[pending confirmed], marked_at: (now - DUPLICATE_WINDOW)..).order(:marked_at).first
+    end
+
+    # While an "I paid" is waiting to be confirmed, it already covers that much
+    # of what's owed, so a new one can only cover the rest.
+    def guard_against_overmarking!
+      waiting = @household.payments.pending.where(from_member: @from, to_member: @to).sum(:amount_cents)
+      return if waiting.zero?
+
+      owed = [-Payments::Breakdown.call(household: @household, me: @from, other: @to)[:net_cents], 0].max
+      left = owed - waiting
+      if left <= 0
+        raise Hometab::Error, "You already marked #{Hometab::Money.format(waiting)} paid. Waiting on #{@to.first_name} to confirm."
+      elsif @amount_cents > left
+        raise Hometab::Error, "#{Hometab::Money.format(waiting)} is already waiting on #{@to.first_name}. You can mark up to #{Hometab::Money.format(left)} more."
       end
     end
   end

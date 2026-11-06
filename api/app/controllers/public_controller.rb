@@ -55,8 +55,10 @@ class PublicController < ActionController::Base
       req.update!(paid_marked_at: Time.current)
     end
     redirect_to "/r/#{req.token}?marked=1", status: :see_other
-  rescue Hometab::Error => e
-    redirect_to "/r/#{params[:token]}", status: :see_other
+  rescue Hometab::Error
+    # Usually "already marked and waiting": show the same "we told them" state.
+    waiting = req&.household&.payments&.pending&.where(from_member: req.recipient, to_member: req.requester)&.exists?
+    redirect_to "/r/#{params[:token]}#{'?marked=1' if waiting}", status: :see_other
   end
 
   def request_image
