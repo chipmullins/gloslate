@@ -43,7 +43,7 @@ In Expo Go, receipt scanning falls back to attaching the photo and typing the to
 | `ALLOWED_HOSTS` | default `tabitat.app,api.tabitat.app,admin-api.tabitat.app` |
 | `PUBLIC_URL` | `https://tabitat.app` (request and invite links) |
 | `S3_BUCKET`, `AWS_REGION` | receipts / exports (instance role, no keys) |
-| `MAIL_FROM` | `Tabitat <hello@tabitat.app>` |
+| `MAIL_FROM` | `Gloslate <hello@tabitat.app>` |
 | `APPLE_CLIENT_IDS`, `GOOGLE_CLIENT_IDS` | ID token audiences |
 | `APPLE_TEAM_ID`, `ANDROID_CERT_SHA256` | universal links (`/.well-known/...`) |
 | `EXPO_ACCESS_TOKEN` | optional, for Expo push security |
