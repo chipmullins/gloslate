@@ -2,13 +2,18 @@ AWSTemplateFormatVersion: "2010-09-09"
 Description: >-
   Tabitat: one small server of its own running staging and production, Postgres
   on a separate data disk with nightly S3 backups, files in S3, email via SES,
-  DNS for tabitat.app. The server updates itself from GitHub's package registry,
+  DNS for tabitat.app and gloslate.app. The server updates itself from GitHub's package registry,
   so nothing outside AWS ever needs AWS access. Stack name: tabitat.
 
 Parameters:
   Domain:
     Type: String
     Default: tabitat.app
+    Description: The original domain. Kept so installed apps and old links keep working.
+  NewDomain:
+    Type: String
+    Default: gloslate.app
+    Description: Gloslate's domain. Gets its own DNS zone, email sending and site records.
   AlertEmail:
     Type: String
     Description: Where "server is down" and budget alerts go (and Let's Encrypt notices).
@@ -36,6 +41,7 @@ Parameters:
 
 Conditions:
   HasDomain: !Not [!Equals [!Ref Domain, ""]]
+  HasNewDomain: !Not [!Equals [!Ref NewDomain, ""]]
   HasAlertEmail: !Not [!Equals [!Ref AlertEmail, ""]]
 
 Metadata:
@@ -44,7 +50,7 @@ Metadata:
       - Label: { default: "Fill these in" }
         Parameters: [AlertEmail, GitHubPackagesToken]
       - Label: { default: "Leave as they are" }
-        Parameters: [Domain, GitHubUser, InstanceType, DataVolumeGiB, ImageId, MonthlyBudgetUsd]
+        Parameters: [Domain, NewDomain, GitHubUser, InstanceType, DataVolumeGiB, ImageId, MonthlyBudgetUsd]
 
 Resources:
   # ---- Network (Tabitat's own; no NAT gateway, so no fixed cost) ----
@@ -163,7 +169,10 @@ Resources:
                 Action: [ses:SendEmail, ses:SendRawEmail]
                 Resource: "*"
                 Condition:
-                  StringLike: { "ses:FromAddress": !If [HasDomain, !Sub "*@${Domain}", "nobody@invalid"] }
+                  StringLike:
+                    "ses:FromAddress":
+                      - !If [HasDomain, !Sub "*@${Domain}", "nobody@invalid"]
+                      - !If [HasNewDomain, !Sub "*@${NewDomain}", "nobody@invalid"]
               - Sid: TextMessages # direct-to-phone only, not topics
                 Effect: Allow
                 Action: sns:Publish
@@ -353,6 +362,44 @@ Resources:
         - { Name: !GetAtt EmailIdentity.DkimDNSTokenName3, Type: CNAME, TTL: "1800", ResourceRecords: [!GetAtt EmailIdentity.DkimDNSTokenValue3] }
         - { Name: !Sub "_dmarc.${Domain}", Type: TXT, TTL: "3600", ResourceRecords: [!Sub '"v=DMARC1; p=none; rua=mailto:dmarc@${Domain}"'] }
 
+  # ---- gloslate.app: its own zone (set GoDaddy's nameservers to the NewNameServers output) ----
+  NewZone:
+    Type: AWS::Route53::HostedZone
+    Condition: HasNewDomain
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
+    Properties:
+      Name: !Ref NewDomain
+      HostedZoneTags: [{ Key: Project, Value: tabitat }]
+  NewSiteRecords:
+    Type: AWS::Route53::RecordSetGroup
+    Condition: HasNewDomain
+    Properties:
+      HostedZoneId: !Ref NewZone
+      RecordSets:
+        - { Name: !Ref NewDomain, Type: A, TTL: "300", ResourceRecords: [!Ref PublicIp] }
+        - { Name: !Sub "www.${NewDomain}", Type: A, TTL: "300", ResourceRecords: [!Ref PublicIp] }
+        - { Name: !Sub "api.${NewDomain}", Type: A, TTL: "300", ResourceRecords: [!Ref PublicIp] }
+        - { Name: !Sub "app.${NewDomain}", Type: A, TTL: "300", ResourceRecords: [!Ref PublicIp] }
+        - { Name: !Sub "admin-api.${NewDomain}", Type: A, TTL: "300", ResourceRecords: [!Ref PublicIp] }
+        - { Name: !Sub "staging.${NewDomain}", Type: A, TTL: "300", ResourceRecords: [!Ref PublicIp] }
+  NewEmailIdentity:
+    Type: AWS::SES::EmailIdentity
+    Condition: HasNewDomain
+    Properties:
+      EmailIdentity: !Ref NewDomain
+      DkimSigningAttributes: { NextSigningKeyLength: RSA_2048_BIT }
+  NewEmailRecords:
+    Type: AWS::Route53::RecordSetGroup
+    Condition: HasNewDomain
+    Properties:
+      HostedZoneId: !Ref NewZone
+      RecordSets:
+        - { Name: !GetAtt NewEmailIdentity.DkimDNSTokenName1, Type: CNAME, TTL: "1800", ResourceRecords: [!GetAtt NewEmailIdentity.DkimDNSTokenValue1] }
+        - { Name: !GetAtt NewEmailIdentity.DkimDNSTokenName2, Type: CNAME, TTL: "1800", ResourceRecords: [!GetAtt NewEmailIdentity.DkimDNSTokenValue2] }
+        - { Name: !GetAtt NewEmailIdentity.DkimDNSTokenName3, Type: CNAME, TTL: "1800", ResourceRecords: [!GetAtt NewEmailIdentity.DkimDNSTokenValue3] }
+        - { Name: !Sub "_dmarc.${NewDomain}", Type: TXT, TTL: "3600", ResourceRecords: [!Sub '"v=DMARC1; p=none; rua=mailto:dmarc@${NewDomain}"'] }
+
   # ---- The "Tabitat" dashboard in CloudWatch: the server at a glance ----
   Dashboard:
     Type: AWS::CloudWatch::Dashboard
@@ -422,6 +469,10 @@ Outputs:
     Condition: HasDomain
     Description: Put these four nameservers in at your registrar (GoDaddy).
     Value: !Join [", ", !GetAtt Zone.NameServers]
+  NewNameServers:
+    Condition: HasNewDomain
+    Description: Put these four nameservers in at GoDaddy for gloslate.app.
+    Value: !Join [", ", !GetAtt NewZone.NameServers]
   ServerIp:
     Description: Point the domain's A records here.
     Value: !Ref PublicIp
