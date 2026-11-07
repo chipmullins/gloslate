@@ -1,5 +1,13 @@
 # Gloslate decisions
 
+## Settled Nov 7, 2026: Sign in with Glofly
+
+- **Code + PKCE (S256), run by Gloslate's server.** `POST /v1/auth/glofly/start` makes the verifier, state and nonce and seals them in an encrypted 10-minute `flow`; the app opens Glofly's authorize URL and posts `{ code, flow, state, iss }` to `/v1/auth/glofly/finish`, which swaps the code (Gloslate is a public client: no secret) and verifies the ID token with a **required** nonce. The verifier never leaves the server, and the app needs no crypto, so no new native module and no OTA fingerprint change. (This replaces "swap the code on the phone with expo-auth-session" from the Glofly handoff: that needs `expo-crypto`, a native module.)
+- **No bare Glofly ID tokens.** `/v1/auth/glofly` and `/v1/identities { provider: "glofly", id_token }` are refused; only the code flow works.
+- **Same email → link offer, never a silent link** (the Glofly handoff agrees). Accounts are keyed by Glofly's `sub`. Email is optional on Glofly's consent screen; sign-in works without it. A Glofly email is kept on the identity but **never becomes the account's email**, so a Glofly account can't pre-claim an email someone later signs in with by code (security review, Nov 7). Unknown signing key → keys are re-read (at most every 5 min), so a Glofly key rotation doesn't break sign-in.
+- **Phone:** the system browser sheet (`openAuthSessionAsync`), return `tabitat://auth/glofly`. **Web app:** the same tab goes to Glofly and returns to `https://app.gloslate.app/auth/glofly/callback` (mobile browsers block the popup `openAuthSessionAsync` uses on web). Return addresses are an allowlist (`GLOFLY_REDIRECT_URIS`).
+- **Off until configured:** the button shows only when `GLOFLY_CLIENT_IDS` is set and the Control switch "Sign in with Glofly" is on (`GET /v1/auth/providers`). Issuer `https://api.glofly.app`; endpoints come from Glofly's discovery.
+
 ## Settled Nov 7, 2026: friends, settled moments, account-wide settings
 
 - **Friends** are separate from homes: add someone once with your link (`gloslate.app/f/<token>`, rotatable), and requests/charges between you go out as notifications instead of texted links. Friendships are stored both ways; a one-on-one tab with a friend has both real users in it (no invite). Joining someone's one-on-one invite makes you friends automatically. Unfriending keeps all tabs and history.
@@ -50,4 +58,5 @@ Rails 8 API + Postgres + Solid Queue; Expo/TypeScript/expo-router; integer cents
 
 - [x] Steps 1–12 built (Nov 4, 2026): ledger engine, auth + admin realm, households/invites, expenses, bills, payments, requests + public pages, statements + exports, notifications + widgets, receipts (on-device OCR + itemizing), settings/Face ID/export/deletion. API ~100 tests, app typecheck + lint + tests in CI.
 - [ ] Step 13: AWS (one CloudFormation upload, see docs/deploy.md), TestFlight (Android later), beta. Needs Chip's accounts — see docs/running.md.
+- [x] Sign in with Glofly built (Nov 7) and off. Waiting on Glofly shipping its sign-in server to `main` and Gloslate's client ID (docs/glofly-integration.md).
 - Not yet verified on a real device: Sign in with Apple, push delivery, widgets, Face ID, native receipt OCR (all need a development build). Google sign-in button in the app needs client IDs.

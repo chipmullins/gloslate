@@ -33,6 +33,7 @@ class ActionDispatch::IntegrationTest
     Auth::Sms.deliveries.clear
     Rails.cache.write("oidc:jwks:apple", OidcTestKeys.jwks)
     Rails.cache.write("oidc:jwks:google", OidcTestKeys.jwks)
+    Rails.cache.write("oidc:jwks:glofly", OidcTestKeys.jwks)
   end
 
   def json = JSON.parse(response.body)

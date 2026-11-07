@@ -18,6 +18,21 @@ export const BackIcon = (p: IconProps) => <Stroke {...p} d="M15 5l-7 7 7 7" />;
 export const SendIcon = (p: IconProps) => <Stroke {...p} strokeWidth={p.strokeWidth ?? 2} d="M22 2L11 13M22 2l-7 20-4-9-9-4z" />;
 export const CheckIcon = (p: IconProps) => <Stroke {...p} strokeWidth={p.strokeWidth ?? 2.6} d="M5 12l5 5 9-10" />;
 export const ShareIcon = (p: IconProps) => <Stroke {...p} d="M12 3v12M7 8l5-5 5 5M5 13v6a2 2 0 002 2h10a2 2 0 002-2v-6" />;
+/** Stand-in Glofly mark for "Continue with Glofly": an amber glow dot with a soft halo. Swap for Glofly's firefly mark when Chip provides it. */
+export function GloflyGlyph({ size = 22 }: { size?: number }) {
+  return (
+    <Svg width={size} height={size} viewBox="0 0 24 24" accessibilityElementsHidden importantForAccessibility="no">
+      <Defs>
+        <RadialGradient id="gfHalo" cx="50%" cy="50%" r="50%">
+          <Stop offset="0" stopColor={HT.color.glow} stopOpacity={0.55} />
+          <Stop offset="1" stopColor={HT.color.glow} stopOpacity={0} />
+        </RadialGradient>
+      </Defs>
+      <Circle cx={12} cy={12} r={12} fill="url(#gfHalo)" />
+      <Circle cx={12} cy={12} r={5} fill={HT.color.glow} />
+    </Svg>
+  );
+}
 export const TrashIcon = (p: IconProps) => <Stroke {...p} d="M4 7h16M10 11v6M14 11v6M6 7l1 12a2 2 0 002 2h6a2 2 0 002-2l1-12M9 7V4h6v3" />;
 
 /**

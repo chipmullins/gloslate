@@ -70,12 +70,16 @@ Rails.application.routes.draw do
   namespace :v1 do
     post "auth/codes", to: "auth#request_code"
     post "auth/codes/verify", to: "auth#verify_code"
+    get "auth/providers", to: "auth#providers"
+    post "auth/glofly/start", to: "auth#glofly_start"
+    post "auth/glofly/finish", to: "auth#glofly_finish"
     post "auth/:provider", to: "auth#provider", constraints: { provider: /apple|google/ }
 
     resource :session, only: %i[update destroy]
     resource :me, controller: "me", only: %i[show update destroy] do
       get :export
     end
+    post "identities/glofly/start", to: "identities#glofly_start"
     resources :identities, only: %i[create destroy]
     resources :friends, only: %i[index create destroy] do
       collection do

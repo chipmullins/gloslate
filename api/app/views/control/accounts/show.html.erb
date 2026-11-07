@@ -22,7 +22,7 @@
     <div class="list">
       <% @identities.each do |i| %>
         <div>
-          <span class="grow"><span><%= { "phone" => "Phone", "email" => "Email", "apple" => "Apple", "google" => "Google" }[i.provider] || i.provider %></span>
+          <span class="grow"><span><%= { "phone" => "Phone", "email" => "Email", "apple" => "Apple", "google" => "Google", "glofly" => "Glofly" }[i.provider] || i.provider %></span>
             <span><%= mask(i.provider == "phone" ? i.provider_uid : (i.email.presence || "Hidden email")) %> · <%= i.last_used_at ? "used #{ago(i.last_used_at)}" : "never used" %></span></span>
           <% if support && %w[phone email].include?(i.provider) && !u.deleted? %>
             <details class="act" style="background:none;border:0"><summary class="btn sm" style="min-height:36px;padding:0 12px">Send code</summary>

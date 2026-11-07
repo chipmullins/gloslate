@@ -12,10 +12,21 @@ module Auth
     end
 
     def from_provider(user:, provider:, id_token:, keys: nil)
+      raise Hometab::Error, "Use the Glofly sign-in screen to add Glofly" if provider.to_s == "glofly"
+
       claims = Hometab::Oidc.verify(provider, id_token, keys:)
       attach!(user, provider, claims["sub"], email: claims["email"], email_verified: [true, "true"].include?(claims["email_verified"]))
     rescue Hometab::Oidc::Invalid
       raise Hometab::Error, "Couldn't verify with #{provider.capitalize}"
+    end
+
+    # Glofly: the code flow started from Sign-in methods (Auth::GloflyFlow).
+    def from_glofly(user:, code:, flow:, state: nil, iss: nil)
+      result = GloflyFlow.finish(code:, flow:, state:, iss:)
+      raise Hometab::Forbidden, "This sign-in was started for a different account" unless result[:purpose] == "link" && result[:user_id] == user.id
+
+      claims = result[:claims]
+      attach!(user, "glofly", claims["sub"], email: claims["email"], email_verified: [true, "true"].include?(claims["email_verified"]))
     end
 
     def from_code(user:, destination:, code:)

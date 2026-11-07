@@ -4,11 +4,12 @@ import { useEffect, useState } from 'react';
 import { StatusBar } from 'expo-status-bar';
 import { Platform, Text, View } from 'react-native';
 
-import { HouseMark } from '@/components/icons';
+import { GloflyGlyph, HouseMark } from '@/components/icons';
 import { Button, ErrorNote, Field, NightSurface, Screen, T } from '@/components/ui';
 import { HT } from '@/constants/theme';
 import { useLayout } from '@/hooks/use-layout';
 import { api, ApiError, type SignInResult } from '@/lib/api';
+import { finishSignIn, GloflyError, gloflyAvailable, linkOfferMessage, openGlofly } from '@/lib/glofly';
 import { useSession } from '@/lib/session';
 
 export default function Welcome() {
@@ -18,10 +19,33 @@ export default function Welcome() {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [appleAvailable, setAppleAvailable] = useState(false);
+  const [glofly, setGlofly] = useState(false);
+  const [gloflyBusy, setGloflyBusy] = useState(false);
 
   useEffect(() => {
     if (Platform.OS === 'ios') AppleAuthentication.isAvailableAsync().then(setAppleAvailable).catch(() => {});
+    gloflyAvailable().then(setGlofly);
   }, []);
+
+  async function withGlofly() {
+    setError(null);
+    setGloflyBusy(true);
+    try {
+      const back = await openGlofly('sign_in');
+      if (!back) return; // cancelled
+      const res = await finishSignIn(back);
+      if (res.status === 'signed_in') {
+        await signIn(res.token);
+        router.replace('/');
+      } else {
+        setError(linkOfferMessage(res.existing_methods));
+      }
+    } catch (e) {
+      setError(e instanceof ApiError || e instanceof GloflyError ? e.message : "Couldn't sign in with Glofly. Try again.");
+    } finally {
+      setGloflyBusy(false);
+    }
+  }
 
   async function sendCode() {
     setError(null);
@@ -96,7 +120,10 @@ export default function Welcome() {
               onPress={withApple}
             />
           ) : null}
-          {appleAvailable ? (
+          {glofly ? (
+            <Button title="Continue with Glofly" kind="secondary" icon={<GloflyGlyph />} onPress={withGlofly} loading={gloflyBusy} />
+          ) : null}
+          {appleAvailable || glofly ? (
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
               <View style={{ flex: 1, height: 1, backgroundColor: HT.color.hairline }} />
               <T v="small">or</T>
