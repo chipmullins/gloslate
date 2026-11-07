@@ -36,5 +36,5 @@ jobs:
       - name: Publish
         run: npx --yes eas-cli@latest update --channel production --message "${{ inputs.message }}" --non-interactive
         env:
-          EXPO_PUBLIC_API_URL: https://api.tabitat.app
+          EXPO_PUBLIC_API_URL: https://api.gloslate.app
       - run: echo "Published. Phones pick it up on their next open and run it the time after." >> "$GITHUB_STEP_SUMMARY"

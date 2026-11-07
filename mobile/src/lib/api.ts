@@ -2,11 +2,11 @@ import * as SecureStore from 'expo-secure-store';
 import { Platform } from 'react-native';
 
 // Release builds always reach the live server, even if no .env file was picked up.
-// The web app (app.tabitat.app) is served by the API server itself, so it
+// The web app (app.gloslate.app) is served by the API server itself, so it
 // calls the API on its own origin: no cross-site requests.
 const BASE = Platform.OS === 'web' && !__DEV__
   ? ''
-  : process.env.EXPO_PUBLIC_API_URL || (__DEV__ ? 'http://localhost:3000' : 'https://api.tabitat.app');
+  : process.env.EXPO_PUBLIC_API_URL || (__DEV__ ? 'http://localhost:3000' : 'https://api.gloslate.app');
 const TOKEN_KEY = 'tabitat.session';
 
 export class ApiError extends Error {

@@ -11,13 +11,13 @@ class PublicController < ActionController::Base
 
   def money(cents) = Hometab::Money.format(cents)
 
-  # Marketing site pages (tabitat.app). Static, so they can be cached briefly.
+  # Marketing site pages (gloslate.app). Static, so they can be cached briefly.
   def privacy = render_site
   def terms = render_site
   def support = render_site
 
   def sitemap
-    base = ENV.fetch("PUBLIC_URL", "https://tabitat.app")
+    base = ENV.fetch("PUBLIC_URL", "https://gloslate.app")
     urls = ["/", "/support", "/privacy", "/terms"].map { |p| "<url><loc>#{base}#{p == '/' ? '/' : p}</loc></url>" }.join
     render xml: %(<?xml version="1.0" encoding="UTF-8"?><urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">#{urls}</urlset>)
   end

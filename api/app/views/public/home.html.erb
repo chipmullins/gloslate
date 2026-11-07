@@ -5,12 +5,12 @@
 <% content_for :title, "Gloslate · Split rent, bills and groceries without the math" %>
 <% content_for :head do %>
   <meta name="description" content="Gloslate keeps a running tab with the people you live with, travel with, or just grab lunch with, then tells each person exactly what to send. Free. Gloslate never touches your money.">
-  <link rel="canonical" href="<%= ENV.fetch('PUBLIC_URL', 'https://tabitat.app') %>/">
+  <link rel="canonical" href="<%= ENV.fetch('PUBLIC_URL', 'https://gloslate.app') %>/">
   <meta property="og:type" content="website">
   <meta property="og:site_name" content="Gloslate">
   <meta property="og:title" content="Gloslate · Stop texting “you owe me.”">
   <meta property="og:description" content="A running tab for your home, your trips and your friends. One number, already netted. Pay in the app you already use.">
-  <meta property="og:image" content="<%= ENV.fetch('PUBLIC_URL', 'https://tabitat.app') %>/site/og-v2.png">
+  <meta property="og:image" content="<%= ENV.fetch('PUBLIC_URL', 'https://gloslate.app') %>/site/og-v2.png">
   <meta name="twitter:card" content="summary_large_image">
 <% end %>
 <% content_for :styles do %><style><%= raw File.read(Rails.root.join("app/assets/stylesheets/site.css")) %></style><% end %>

@@ -30,7 +30,7 @@ In Xcode:
    yourself to an internal testing group. The build shows up in the TestFlight app about 10–30
    minutes later.
 
-The app talks to `https://api.tabitat.app` (from `mobile/.env.production`).
+The app talks to `https://api.gloslate.app` (from `mobile/.env.production`).
 
 Push notifications also need an Expo project ID: run `npx eas-cli login`, then `npx eas-cli init`
 once, and commit the `projectId` it writes into `app.json`.

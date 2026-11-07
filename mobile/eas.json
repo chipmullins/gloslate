@@ -6,17 +6,17 @@
   "build": {
     "production": {
       "autoIncrement": true,
-      "env": { "EXPO_PUBLIC_API_URL": "https://api.tabitat.app" },
+      "env": { "EXPO_PUBLIC_API_URL": "https://api.gloslate.app" },
       "ios": { "resourceClass": "default" }
     },
     "staging": {
       "extends": "production",
-      "env": { "EXPO_PUBLIC_API_URL": "https://staging.tabitat.app" }
+      "env": { "EXPO_PUBLIC_API_URL": "https://staging.gloslate.app" }
     },
     "development": {
       "developmentClient": true,
       "distribution": "internal",
-      "env": { "EXPO_PUBLIC_API_URL": "https://staging.tabitat.app" }
+      "env": { "EXPO_PUBLIC_API_URL": "https://staging.gloslate.app" }
     }
   },
   "submit": {
