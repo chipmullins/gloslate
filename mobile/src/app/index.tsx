@@ -6,6 +6,7 @@ import { useSession } from '@/lib/session';
 export default function Gate() {
   const { token, user, households, pendingInvite } = useSession();
   if (!token || !user) return <Redirect href="/welcome" />;
+  if (pendingInvite?.startsWith('friend:')) return <Redirect href={`/friend/${pendingInvite.slice(7)}` as Href} />;
   if (pendingInvite) return <Redirect href={`/join/${pendingInvite}` as Href} />;
   if (households.length === 0) return <Redirect href={'/onboarding' as Href} />;
   // Joined a trip but don't have a home here: start on Groups.

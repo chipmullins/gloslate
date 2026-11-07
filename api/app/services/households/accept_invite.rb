@@ -38,6 +38,12 @@ module Households
         m
       end
       AnalyticsEvent.track("member_joined", user: @user, household:)
+      # Joining someone's one-on-one tab makes you friends, so next time they
+      # can send you a request in the app instead of a link.
+      if household.group?
+        others = household.members.current.where.not(id: member.id).where.not(user_id: nil).to_a
+        Friendship.connect!(@user, others.first.user) if household.members.current.count == 2 && others.size == 1
+      end
       member
     end
   end

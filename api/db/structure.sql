@@ -252,6 +252,19 @@ CREATE TABLE public.expenses (
 
 
 --
+-- Name: friendships; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.friendships (
+    id uuid DEFAULT gen_random_uuid() NOT NULL,
+    user_id uuid NOT NULL,
+    friend_id uuid NOT NULL,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL
+);
+
+
+--
 -- Name: households; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -562,7 +575,8 @@ CREATE TABLE public.users (
     quiet_start_hour integer DEFAULT 22 NOT NULL,
     quiet_end_hour integer DEFAULT 8 NOT NULL,
     notification_prefs jsonb DEFAULT '{}'::jsonb NOT NULL,
-    face_id_lock boolean DEFAULT false NOT NULL
+    face_id_lock boolean DEFAULT false NOT NULL,
+    friend_token character varying
 );
 
 
@@ -644,6 +658,14 @@ ALTER TABLE ONLY public.expense_shares
 
 ALTER TABLE ONLY public.expenses
     ADD CONSTRAINT expenses_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: friendships friendships_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.friendships
+    ADD CONSTRAINT friendships_pkey PRIMARY KEY (id);
 
 
 --
@@ -929,6 +951,27 @@ CREATE INDEX index_expenses_on_payer_id ON public.expenses USING btree (payer_id
 
 
 --
+-- Name: index_friendships_on_friend_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_friendships_on_friend_id ON public.friendships USING btree (friend_id);
+
+
+--
+-- Name: index_friendships_on_user_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_friendships_on_user_id ON public.friendships USING btree (user_id);
+
+
+--
+-- Name: index_friendships_on_user_id_and_friend_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX index_friendships_on_user_id_and_friend_id ON public.friendships USING btree (user_id, friend_id);
+
+
+--
 -- Name: index_identities_on_provider_and_provider_uid; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -1181,6 +1224,13 @@ CREATE UNIQUE INDEX index_users_on_email ON public.users USING btree (email) WHE
 
 
 --
+-- Name: index_users_on_friend_token; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX index_users_on_friend_token ON public.users USING btree (friend_token);
+
+
+--
 -- Name: index_users_on_phone; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -1426,6 +1476,14 @@ ALTER TABLE ONLY public.expenses
 
 
 --
+-- Name: friendships fk_rails_d78dc9c7fd; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.friendships
+    ADD CONSTRAINT fk_rails_d78dc9c7fd FOREIGN KEY (friend_id) REFERENCES public.users(id);
+
+
+--
 -- Name: payment_allocations fk_rails_d8766ea65a; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -1439,6 +1497,14 @@ ALTER TABLE ONLY public.payment_allocations
 
 ALTER TABLE ONLY public.invites
     ADD CONSTRAINT fk_rails_dff58bdd03 FOREIGN KEY (member_id) REFERENCES public.members(id);
+
+
+--
+-- Name: friendships fk_rails_e3733b59b7; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.friendships
+    ADD CONSTRAINT fk_rails_e3733b59b7 FOREIGN KEY (user_id) REFERENCES public.users(id);
 
 
 --
@@ -1480,6 +1546,7 @@ ALTER TABLE ONLY public.expenses
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
+('20261107050000'),
 ('20261107040000'),
 ('20261106050000'),
 ('20261105040000'),

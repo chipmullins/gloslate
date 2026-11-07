@@ -6,14 +6,14 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { NotificationBell } from '@/components/confirm-payments';
 import { GroupIcon } from '@/components/group-icons';
-import { ChevronIcon, SendIcon } from '@/components/icons';
+import { AddPersonIcon, ChevronIcon, SendIcon } from '@/components/icons';
 import { Avatar, Card, Money, T } from '@/components/ui';
 import { HT } from '@/constants/theme';
 import { useLayout } from '@/hooks/use-layout';
-import { api, ApiError, type HouseholdSummary } from '@/lib/api';
+import { api, ApiError, type Friend, type HouseholdSummary } from '@/lib/api';
+import { shareLink } from '@/lib/share';
 import { formatCents } from '@/lib/money';
 import { toast } from '@/lib/toast';
-import { ToastHost } from '@/components/toast-host';
 import { useSession } from '@/lib/session';
 
 /** Words for a balance: "Jordan owes you" / "You owe Jordan" / "Settled". */
@@ -48,15 +48,42 @@ export default function Friends() {
   const people = all.filter((h) => h.member_count === 2);
   const groups = all.filter((h) => h.member_count !== 2);
   const [unread, setUnread] = useState(0);
+  const [friends, setFriends] = useState<Friend[]>([]);
+  const [link, setLink] = useState<string | null>(null);
+  const loadFriends = useCallback(() => {
+    api<{ data: Friend[]; link: string }>('/v1/friends').then((r) => { setFriends(r.data); setLink(r.link); }).catch(() => {});
+  }, []);
   useFocusEffect(useCallback(() => {
     refresh().catch(() => {});
+    loadFriends();
     api<{ unread: number }>('/v1/notifications').then((r) => setUnread(r.unread)).catch(() => {});
-  }, [refresh]));
+  }, [refresh, loadFriends]));
 
-  const renderRow = (g: HouseholdSummary, i: number, list: HouseholdSummary[], oneOnOne: boolean) => {
+  const friendTabs = new Set(friends.map((f) => f.tab_id).filter(Boolean) as string[]);
+  // Friends you don't have a tab with yet (with a tab, they're already in People).
+  const tabIds = new Set(people.map((p) => p.id));
+  const noTabYet = friends.filter((f) => !f.tab_id || !tabIds.has(f.tab_id));
+
+  async function inviteFriend() {
+    const url = link ?? (await api<{ link: string }>('/v1/friends').then((r) => r.link).catch(() => null));
+    if (!url) return toast.show({ text: "Couldn't make your link. Try again." });
+    await shareLink(`Add me on Gloslate so we can send each other what we owe without texting: ${url}`, url).catch(() => {});
+  }
+
+  async function openFriend(f: Friend) {
+    try {
+      const r = await api<{ data: { household_id: string } }>(`/v1/friends/${f.user_id}/tab`, { body: {} });
+      await refresh();
+      router.push(`/group/${r.data.household_id}` as Href);
+    } catch (e) {
+      toast.show({ text: e instanceof ApiError ? e.message : "Couldn't open it." });
+    }
+  }
+
+  const renderRow = (g: HouseholdSummary, i: number, list: HouseholdSummary[], oneOnOne: boolean, friend = false) => {
     const line = balanceLine(g, oneOnOne);
     const title = oneOnOne ? g.people?.[0] ?? g.name : g.name;
-    const sub = oneOnOne ? 'One-on-one' : `${g.member_count} people${g.people?.length ? ` · ${g.people.slice(0, 3).join(', ')}${g.member_count > 4 ? '…' : ''}` : ''}`;
+    const sub = oneOnOne ? (friend ? 'Friend' : 'One-on-one') : `${g.member_count} people${g.people?.length ? ` · ${g.people.slice(0, 3).join(', ')}${g.member_count > 4 ? '…' : ''}` : ''}`;
     const row = (
       <Pressable accessibilityRole="button" accessibilityLabel={`${title}, ${line.text}${g.balance.net_cents ? ` ${formatCents(Math.abs(g.balance.net_cents))}` : ''}${g.to_confirm_cents ? `. ${formatCents(g.to_confirm_cents)} marked paid, waiting for you to confirm` : ''}`}
         onPress={() => router.push(`/group/${g.id}` as Href)}
@@ -122,9 +149,10 @@ export default function Friends() {
           <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 10 }}>
             <Action icon={<SendIcon size={18} color={HT.color.brand} />} title="Settle up with someone" sub="One person owes the other" onPress={() => router.push('/request-friend' as Href)} />
             <Action icon={<GroupIcon size={22} color={HT.color.brand} />} title="Start a group" sub="A trip, dinners, anything shared" onPress={() => router.push('/group/new' as Href)} />
+            <Action icon={<AddPersonIcon size={20} color={HT.color.brand} />} title="Add a friend" sub="Send each other requests in the app" onPress={inviteFriend} />
           </View>
 
-          {all.length === 0 ? (
+          {all.length === 0 && friends.length === 0 ? (
             <Card style={{ gap: 8, paddingVertical: 22 }}>
               <T v="heading" style={{ fontSize: 17 }}>Split with anyone, not just roommates</T>
               <T v="muted">
@@ -133,10 +161,25 @@ export default function Friends() {
             </Card>
           ) : null}
 
-          {people.length > 0 ? (
+          {people.length > 0 || noTabYet.length > 0 ? (
             <View style={{ gap: 8 }}>
               <T v="heading">People</T>
-              <Card style={{ paddingVertical: 4 }}>{people.map((g, i) => renderRow(g, i, people, true))}</Card>
+              <Card style={{ paddingVertical: 4 }}>
+                {people.map((g, i) => renderRow(g, i, people, true, friendTabs.has(g.id)))}
+                {noTabYet.map((f, i) => (
+                  <Pressable key={f.user_id} accessibilityRole="button" accessibilityLabel={`${f.first_name}, friend. Start a tab.`} onPress={() => openFriend(f)}
+                    style={({ pressed }) => ({ flexDirection: 'row', alignItems: 'center', gap: 12, minHeight: 72, paddingHorizontal: 4, opacity: pressed ? 0.7 : 1,
+                      borderTopWidth: i > 0 || people.length > 0 ? 1 : 0, borderTopColor: HT.color.hairline })}>
+                    <Avatar name={f.first_name} index={((people.length + i) % 4) + 1} size={44} />
+                    <View style={{ flex: 1 }}>
+                      <T v="strong" numberOfLines={1}>{f.first_name}{f.last_initial ? ` ${f.last_initial}.` : ''}</T>
+                      <T v="small">Friend · no tab yet</T>
+                    </View>
+                    <T v="strong" style={{ color: HT.color.brand, fontSize: 13 }}>Start a tab</T>
+                    <ChevronIcon size={18} color={HT.color.muted} />
+                  </Pressable>
+                ))}
+              </Card>
             </View>
           ) : null}
 
@@ -148,7 +191,6 @@ export default function Friends() {
           ) : null}
         </View>
       </ScrollView>
-      <ToastHost bottom={24} />
     </SafeAreaView>
   );
 }

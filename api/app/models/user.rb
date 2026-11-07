@@ -1,5 +1,7 @@
 class User < ApplicationRecord
   has_many :identities, dependent: :destroy
+  has_many :friendships, dependent: :delete_all
+  has_many :friends, through: :friendships
   has_many :sessions, dependent: :destroy
   has_many :members
   has_many :households, through: :members
@@ -14,6 +16,21 @@ class User < ApplicationRecord
     return {} unless m
 
     { venmo_handle: m.venmo_handle, cashtag: m.cashtag, zelle_contact: m.zelle_contact }
+  end
+
+  # Your "add me as a friend" link (made the first time you share it).
+  def friend_link_token!
+    update!(friend_token: SecureRandom.urlsafe_base64(12)) if friend_token.blank?
+    friend_token
+  end
+
+  def friend_url = "#{ENV.fetch('PUBLIC_URL', 'https://gloslate.app')}/f/#{friend_link_token!}"
+
+  # The one-on-one tab you share with another user, if there is one.
+  def one_on_one_with(other)
+    ids = members.current.joins(:household).where(households: { kind: "group" }).pluck(:household_id) &
+          other.members.current.pluck(:household_id)
+    Household.where(id: ids).find { |h| h.members.current.count == 2 }
   end
 
   def locked? = locked_at.present?

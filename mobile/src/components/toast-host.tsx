@@ -1,12 +1,16 @@
 import { useEffect, useState } from 'react';
 import { AccessibilityInfo, Animated, Pressable, View } from 'react-native';
 
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+
 import { NightSurface, T } from '@/components/ui';
 import { HT } from '@/constants/theme';
 import { toast, type ToastMsg } from '@/lib/toast';
 
-/** Floating toast ("Added Dinner · Undo"). Lives above the Add button. */
-export function ToastHost({ bottom = 96 }: { bottom?: number }) {
+/** Floating toast ("Added Dinner · Undo"). One for the whole app (in the root layout), above the tab bar. */
+export function ToastHost({ bottom: offset }: { bottom?: number }) {
+  const insets = useSafeAreaInsets();
+  const bottom = offset ?? insets.bottom + 74;
   const [msg, setMsg] = useState<ToastMsg | null>(null);
   const [fade] = useState(() => new Animated.Value(0));
 

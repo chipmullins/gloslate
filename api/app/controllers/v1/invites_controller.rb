@@ -24,6 +24,8 @@ module V1
       h = invite.household
       render json: { data: {
         open: invite.open?, household_name: h.name, inviter: invite.created_by.first_name,
+        # What to call it: "home", a one-on-one "tab", or a "group".
+        kind: h.kind, noun: h.group? ? (h.members.current.count <= 2 ? "tab" : "group") : "home",
         for_member_id: invite.member_id,
         spots: h.members.current.select(&:placeholder?).map { |m| { id: m.id, first_name: m.first_name } },
         members: h.members.current.map(&:first_name)

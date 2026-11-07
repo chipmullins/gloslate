@@ -1,13 +1,13 @@
 import type React from 'react';
 import { router, type Href } from 'expo-router';
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { KeyboardAvoidingView, Platform, Pressable, ScrollView, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { CloseIcon, SendIcon } from '@/components/icons';
 import { Button, ErrorNote, Field, IconButton, T } from '@/components/ui';
 import { HT } from '@/constants/theme';
-import { api, ApiError, type Household, type Member } from '@/lib/api';
+import { api, ApiError, type Friend, type Household, type Member } from '@/lib/api';
 import { centsFirst, formatCents, parseCents } from '@/lib/money';
 import { newClientId } from '@/lib/split';
 import { useSession } from '@/lib/session';
@@ -34,6 +34,9 @@ export default function SettleWithSomeone() {
   const clientId = useRef(newClientId());
   const inFlight = useRef(false);
   const made = useRef<Tab | null>(null); // a tab created on an earlier try, reused on retry
+  const [friends, setFriends] = useState<Friend[]>([]);
+  const [picked, setPicked] = useState<Friend | null>(null); // a friend: requests go in the app, no link
+  useEffect(() => { api<{ data: Friend[] }>('/v1/friends').then((r) => setFriends(r.data)).catch(() => {}); }, []);
 
   const cents = parseCents(amount) ?? 0;
   // Half: the odd cent stays with whoever paid (same rule as the server).
@@ -53,6 +56,12 @@ export default function SettleWithSomeone() {
     return null;
   }
 
+  async function friendTab(f: Friend): Promise<Tab> {
+    const r = await api<{ data: { household_id: string } }>(`/v1/friends/${f.user_id}/tab`, { body: {} });
+    const d = (await api<{ data: Household }>(`/v1/households/${r.data.household_id}`)).data;
+    return { group: d, other: d.members.find((m) => !m.you && !m.former)! };
+  }
+
   async function go() {
     if (!ready || inFlight.current) return;
     inFlight.current = true;
@@ -61,7 +70,7 @@ export default function SettleWithSomeone() {
     try {
       if (needsName) await api('/v1/me', { method: 'PATCH', body: { first_name: myName.trim() } });
       const name = friend.trim();
-      let tab = await findTab(name);
+      let tab = picked ? await friendTab(picked) : await findTab(name);
       if (!tab) {
         const me = (user?.first_name || myName.trim()).split(' ')[0];
         const res = await api<{ data: Household }>('/v1/households', { body: { kind: 'group', name: `${me} & ${name.split(' ')[0]}`, roommates: [name] } });
@@ -81,7 +90,7 @@ export default function SettleWithSomeone() {
       });
       await refresh();
       if (theyOwe) {
-        await sendRequest(group.id, other.id);
+        await sendRequest(group.id, other.id, other.first_name);
         router.replace(`/group/${group.id}` as Href);
       } else {
         router.replace(`/group/settle?hid=${group.id}&from=${me}&to=${other.id}` as Href);
@@ -115,7 +124,26 @@ export default function SettleWithSomeone() {
           </View>
           <ScrollView contentContainerStyle={{ gap: 18, paddingBottom: 16 }} keyboardShouldPersistTaps="handled">
             {needsName ? <Field label="Your first name" value={myName} onChangeText={setMyName} autoCapitalize="words" textContentType="givenName" /> : null}
-            <Field label="Who is it with?" value={friend} onChangeText={setFriend} placeholder="Their name" autoCapitalize="words" maxLength={40} autoFocus={!needsName} />
+            {friends.length > 0 ? (
+              <View style={{ gap: 8 }}>
+                <T v="label">Your friends</T>
+                <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginHorizontal: -20, flexGrow: 0 }} contentContainerStyle={{ gap: 8, paddingHorizontal: 20 }}>
+                  {friends.map((f) => {
+                    const on = picked?.user_id === f.user_id;
+                    return (
+                      <Pressable key={f.user_id} accessibilityRole="radio" accessibilityState={{ checked: on }} accessibilityLabel={f.first_name}
+                        onPress={() => { setPicked(on ? null : f); setFriend(on ? '' : f.first_name); }}
+                        style={{ minHeight: 44, paddingHorizontal: 14, borderRadius: 22, flexDirection: 'row', alignItems: 'center', gap: 8,
+                          borderWidth: on ? 1.5 : 1, borderColor: on ? HT.color.brand : HT.color.chipBorder, backgroundColor: on ? HT.color.brandTint : HT.color.surface }}>
+                        <T v="strong" style={{ fontSize: 14, color: on ? HT.color.brand : HT.color.ink }}>{f.first_name}{f.last_initial ? ` ${f.last_initial}.` : ''}</T>
+                      </Pressable>
+                    );
+                  })}
+                </ScrollView>
+              </View>
+            ) : null}
+            <Field label={friends.length > 0 ? 'Or someone else' : 'Who is it with?'} value={picked ? '' : friend} onChangeText={(t) => { setPicked(null); setFriend(t); }}
+              placeholder={picked ? `${picked.first_name} (friend)` : 'Their name'} autoCapitalize="words" maxLength={40} autoFocus={!needsName && friends.length === 0} />
             {segment(<>{option(theyOwe, 'They owe me', () => setTheyOwe(true))}{option(!theyOwe, 'I owe them', () => setTheyOwe(false))}</>)}
             <Field label={theyOwe ? 'How much did you pay?' : `How much did ${first || 'they'} pay?`} value={amount} onChangeText={(t) => setAmount(centsFirst(t))} keyboardType="number-pad" placeholder="0.00" />
             <Field label="What for? (optional)" value={what} onChangeText={setWhat} placeholder="Lunch, concert tickets…" maxLength={60} />
@@ -125,7 +153,7 @@ export default function SettleWithSomeone() {
             </View>
             {cents > 0 && first ? (
               <T v="muted" style={{ textAlign: 'center' }}>
-                {theyOwe ? `${first} will owe you ${formatCents(owedPart)}. You'll pick how to send the link next.` : `You'll owe ${first} ${formatCents(owedPart)}. Next you'll see how to pay them.`}
+                {theyOwe ? `${first} will owe you ${formatCents(owedPart)}. ${picked ? 'They get it as a notification in Gloslate.' : "You'll pick how to send the link next."}` : `You'll owe ${first} ${formatCents(owedPart)}. Next you'll see how to pay them.`}
               </T>
             ) : null}
           </ScrollView>

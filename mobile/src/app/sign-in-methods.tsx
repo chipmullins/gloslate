@@ -8,17 +8,12 @@ import { Button, Card, ErrorNote, Field, IconButton, Screen, T } from '@/compone
 import { HT } from '@/constants/theme';
 import { api, ApiError, type User } from '@/lib/api';
 import { goBack } from '@/lib/nav';
+import { prettyPhone } from '@/lib/phone';
 import { useSession } from '@/lib/session';
 import { toast } from '@/lib/toast';
 
 type Identity = User['identities'][number];
 const NAMES: Record<string, string> = { email: 'Email', phone: 'Phone', apple: 'Apple', google: 'Google', glofly: 'Glofly' };
-
-/** "+15025550101" → "(502) 555-0101"; anything else as is. */
-export function prettyPhone(p: string) {
-  const m = /^\+1(\d{3})(\d{3})(\d{4})$/.exec(p);
-  return m ? `(${m[1]}) ${m[2]}-${m[3]}` : p;
-}
 
 function describe(i: Identity) {
   if (i.provider === 'phone') return i.label ? prettyPhone(i.label) : 'Phone number';

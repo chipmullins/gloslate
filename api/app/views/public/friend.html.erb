@@ -1,0 +1,19 @@
+<% name = @friend&.first_name.presence || "Your friend" %>
+<% content_for :title, @friend ? "Add #{name} on Gloslate" : "Link not found · Gloslate" %>
+<% content_for :head do %>
+  <meta name="robots" content="noindex">
+  <% if @friend %><meta property="og:title" content="Add <%= name %> on Gloslate"><meta property="og:description" content="Send each other what you owe without texting links back and forth."><% end %>
+<% end %>
+<main style="max-width:440px;margin:0 auto;padding:56px 20px;display:flex;flex-direction:column;gap:18px">
+  <%= render "public/mark", size: 64 %>
+  <% if @friend %>
+    <h1 style="margin:0;font-size:32px;line-height:1.15;font-weight:800;letter-spacing:-0.02em">Add <%= name %> as a friend?</h1>
+    <p style="margin:0;color:var(--muted);line-height:1.5">Once you're friends, you can send each other what you owe right in Gloslate. No more texting links back and forth.</p>
+    <a href="tabitat://friend/<%= params[:token] %>" style="min-height:54px;border-radius:16px;background:var(--brand);color:#fff;font-weight:800;display:flex;align-items:center;justify-content:center;text-decoration:none">Open in Gloslate</a>
+    <a href="https://app.<%= URI(ENV.fetch('PUBLIC_URL', 'https://gloslate.app')).host %>/friend/<%= params[:token] %>" style="min-height:50px;border-radius:16px;border:1px solid var(--chip-border, #DCCFD8);color:var(--ink);font-weight:700;display:flex;align-items:center;justify-content:center;text-decoration:none">Use it on the web</a>
+    <p style="margin:0;color:var(--muted);font-size:14px;text-align:center">Don't have it yet? Get Gloslate for <a href="<%= ENV.fetch('APP_STORE_URL', '#') %>">iPhone & iPad</a> or <a href="<%= ENV.fetch('PLAY_STORE_URL', '#') %>">Android</a>, then tap this link again.</p>
+  <% else %>
+    <h1 style="margin:0;font-size:28px;font-weight:800">This link doesn't work anymore</h1>
+    <p style="margin:0;color:var(--muted)">Ask your friend for a new one.</p>
+  <% end %>
+</main>
