@@ -19,6 +19,8 @@ services:
   caddy:
     image: caddy:2
     restart: unless-stopped
+    # Changing this label makes the server start Caddy fresh (it then retries any certificates right away).
+    labels: { app.tabitat.caddy-config: "2026-11-06-gloslate" }
     ports: ["80:80", "443:443", "443:443/udp"]
     env_file: [/data/env/server.env]
     volumes:
