@@ -19,6 +19,7 @@
   --on-dark: #F3EEF5; --on-dark-muted: #BBA9C4; --on-dark-owed: #A9D9BD; --on-dark-owe: #FF9E80;
   --glass: #FFFFFF14; --glass-border: #FFFFFF24;
   --glow: #FFB547; --glow-halo: #FFB54755; --on-glow: #2A1A33;
+  --glow-deep: #E8961F; /* the wordmark's "glo" on light backgrounds: amber that still reads */
   --display: "Outfit", "DM Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
   --ui: "DM Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
   --num: "DM Sans Tabular", "DM Sans", system-ui, sans-serif;
