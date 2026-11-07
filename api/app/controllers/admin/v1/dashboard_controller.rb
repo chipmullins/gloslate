@@ -14,7 +14,8 @@ module Admin
           expenses_added: windows.transform_values { |t| Expense.where(created_at: t..).count },
           payments_marked: windows.transform_values { |t| Payment.where(marked_at: t..).count },
           payments_confirmed: windows.transform_values { |t| Payment.counted.where(confirmed_at: t..).count },
-          generated_at: now
+          generated_at: now,
+          control: Control::Stats.dashboard.except(:new_accounts) # the same numbers as Control's dashboard
         } }
       end
     end

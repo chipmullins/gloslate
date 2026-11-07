@@ -59,6 +59,9 @@ jobs:
           platforms: linux/amd64
           push: true
           tags: ${{ env.IMAGE }}:sha-${{ github.sha }}
+          build-args: |
+            APP_REVISION=${{ github.sha }}
+            APP_BUILT_AT=${{ github.event.head_commit.timestamp }}
           labels: |
             org.opencontainers.image.source=https://github.com/${{ github.repository }}
             org.opencontainers.image.revision=${{ github.sha }}

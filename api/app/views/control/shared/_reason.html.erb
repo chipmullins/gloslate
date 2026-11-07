@@ -1,0 +1,4 @@
+<%# A reason field (required, saved in the audit log) with quick picks. %>
+<% id = "r#{SecureRandom.hex(3)}" %>
+<div><label class="l" for="<%= id %>">Reason (goes in the audit log)</label>
+<input class="f" id="<%= id %>" name="reason" required minlength="5" maxlength="500" list="quick-reasons" placeholder="<%= local_assigns[:placeholder] || 'Why?' %>"></div>

@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex, nofollow">
+  <title><%= content_for?(:title) ? "#{yield(:title)} · Gloslate Control" : "Gloslate Control" %></title>
+  <link rel="icon" href="/icon.svg" type="image/svg+xml">
+  <style><%= raw File.read(Rails.root.join("app/assets/stylesheets/tokens.css")) %><%= raw File.read(Rails.root.join("app/assets/stylesheets/control.css")) %></style>
+</head>
+<body>
+<div class="c-shell">
+  <nav class="c-side" aria-label="Control">
+    <a class="c-brand" href="<%= control_root_path %>">
+      <%= render "public/mark", size: 40, inverted: true %>
+      <span style="display:flex;flex-direction:column;gap:3px"><span class="c-word"><b>glo</b>slate</span><span class="c-tag">CONTROL</span></span>
+    </a>
+    <% if Hometab::Switches.paused? %>
+      <a class="c-alertpill" href="<%= control_server_path %>"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M9 6v12M15 6v12"/></svg>Gloslate is paused</a>
+    <% elsif Hometab::Switches.read_only? %>
+      <a class="c-alertpill" href="<%= control_server_path %>">Read-only mode is on</a>
+    <% end %>
+    <div class="c-nav">
+      <% nav.each do |key, label, href, icon| %>
+        <% next if key == "audit" && !at_least?(:admin) %>
+        <a href="<%= href %>"<%= raw(' aria-current="page"') if content_for(:nav) == key %>>
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="<%= icon %>"/></svg>
+          <%= label %>
+        </a>
+      <% end %>
+    </div>
+    <div class="c-me">
+      <div style="display:flex;align-items:center;gap:10px">
+        <span class="avatar" style="width:34px;height:34px"><%= current_staff.name.to_s[0] %></span>
+        <span style="display:flex;flex-direction:column"><b style="font-size:14px"><%= current_staff.name %></b><small><%= current_staff.role.capitalize %> · signed in until <%= local_time(current_staff_session_expires, "%-l:%M %p") %></small></span>
+      </div>
+      <form action="<%= control_sign_out_path %>" method="post"><input type="hidden" name="form_token" value="<%= form_token %>"><button type="submit">Sign out</button></form>
+    </div>
+  </nav>
+  <main class="c-main" id="main">
+    <% if flash_message && flash_message["text"].present? %>
+      <div class="flash <%= flash_message["kind"] == "alert" ? "alert" : "notice" %>" role="status"><%= flash_message["text"] %></div>
+    <% end %>
+    <%= yield %>
+  </main>
+</div>
+<datalist id="quick-reasons">
+  <option value="Asked by the person (support request)"></option>
+  <option value="Lost access to their phone or email"></option>
+  <option value="Lost or stolen device"></option>
+  <option value="Suspected someone else got in"></option>
+  <option value="Asked for a copy of their data"></option>
+  <option value="Asked to delete their account"></option>
+  <option value="Maintenance"></option>
+  <option value="Testing"></option>
+</datalist>
+</body>
+</html>

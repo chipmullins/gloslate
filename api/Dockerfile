@@ -70,6 +70,11 @@ USER 1000:1000
 COPY --chown=rails:rails --from=build "${BUNDLE_PATH}" "${BUNDLE_PATH}"
 COPY --chown=rails:rails --from=build /rails /rails
 
+# Which commit this image is (shown in Control; a new one after a gap = an update, not an outage).
+ARG APP_REVISION=dev
+ARG APP_BUILT_AT=""
+ENV APP_REVISION=$APP_REVISION APP_BUILT_AT=$APP_BUILT_AT
+
 # Entrypoint prepares the database.
 ENTRYPOINT ["/rails/bin/docker-entrypoint"]
 

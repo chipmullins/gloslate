@@ -68,6 +68,17 @@ SET default_tablespace = '';
 SET default_table_access_method = heap;
 
 --
+-- Name: active_days; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.active_days (
+    user_id uuid NOT NULL,
+    day date NOT NULL,
+    platform character varying
+);
+
+
+--
 -- Name: active_storage_attachments; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -462,6 +473,18 @@ CREATE TABLE public.schema_migrations (
 
 
 --
+-- Name: server_settings; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.server_settings (
+    key character varying NOT NULL,
+    value jsonb DEFAULT '{}'::jsonb NOT NULL,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL
+);
+
+
+--
 -- Name: sessions; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -550,6 +573,21 @@ CREATE TABLE public.statements (
     period_end date NOT NULL,
     generated_at timestamp(6) without time zone NOT NULL,
     data jsonb DEFAULT '{}'::jsonb NOT NULL,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL
+);
+
+
+--
+-- Name: uptime_events; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.uptime_events (
+    id uuid DEFAULT gen_random_uuid() NOT NULL,
+    kind character varying NOT NULL,
+    started_at timestamp(6) without time zone NOT NULL,
+    ended_at timestamp(6) without time zone,
+    note character varying,
     created_at timestamp(6) without time zone NOT NULL,
     updated_at timestamp(6) without time zone NOT NULL
 );
@@ -749,6 +787,14 @@ ALTER TABLE ONLY public.schema_migrations
 
 
 --
+-- Name: server_settings server_settings_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.server_settings
+    ADD CONSTRAINT server_settings_pkey PRIMARY KEY (key);
+
+
+--
 -- Name: sessions sessions_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -789,11 +835,33 @@ ALTER TABLE ONLY public.statements
 
 
 --
+-- Name: uptime_events uptime_events_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.uptime_events
+    ADD CONSTRAINT uptime_events_pkey PRIMARY KEY (id);
+
+
+--
 -- Name: users users_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.users
     ADD CONSTRAINT users_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: index_active_days_on_day; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_active_days_on_day ON public.active_days USING btree (day);
+
+
+--
+-- Name: index_active_days_on_user_id_and_day; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX index_active_days_on_user_id_and_day ON public.active_days USING btree (user_id, day);
 
 
 --
@@ -1217,6 +1285,13 @@ CREATE UNIQUE INDEX index_statements_on_household_id_and_period_end ON public.st
 
 
 --
+-- Name: index_uptime_events_on_started_at; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_uptime_events_on_started_at ON public.uptime_events USING btree (started_at);
+
+
+--
 -- Name: index_users_on_email; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -1546,6 +1621,7 @@ ALTER TABLE ONLY public.expenses
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
+('20261107060000'),
 ('20261107050000'),
 ('20261107040000'),
 ('20261106050000'),

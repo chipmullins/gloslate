@@ -15,7 +15,7 @@ Owner: Chip Mullins. Brand line: "Gloslate by Glofly". Legal owner: HarborWorks.
 ## Layout
 
 ```
-api/      Rails 8 (API mode) + server-rendered request pages, landing page
+api/      Rails 8 (API mode) + server-rendered request pages, landing page, Gloslate Control (/control)
 mobile/   Expo (React Native, TypeScript, expo-router)
 infra/    AWS CloudFormation (infra/aws/tabitat.yml); the server pulls images from ghcr.io (docs/deploy.md)
 docs/     decisions, admin API, Glofly integration, runbooks
@@ -30,7 +30,7 @@ docs/     decisions, admin API, Glofly integration, runbooks
 5. **No money movement.** Copy says a payment was *marked* or *confirmed by a person*, never verified by Gloslate.
 6. **Auth is provider-agnostic.** `users` has many `identities (provider, provider_uid)`. Launch providers: email, phone, apple, google. `glofly` drops in later with no schema change.
 7. **Request pages** are public by unguessable token; show first names, amounts, breakdown only.
-8. **Admin API from day one** (see `docs/admin-api.md`). Staff are a separate auth realm from app users; every staff action is audit-logged.
+8. **Admin API from day one** (see `docs/admin-api.md`). Staff are a separate auth realm from app users; every staff action is audit-logged. **Gloslate Control** (the staff console) is server-rendered Rails at `/control` on the staff hosts; a desktop Control (merged with Glofly Control) will come later on the JSON admin API, so new Control features get both a page and a JSON endpoint. New app API routes stay behind `Hometab::Pause` (the kill switch) automatically; only `/admin`, `/control`, `/up`, `/status` and static files are exempt.
 9. **Never modify the Glofly repo or backend.** Track required Glofly changes in `docs/glofly-integration.md`.
 
 Renamed from HomeTab on Nov 4, 2026. The repo (`chipmullins/hometab`), the Ruby namespace (`Hometab::`, `lib/hometab/`) and dev/test database names keep the old name on purpose; at that point everything users, stores or AWS saw said Tabitat.

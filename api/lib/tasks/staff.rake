@@ -10,5 +10,7 @@ namespace :staff do
     puts "Created #{staff.role} #{staff.email}."
     puts "Add this to your authenticator app now (it isn't shown again):"
     puts staff.otp_uri
+    puts "(or type this setup key: #{staff.otp_secret.scan(/.{1,4}/).join(' ')})"
+    puts "Then sign in at https://#{ENV.fetch('CONTROL_HOSTS', 'admin-api.gloslate.app').split(',').first}/control"
   end
 end

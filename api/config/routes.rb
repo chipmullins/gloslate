@@ -1,5 +1,54 @@
 Rails.application.routes.draw do
   get "up" => "rails/health#show", as: :rails_health_check
+  # What apps poll while showing "Gloslate is paused" (open even when paused).
+  get "status", to: "status#show"
+
+  # Gloslate Control, the staff console (server-rendered, app/controllers/control).
+  # Only on the staff hosts in production (CONTROL_HOSTS); "/" there opens it.
+  control_host = lambda do |req|
+    hosts = ENV.fetch("CONTROL_HOSTS", "").split(",").map(&:strip).reject(&:empty?)
+    hosts.empty? || hosts.include?(req.host)
+  end
+  constraints(control_host) do
+    get "/", to: redirect("/control"), constraints: ->(req) { req.host.start_with?("control.", "admin-api.") }
+    scope "control", module: "control", as: "control" do
+      get "/", to: "dashboard#show", as: :root
+      get "sign-in", to: "sessions#new", as: :sign_in
+      post "sign-in", to: "sessions#create"
+      post "sign-out", to: "sessions#destroy", as: :sign_out # plain forms only send GET/POST
+      get "insights", to: "insights#show", as: :insights
+      resources :accounts, only: %i[index show] do
+        member do
+          post :revoke_sessions
+          post "sessions/:session_id/revoke", action: :revoke_session, as: :revoke_session
+          post :lock
+          post :unlock
+          post :send_code
+          post :change_contact
+          post "identities/:identity_id/remove", action: :remove_identity, as: :remove_identity
+          post :delete, action: :destroy
+          post :rename
+          post :message
+          post :export
+        end
+      end
+      resources :tabs, only: %i[index show] do
+        get :history, on: :member
+      end
+      get "server", to: "server#show", as: :server
+      post "server/pause", to: "server#pause", as: :server_pause
+      post "server/read-only", to: "server#read_only", as: :server_read_only
+      post "server/feature", to: "server#feature", as: :server_feature
+      post "server/retry-jobs", to: "server#retry_jobs", as: :server_retry_jobs
+      post "server/backup", to: "server#backup", as: :server_backup
+      post "server/restart", to: "server#restart", as: :server_restart
+      get "audit", to: "audit#index", as: :audit
+      resources :staff, only: :create do
+        post :update, on: :member, as: :update
+        post :reset_otp, on: :member
+      end
+    end
+  end
 
   # Public pages (server-rendered)
   root "public#home"
@@ -93,6 +142,12 @@ Rails.application.routes.draw do
     namespace :v1 do
       resource :session, only: %i[create show destroy]
       resource :dashboard, controller: "dashboard", only: :show
+      get "server", to: "server#show"
+      get "server/uptime", to: "server#uptime"
+      get "insights", to: "server#insights"
+      post "server/pause", to: "server#pause"
+      post "server/read_only", to: "server#read_only"
+      post "server/feature", to: "server#feature"
       resources :users, only: %i[index show] do
         member do
           post :revoke_sessions

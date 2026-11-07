@@ -12,6 +12,8 @@ module Auth
           user = (email && User.active.find_by(email:)) || (phone && User.active.find_by(phone:))
         end
         if user.nil?
+          raise Hometab::Error, "New accounts are paused for a little while. Please try again later." unless Hometab::Switches.feature?("signups")
+
           new_user = true
           user = User.create!(email: (email if email_verified), phone:, first_name: first_name.to_s, last_name:)
         end

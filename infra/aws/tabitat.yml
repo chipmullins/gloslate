@@ -382,6 +382,7 @@ Resources:
         - { Name: !Sub "api.${NewDomain}", Type: A, TTL: "300", ResourceRecords: [!Ref PublicIp] }
         - { Name: !Sub "app.${NewDomain}", Type: A, TTL: "300", ResourceRecords: [!Ref PublicIp] }
         - { Name: !Sub "admin-api.${NewDomain}", Type: A, TTL: "300", ResourceRecords: [!Ref PublicIp] }
+        - { Name: !Sub "control.${NewDomain}", Type: A, TTL: "300", ResourceRecords: [!Ref PublicIp] } # Gloslate Control (staff)
         - { Name: !Sub "staging.${NewDomain}", Type: A, TTL: "300", ResourceRecords: [!Ref PublicIp] }
   NewEmailIdentity:
     Type: AWS::SES::EmailIdentity

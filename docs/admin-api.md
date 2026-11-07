@@ -1,6 +1,6 @@
 # Admin API (for Gloslate Control / HarborWorks Control)
 
-Built from day one so a staff console can connect later. Today there is no console; the API is the contract. It is designed so a future **HarborWorks Control** can front both Glofly and Gloslate with the same patterns.
+Built from day one so a staff console can connect later. **Gloslate Control** (the console) now exists as server-rendered Rails pages at `/control` (see below); this JSON API stays the contract for a desktop Control later. It is designed so a future **HarborWorks Control** can front both Glofly and Gloslate with the same patterns.
 
 ## Status
 
@@ -57,3 +57,18 @@ An `analytics_events` table (append-only, no PII beyond user/household ids) reco
 ## HarborWorks Control later
 
 Keep response shapes generic (`{ data, meta: { page, total } }`, ISO timestamps, string ids) so one console can talk to both apps. Note in `glofly-integration.md` any shared staff identity work.
+
+
+## Gloslate Control (web, Nov 7, 2026)
+
+Server-rendered Rails pages in the same app: `app/controllers/control/*`, `app/views/control/*`, `app/assets/stylesheets/control.css`. Mockups: the "Gloslate Control" design canvas.
+
+- **Where:** `https://admin-api.gloslate.app/control` now; `https://control.gloslate.app` once the stack update adds its DNS record (then add `control.gloslate.app` to the Caddyfile's gloslate block). Only hosts in `CONTROL_HOSTS` answer; `/` on `control.`/`admin-api.` opens it.
+- **Sign-in:** staff email + password + authenticator code (`Staff::SignIn`, shared with `POST /admin/v1/session`). The session token sits in an encrypted, httpOnly, SameSite=Strict cookie scoped to `/control`; every form posts a per-session HMAC token. No JavaScript (CSP `default-src 'none'`).
+- **Pages:** Dashboard, Accounts (search/filters, detail, sign-in methods, change email/phone, send code, sign out one/all devices, lock/unlock, rename, message as team, export JSON, delete with typed name), Insights (DAU/WAU/MAU from `active_days`, funnel, cohorts, features, platforms, settle times, CSV), Tabs (balances, plan, ledger, CSV), Server, Audit log + staff (add, role, turn off, new authenticator secret, CSV).
+- **Server page:** the kill switch (`Hometab::Switches.set_pause!`; `Hometab::Pause` middleware answers 503 `{code: "paused"}` to the app API and a paused page elsewhere; `/admin`, `/control`, `/up`, `/status`, fonts stay open; apps poll `GET /status`), read-only mode (503 `{code: "read_only"}` on API changes except sign-in), feature switches (sign-ups, sending requests, automatic reminders, pushes, web app), up time (`Hometab::Heartbeat`: a heartbeat every 30 s from the web process; a gap over 90 s becomes an `uptime_events` row: restart / update / outage; pauses recorded separately and not counted), machine stats, versions (`APP_REVISION` baked into the image), and tools (retry failed jobs, database backup via `pg_dump`, restart Puma in place). Pause, read-only, backup and restart need the authenticator code again.
+- **Roles:** viewer (looks; contact details masked to the last 2 digits), support (account actions), admin (switches, deletes, backups, staff, audit log). Every look at personal data and every change is in `admin_audit_events` with a reason.
+- **JSON for a desktop Control:** `GET /admin/v1/server`, `/admin/v1/server/uptime`, `/admin/v1/insights`; `POST /admin/v1/server/pause|read_only|feature`; `/admin/v1/dashboard` includes the same numbers under `control`.
+
+First staff account (on the server, Session Manager):
+`sudo docker exec -it tabitat-production-web bin/rails staff:create EMAIL=you@example.com NAME="Your Name"` (asks for a 12+ character password, prints the authenticator setup key once).

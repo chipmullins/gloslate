@@ -1,6 +1,8 @@
 import * as SecureStore from 'expo-secure-store';
 import { Platform } from 'react-native';
 
+import { paused } from '@/lib/paused';
+
 // Release builds always reach the live server, even if no .env file was picked up.
 // The web app (app.gloslate.app) is served by the API server itself, so it
 // calls the API on its own origin: no cross-site requests.
@@ -8,6 +10,7 @@ const BASE = Platform.OS === 'web' && !__DEV__
   ? ''
   : process.env.EXPO_PUBLIC_API_URL || (__DEV__ ? 'http://localhost:3000' : 'https://api.gloslate.app');
 const TOKEN_KEY = 'tabitat.session';
+
 
 export class ApiError extends Error {
   constructor(public status: number, message: string) {
@@ -41,6 +44,16 @@ export const tokenStore = {
   },
 };
 
+/** Is Gloslate paused? (Polled by the paused screen; always answers.) */
+export async function fetchStatus(): Promise<{ paused: boolean; message?: string; since?: string } | null> {
+  try {
+    const res = await fetch(`${BASE}/status`, { headers: { Accept: 'application/json' } });
+    return res.ok ? await res.json() : null;
+  } catch {
+    return null;
+  }
+}
+
 export async function api<T = unknown>(
   path: string,
   init: { method?: string; body?: unknown; token?: string | null } = {},
@@ -62,6 +75,7 @@ export async function api<T = unknown>(
   }
   if (res.status === 204) return undefined as T;
   const data = await res.json().catch(() => ({}));
+  if (res.status === 503 && data.code === 'paused') paused.set({ message: data.message ?? data.error, since: data.since });
   if (!res.ok) throw new ApiError(res.status, data.error ?? 'Something went wrong. Try again.');
   return data as T;
 }

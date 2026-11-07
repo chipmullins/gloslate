@@ -10,6 +10,10 @@ module Notifications
     module_function
 
     def run(now = Time.current)
+      # Turned off in Control: notifications wait (still in the app's list) and
+      # go out when pushes are back on.
+      return 0 unless Hometab::Switches.feature?("pushes")
+
       count = 0
       Notification.due(now).includes(:user).find_each do |n|
         if (resume = quiet_until(n.user, now))
