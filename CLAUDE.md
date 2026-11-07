@@ -35,7 +35,7 @@ docs/     decisions, admin API, Glofly integration, runbooks
 
 Renamed from HomeTab on Nov 4, 2026. The repo (`chipmullins/hometab`), the Ruby namespace (`Hometab::`, `lib/hometab/`) and dev/test database names keep the old name on purpose; at that point everything users, stores or AWS saw said Tabitat.
 
-Renamed Tabitat → **Gloslate** on Nov 6, 2026. Everything users see says Gloslate. The domain is still `tabitat.app` (`api.tabitat.app`, `support@tabitat.app`) until the owner switches it; bundle ID `app.tabitat`, scheme `tabitat://`, Expo slug, AWS names `tabitat-*`, env files (`MAIL_FROM`) and GitHub artifact names are unchanged on purpose.
+Renamed Tabitat → **Gloslate** on Nov 6, 2026, and moved to **gloslate.app** the same day (`api.gloslate.app`, `app.gloslate.app`, `staging.gloslate.app`, `support@gloslate.app`). tabitat.app stays registered: `api.tabitat.app` keeps serving older app installs, and everything else on tabitat.app redirects to gloslate.app with the same path. Email still sends from `hello@tabitat.app` until the gloslate.app SES identity is verified (then flip `MAIL_FROM`). Bundle ID `app.tabitat`, scheme `tabitat://`, Expo slug, AWS names `tabitat-*` and GitHub artifact names are unchanged on purpose.
 
 ## Design system (layout from canvas v3; Plum Night colors, logo and fonts from the GloNight brand canvas)
 

@@ -41,14 +41,14 @@ In Expo Go, receipt scanning falls back to attaching the photo and typing the to
 | `RAILS_MASTER_KEY` | decrypts credentials (never commit `config/master.key`) |
 | `TABITAT_DATABASE_PASSWORD` | RDS password |
 | `ALLOWED_HOSTS` | default `tabitat.app,api.tabitat.app,admin-api.tabitat.app` |
-| `PUBLIC_URL` | `https://tabitat.app` (request and invite links) |
+| `PUBLIC_URL` | `https://gloslate.app` (request and invite links) |
 | `S3_BUCKET`, `AWS_REGION` | receipts / exports (instance role, no keys) |
 | `MAIL_FROM` | `Gloslate <hello@tabitat.app>` |
 | `APPLE_CLIENT_IDS`, `GOOGLE_CLIENT_IDS` | ID token audiences |
 | `APPLE_TEAM_ID`, `ANDROID_CERT_SHA256` | universal links (`/.well-known/...`) |
 | `EXPO_ACCESS_TOKEN` | optional, for Expo push security |
 | `APP_STORE_URL`, `PLAY_STORE_URL` | store links on the website and invite pages ("Coming soon" until set) |
-| `SUPPORT_EMAIL` | contact address on Support, Privacy and Terms (default `support@tabitat.app`) |
+| `SUPPORT_EMAIL` | contact address on Support, Privacy and Terms (default `support@gloslate.app`) |
 | `LEGAL_DRAFT` | set to `false` once Privacy and Terms are reviewed, to hide the "Draft for review" notice |
 
 ## Before launch (not code)

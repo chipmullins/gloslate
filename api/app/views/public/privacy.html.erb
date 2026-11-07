@@ -1,7 +1,7 @@
 <% content_for :title, "Privacy policy · Gloslate" %>
 <% content_for :head do %><meta name="description" content="What Gloslate collects, why, who can see it, and how to export or delete it."><% end %>
 <% content_for :styles do %><style><%= raw File.read(Rails.root.join("app/assets/stylesheets/site.css")) %></style><% end %>
-<% support = ENV.fetch("SUPPORT_EMAIL", "support@tabitat.app") %>
+<% support = ENV.fetch("SUPPORT_EMAIL", "support@gloslate.app") %>
 <%= render "public/site_nav" %>
 <main id="main" class="container">
 <article class="doc">
@@ -21,7 +21,7 @@
     </ul>
   </div>
 
-  <p>This policy explains how HarborWorks ("we", "us"), the maker of Gloslate, handles information when you use the Gloslate apps and tabitat.app (together, "Gloslate").</p>
+  <p>This policy explains how HarborWorks ("we", "us"), the maker of Gloslate, handles information when you use the Gloslate apps and gloslate.app (together, "Gloslate").</p>
 
   <h2>What we collect</h2>
   <ul>
