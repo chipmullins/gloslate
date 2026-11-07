@@ -22,7 +22,7 @@ module Control
     before_action :take_flash
     before_action :authenticate!
     before_action :check_form_token!, unless: -> { request.get? || request.head? }
-    helper_method :page_ms, :flash_message, :current_staff_session_expires, :current_staff, :form_token, :mask, :money, :at_least?, :local_time, :ago, :nav
+    helper_method :page_ms, :page_parts, :flash_message, :current_staff_session_expires, :current_staff, :form_token, :mask, :money, :at_least?, :local_time, :ago, :nav
 
     rescue_from Hometab::Error, Hometab::Forbidden do |e|
       flash_next(:alert, e.message)
@@ -87,8 +87,18 @@ module Control
       yield
     ensure
       ms = ((Process.clock_gettime(Process::CLOCK_MONOTONIC) - started) * 1000).round
-      response.headers["Server-Timing"] = "app;dur=#{ms}"
+      response.headers["Server-Timing"] = ([["app", ms]] + (@parts || {}).to_a).map { |k, v| "#{k};dur=#{v}" }.join(", ")
     end
+
+    # Times one part of a page (shown with the page time, for finding slow parts).
+    def timed(name)
+      t = Process.clock_gettime(Process::CLOCK_MONOTONIC)
+      yield
+    ensure
+      (@parts ||= {})[name] = ((Process.clock_gettime(Process::CLOCK_MONOTONIC) - t) * 1000).round
+    end
+
+    def page_parts = (@parts || {}).select { |_, ms| ms >= 20 }.map { |k, ms| "#{k} #{ms}" }.join(", ")
 
     def page_ms = ((Process.clock_gettime(Process::CLOCK_MONOTONIC) - @page_started) * 1000).round
 

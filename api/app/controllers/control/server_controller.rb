@@ -11,8 +11,8 @@ module Control
       @pause = Hometab::Switches.pause
       @read_only = Hometab::Switches.read_only
       @features = Hometab::Switches.features
-      @uptime = Control::Uptime.report
-      @machine = Control::Machine.report
+      timed(:uptime) { @uptime = Control::Uptime.report }
+      timed(:machine) { @machine = Control::Machine.report }
     end
 
     def pause
