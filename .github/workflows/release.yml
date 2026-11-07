@@ -4,8 +4,8 @@ name: Release
 # The server checks the registry every 2 minutes and updates itself, so
 # nothing here needs (or has) any access to AWS.
 #
-#   Push to main (api/**)  -> new :staging image -> staging.tabitat.app updates
-#   Run workflow           -> "promote" copies :staging to :production -> tabitat.app updates
+#   Push to main (api/**)  -> new :staging image -> staging.gloslate.app updates
+#   Run workflow           -> "promote" copies :staging to :production -> gloslate.app updates
 on:
   push:
     branches: [main]
@@ -35,7 +35,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      # The web version of the app (app.tabitat.app) ships inside the same image.
+      # The web version of the app (app.gloslate.app) ships inside the same image.
       - uses: actions/setup-node@v4
         with:
           node-version: 22
@@ -73,16 +73,16 @@ jobs:
           grep -v '^#' api/deploy/staging.env > smoke.env
           docker run -d --name web --network smoke -p 8080:80 --env-file smoke.env \
             -e SECRET_KEY_BASE=$(openssl rand -hex 64) -e TABITAT_DATABASE_PASSWORD=pw \
-            -e S3_BUCKET=smoke -e AWS_REGION=us-east-1 -e ALLOWED_HOSTS=staging.tabitat.app,app.smoke.test -e WEBAPP_HOSTS=app.smoke.test \
+            -e S3_BUCKET=smoke -e AWS_REGION=us-east-1 -e ALLOWED_HOSTS=staging.gloslate.app,app.smoke.test -e WEBAPP_HOSTS=app.smoke.test \
             "$IMAGE:sha-$GITHUB_SHA"
           ok=""
           for i in $(seq 1 60); do curl -fsS -o /dev/null http://localhost:8080/up && ok=1 && break; sleep 3; done
           [ -n "$ok" ] || { docker logs web | tail -80; exit 1; }
           for path in / /privacy /terms /support /icon.svg; do
-            code=$(curl -s -o /dev/null -w '%{http_code}' -H 'Host: staging.tabitat.app' "http://localhost:8080$path")
+            code=$(curl -s -o /dev/null -w '%{http_code}' -H 'Host: staging.gloslate.app' "http://localhost:8080$path")
             echo "$path -> $code"; [ "$code" = 200 ] || { docker logs web | tail -80; exit 1; }
           done
-          curl -fsS -H 'Host: staging.tabitat.app' http://localhost:8080/ | grep -q "Stop texting"
+          curl -fsS -H 'Host: staging.gloslate.app' http://localhost:8080/ | grep -q "Stop texting"
           # The web app: the page, a deep link, and a bundle it points at.
           for path in / /group/x /onboarding; do
             curl -fsS -H 'Host: app.smoke.test' "http://localhost:8080$path" | grep -q "_expo/static/js" || { echo "web app $path missing"; exit 1; }
@@ -98,7 +98,7 @@ jobs:
       - name: Tag as staging
         run: |
           docker buildx imagetools create -t "$IMAGE:staging" "$IMAGE:sha-$GITHUB_SHA"
-          echo "Built and smoke-tested **staging** from \`${GITHUB_SHA::7}\`. staging.tabitat.app updates within about 2 minutes." >> "$GITHUB_STEP_SUMMARY"
+          echo "Built and smoke-tested **staging** from \`${GITHUB_SHA::7}\`. staging.gloslate.app updates within about 2 minutes." >> "$GITHUB_STEP_SUMMARY"
 
   production:
     if: github.event_name == 'workflow_dispatch' && inputs.action == 'promote staging to production'
@@ -114,4 +114,4 @@ jobs:
         run: |
           docker buildx imagetools create -t "$IMAGE:production" "$IMAGE:staging"
           REV=$(docker buildx imagetools inspect "$IMAGE:staging" --format '{{ index .Image.Config.Labels "org.opencontainers.image.revision" }}' 2>/dev/null || true)
-          echo "Promoted staging (\`${REV::7}\`) to **production**. tabitat.app updates within about 2 minutes." >> "$GITHUB_STEP_SUMMARY"
+          echo "Promoted staging (\`${REV::7}\`) to **production**. gloslate.app updates within about 2 minutes." >> "$GITHUB_STEP_SUMMARY"

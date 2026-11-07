@@ -18,18 +18,29 @@ staging.gloslate.app {
 	reverse_proxy staging-web:80
 }
 
-# The original domain: installed apps still call api.tabitat.app and people
-# have old request and invite links, so it keeps working.
-tabitat.app, api.tabitat.app, admin-api.tabitat.app, app.tabitat.app {
+# The original domain. Installed apps that predate the switch call
+# api.tabitat.app, so the API keeps answering there. Everything people open
+# in a browser moves to gloslate.app, path and all (old request and invite
+# links keep working). App-link files stay on tabitat.app so old invite links
+# can still open the app.
+api.tabitat.app, admin-api.tabitat.app {
 	encode zstd gzip
 	reverse_proxy production-web:80
 }
 
-www.tabitat.app {
-	redir https://tabitat.app{uri} permanent
+tabitat.app, www.tabitat.app {
+	handle /.well-known/* {
+		reverse_proxy production-web:80
+	}
+	handle {
+		redir https://gloslate.app{uri} permanent
+	}
+}
+
+app.tabitat.app {
+	redir https://app.gloslate.app{uri} permanent
 }
 
 staging.tabitat.app {
-	encode zstd gzip
-	reverse_proxy staging-web:80
+	redir https://staging.gloslate.app{uri} permanent
 }

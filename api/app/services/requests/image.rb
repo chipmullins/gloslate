@@ -56,7 +56,7 @@ module Requests
           <text x="120" y="610" font-family="DM Sans Tabular" font-weight="700" font-size="150" letter-spacing="-4" fill="#241A23">#{esc(Hometab::Money.format(req.amount_cents))}</text>
           <line x1="120" y1="720" x2="960" y2="720" stroke="#D8CBD4" stroke-width="3" stroke-dasharray="10 10"/>
           #{rows}
-          <text x="540" y="1290" text-anchor="middle" font-family="DM Sans" font-weight="600" font-size="32" fill="#BBA9C4">Tap to see the breakdown &amp; pay · tabitat.app</text>
+          <text x="540" y="1290" text-anchor="middle" font-family="DM Sans" font-weight="600" font-size="32" fill="#BBA9C4">Tap to see the breakdown &amp; pay · gloslate.app</text>
         </svg>
       SVG
     end

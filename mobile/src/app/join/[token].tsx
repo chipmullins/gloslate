@@ -8,7 +8,7 @@ import { HT } from '@/constants/theme';
 import { api, ApiError, type InvitePreview } from '@/lib/api';
 import { useSession } from '@/lib/session';
 
-/** "Join Chip's home?" — opened from an invite link (tabitat://join/… or tabitat.app/i/…). */
+/** "Join Chip's home?" — opened from an invite link (tabitat://join/… or gloslate.app/i/…). */
 export default function Join() {
   const { token } = useLocalSearchParams<{ token: string }>();
   const { token: session, setPendingInvite, refresh } = useSession();

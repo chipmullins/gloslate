@@ -2,7 +2,7 @@ require "rack/files"
 
 module Hometab
   # Serves the web version of the app (an Expo web export in public/webapp)
-  # on its own host, e.g. app.tabitat.app. It calls the API on the same
+  # on its own host, e.g. app.gloslate.app. It calls the API on the same
   # origin (/v1/...), so no cross-site requests or CORS are needed.
   #
   # Any path that isn't a built file gets index.html: the app's router takes
