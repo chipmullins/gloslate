@@ -1,5 +1,6 @@
 require "openssl"
 require "socket"
+require "timeout"
 
 module Control
   # What the server itself looks like: memory, disk, database, background
@@ -65,20 +66,35 @@ module Control
       nil
     end
 
-    # Days left on the public site's certificate (checked at most hourly).
+    # Days left on the public site's certificate. Checked at most hourly and
+    # never allowed to slow a page: it asks Caddy directly over the internal
+    # network (no trip out to the internet), gives up after 2 seconds, and a
+    # failure is remembered for the hour too.
+    CERT_TTL = 3600
+
     def certificate
-      Rails.cache.fetch("control:cert", expires_in: 1.hour) do
-        host = URI(ENV.fetch("PUBLIC_URL", "https://gloslate.app")).host
-        tcp = Socket.tcp(host, 443, connect_timeout: 3)
-        ssl = OpenSSL::SSL::SSLSocket.new(tcp, OpenSSL::SSL::SSLContext.new).tap { |s| s.hostname = host }
-        ssl.connect
-        cert = ssl.peer_cert
-        ssl.close
-        tcp.close
-        { host:, expires_at: cert.not_after, days_left: ((cert.not_after - Time.now) / 86_400).floor }
+      return @cert[:value] if @cert && Time.current - @cert[:at] < CERT_TTL
+
+      value = begin
+        Timeout.timeout(2) { read_certificate }
+      rescue StandardError, Timeout::Error
+        nil
       end
-    rescue StandardError
-      nil
+      @cert = { value:, at: Time.current }
+      value
+    end
+
+    def read_certificate
+      host = URI(ENV.fetch("PUBLIC_URL", "https://gloslate.app")).host
+      address = ENV.fetch("CERT_CHECK_ADDRESS") { Rails.env.production? ? "caddy" : host }
+      tcp = Socket.tcp(address, 443, connect_timeout: 1.5)
+      ssl = OpenSSL::SSL::SSLSocket.new(tcp, OpenSSL::SSL::SSLContext.new).tap { |s| s.hostname = host }
+      ssl.connect
+      cert = ssl.peer_cert
+      { host:, expires_at: cert.not_after, days_left: ((cert.not_after - Time.now) / 86_400).floor }
+    ensure
+      ssl&.close rescue nil
+      tcp&.close rescue nil
     end
 
     # Retries every failed background job.

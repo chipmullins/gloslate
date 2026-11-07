@@ -17,11 +17,12 @@ module Control
     COOKIE = :gloslate_control
     layout "control"
     skip_forgery_protection # our own per-session form token below (no Rails session store in this app)
+    around_action :time_page
     before_action :secure_headers
     before_action :take_flash
     before_action :authenticate!
     before_action :check_form_token!, unless: -> { request.get? || request.head? }
-    helper_method :flash_message, :current_staff_session_expires, :current_staff, :form_token, :mask, :money, :at_least?, :local_time, :ago, :nav
+    helper_method :page_ms, :flash_message, :current_staff_session_expires, :current_staff, :form_token, :mask, :money, :at_least?, :local_time, :ago, :nav
 
     rescue_from Hometab::Error, Hometab::Forbidden do |e|
       flash_next(:alert, e.message)
@@ -77,6 +78,19 @@ module Control
       response.headers["Cache-Control"] = "no-store"
       response.headers["X-Robots-Tag"] = "noindex, nofollow"
     end
+
+    # How long the page took on the server (shown small at the bottom, and as
+    # a Server-Timing header), so slowness can be told apart from the network.
+    def time_page
+      started = Process.clock_gettime(Process::CLOCK_MONOTONIC)
+      @page_started = started
+      yield
+    ensure
+      ms = ((Process.clock_gettime(Process::CLOCK_MONOTONIC) - started) * 1000).round
+      response.headers["Server-Timing"] = "app;dur=#{ms}"
+    end
+
+    def page_ms = ((Process.clock_gettime(Process::CLOCK_MONOTONIC) - @page_started) * 1000).round
 
     def at_least?(role) = current_staff&.at_least?(role)
     def current_staff_session_expires = current_staff_session&.expires_at
