@@ -1,6 +1,7 @@
 import { router, useFocusEffect, type Href } from 'expo-router';
 import { useCallback, useState, type ReactNode } from 'react';
 import { Pressable, ScrollView, View } from 'react-native';
+import ReanimatedSwipeable from 'react-native-gesture-handler/ReanimatedSwipeable';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { NotificationBell } from '@/components/confirm-payments';
@@ -9,8 +10,10 @@ import { ChevronIcon, SendIcon } from '@/components/icons';
 import { Avatar, Card, Money, T } from '@/components/ui';
 import { HT } from '@/constants/theme';
 import { useLayout } from '@/hooks/use-layout';
-import { api, type HouseholdSummary } from '@/lib/api';
+import { api, ApiError, type HouseholdSummary } from '@/lib/api';
 import { formatCents } from '@/lib/money';
+import { toast } from '@/lib/toast';
+import { ToastHost } from '@/components/toast-host';
 import { useSession } from '@/lib/session';
 
 /** Words for a balance: "Jordan owes you" / "You owe Jordan" / "Settled". */
@@ -50,12 +53,12 @@ export default function Friends() {
     api<{ unread: number }>('/v1/notifications').then((r) => setUnread(r.unread)).catch(() => {});
   }, [refresh]));
 
-  const row = (g: HouseholdSummary, i: number, list: HouseholdSummary[], oneOnOne: boolean) => {
+  const renderRow = (g: HouseholdSummary, i: number, list: HouseholdSummary[], oneOnOne: boolean) => {
     const line = balanceLine(g, oneOnOne);
     const title = oneOnOne ? g.people?.[0] ?? g.name : g.name;
     const sub = oneOnOne ? 'One-on-one' : `${g.member_count} people${g.people?.length ? ` · ${g.people.slice(0, 3).join(', ')}${g.member_count > 4 ? '…' : ''}` : ''}`;
-    return (
-      <Pressable key={g.id} accessibilityRole="button" accessibilityLabel={`${title}, ${line.text}${g.balance.net_cents ? ` ${formatCents(Math.abs(g.balance.net_cents))}` : ''}${g.to_confirm_cents ? `. ${formatCents(g.to_confirm_cents)} marked paid, waiting for you to confirm` : ''}`}
+    const row = (
+      <Pressable accessibilityRole="button" accessibilityLabel={`${title}, ${line.text}${g.balance.net_cents ? ` ${formatCents(Math.abs(g.balance.net_cents))}` : ''}${g.to_confirm_cents ? `. ${formatCents(g.to_confirm_cents)} marked paid, waiting for you to confirm` : ''}`}
         onPress={() => router.push(`/group/${g.id}` as Href)}
         style={({ pressed }) => ({ flexDirection: 'row', alignItems: 'center', gap: 12, minHeight: 72, paddingHorizontal: 4, opacity: pressed ? 0.7 : 1,
           borderBottomWidth: i < list.length - 1 ? 1 : 0, borderBottomColor: HT.color.hairline })}>
@@ -82,7 +85,31 @@ export default function Friends() {
         <ChevronIcon size={18} color={HT.color.muted} />
       </Pressable>
     );
+    // Settled tabs can be swiped off the list (they come back when anything new happens).
+    if (g.balance.net_cents !== 0 || g.to_confirm_cents) return <View key={g.id}>{row}</View>;
+    return (
+      <ReanimatedSwipeable key={g.id} friction={2} rightThreshold={40} overshootRight={false}
+        renderRightActions={() => (
+          <Pressable accessibilityRole="button" accessibilityLabel={`Remove ${title} from your list`} onPress={() => hide(g, title)}
+            style={{ width: 96, alignItems: 'center', justifyContent: 'center', backgroundColor: HT.color.brand, borderRadius: HT.radius.tile, marginVertical: 6, marginLeft: 8 }}>
+            <T v="strong" style={{ color: '#FFFFFF', fontSize: 13 }}>Remove</T>
+          </Pressable>
+        )}>
+        <View style={{ backgroundColor: HT.color.surface }}>{row}</View>
+      </ReanimatedSwipeable>
+    );
   };
+
+  async function hide(g: HouseholdSummary, title: string) {
+    try {
+      await api(`/v1/households/${g.id}/hide`, { body: {} });
+      await refresh();
+      toast.show({ text: `Removed ${title}. It comes back if anything new is added.`, ms: 5000,
+        action: { label: 'Undo', run: () => { api(`/v1/households/${g.id}/hide`, { method: 'DELETE' }).then(() => refresh()).catch(() => {}); } } });
+    } catch (e) {
+      toast.show({ text: e instanceof ApiError ? e.message : "Couldn't remove it." });
+    }
+  }
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: HT.color.ground }} edges={['top', 'left', 'right']}>
@@ -109,18 +136,19 @@ export default function Friends() {
           {people.length > 0 ? (
             <View style={{ gap: 8 }}>
               <T v="heading">People</T>
-              <Card style={{ paddingVertical: 4 }}>{people.map((g, i) => row(g, i, people, true))}</Card>
+              <Card style={{ paddingVertical: 4 }}>{people.map((g, i) => renderRow(g, i, people, true))}</Card>
             </View>
           ) : null}
 
           {groups.length > 0 ? (
             <View style={{ gap: 8 }}>
               <T v="heading">Groups</T>
-              <Card style={{ paddingVertical: 4 }}>{groups.map((g, i) => row(g, i, groups, false))}</Card>
+              <Card style={{ paddingVertical: 4 }}>{groups.map((g, i) => renderRow(g, i, groups, false))}</Card>
             </View>
           ) : null}
         </View>
       </ScrollView>
+      <ToastHost bottom={24} />
     </SafeAreaView>
   );
 }

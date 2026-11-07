@@ -12,8 +12,10 @@ import { Stack } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { StatusBar } from 'expo-status-bar';
 import { useEffect } from 'react';
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 
+import { SettledHost } from '@/components/settled-host';
 import { FullScreenLoader } from '@/components/bunny-loader';
 import { HT } from '@/constants/theme';
 import { LockGate } from '@/components/lock-gate';
@@ -69,6 +71,7 @@ function Root() {
           <Stack.Screen name="group/new" options={MODAL} />
           <Stack.Screen name="request-friend" options={MODAL} />
         </Stack>
+        <SettledHost />
       </LockGate>
     </>
   );
@@ -76,10 +79,12 @@ function Root() {
 
 export default function RootLayout() {
   return (
-    <SafeAreaProvider>
-      <SessionProvider>
-        <Root />
-      </SessionProvider>
-    </SafeAreaProvider>
+    <GestureHandlerRootView style={{ flex: 1 }}>
+      <SafeAreaProvider>
+        <SessionProvider>
+          <Root />
+        </SessionProvider>
+      </SafeAreaProvider>
+    </GestureHandlerRootView>
   );
 }

@@ -12,7 +12,9 @@ export async function shareLink(message: string, url: string) {
   const canSheet = Platform.OS !== 'web' || (typeof navigator !== 'undefined' && typeof navigator.share === 'function');
   if (canSheet) {
     try {
-      await Share.share({ message, url });
+      // The message already carries the link; also passing `url` makes iOS
+      // attach it a second time (two links in the text).
+      await Share.share(message.includes(url) ? { message } : { message, url });
       return;
     } catch (e) {
       if (Platform.OS !== 'web') throw e;

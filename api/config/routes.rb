@@ -32,6 +32,10 @@ Rails.application.routes.draw do
     end
 
     resources :households, only: %i[index show create update] do
+      member do
+        post :hide
+        delete :hide, action: :unhide
+      end
       resources :members, only: %i[create update destroy]
       resources :invites, only: :create
       resources :expenses, only: %i[index create] do

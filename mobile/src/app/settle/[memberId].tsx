@@ -12,6 +12,7 @@ import { useHousehold } from '@/hooks/use-household';
 import { useLayout } from '@/hooks/use-layout';
 import { api, ApiError, type Breakdown, type PayInfo } from '@/lib/api';
 import { centsFirst, formatCents, parseCents } from '@/lib/money';
+import { celebrateIfSettled } from '@/lib/celebrate';
 import { toast } from '@/lib/toast';
 import { sendRequest } from '@/app/(tabs)/home';
 import { goBack } from '@/lib/nav';
@@ -112,12 +113,13 @@ export default function Settle() {
     setError(null);
     try {
       const allocations = Object.fromEntries(owedByMe.filter((i) => picked.includes(i.expense_id)).map((i) => [i.expense_id, -i.cents - i.paid_cents]));
-      await api(`/v1/households/${home.id}/payments`, {
+      const res = await api<{ balance?: { net_cents: number } }>(`/v1/households/${home.id}/payments`, {
         body: receiverRecorded
           ? { from_member_id: other.id, to_member_id: home.me.id, amount_cents: cents, method }
           : { to_member_id: other.id, amount_cents: cents, method, allocations },
       });
-      toast.show({ text: receiverRecorded ? `Recorded ${formatCents(cents)} from ${other.first_name}` : `Marked as paid. ${other.first_name} will confirm.` });
+      if (receiverRecorded && res.balance?.net_cents === 0) celebrateIfSettled(0, home.members.filter((m) => !m.former).length === 2 ? other.first_name : undefined);
+      else toast.show({ text: receiverRecorded ? `Recorded ${formatCents(cents)} from ${other.first_name}` : `Marked as paid. ${other.first_name} will confirm.` });
       setPicked([]);
       setAmount('');
       setOpened(false);

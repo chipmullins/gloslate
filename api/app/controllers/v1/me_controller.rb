@@ -32,7 +32,33 @@ module V1
         attrs[:notification_prefs] = current_user.notification_prefs.merge(prefs)
       end
       current_user.update!(attrs)
+      update_memberships!
       render json: current_user.as_api_json
+    end
+
+    private
+
+    # How people pay you and your reminder settings live on each tab you're
+    # in; { member: {...} } sets them everywhere at once (for people with no
+    # home, only one-on-ones and groups). Logged in each tab like any change.
+    MEMBER_SETTINGS = %i[venmo_handle cashtag zelle_contact auto_remind remind_threshold_cents remind_after_days].freeze
+
+    def update_memberships!
+      return unless params[:member].is_a?(ActionController::Parameters)
+
+      attrs = params[:member].permit(*MEMBER_SETTINGS)
+      return if attrs.empty?
+
+      Member.transaction do
+        current_user.members.current.includes(:household).find_each do |m|
+          before = m.slice(*attrs.keys)
+          m.update!(attrs)
+          next if before == m.slice(*attrs.keys)
+
+          LedgerEvent.record!(household: m.household, kind: "member.updated", subject: m, actor: m,
+                              data: { before:, after: m.slice(*attrs.keys) })
+        end
+      end
     end
   end
 end

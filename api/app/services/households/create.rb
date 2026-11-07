@@ -22,7 +22,7 @@ module Households
       household = Household.transaction do
         # Groups settle the quickest way from the start: fewest payments.
         h = Household.create!(name: @name, kind: @kind, simplify_debts: @kind == "group")
-        me = h.members.create!(user: @user, display_name: @display_name, **@handles)
+        me = h.members.create!(user: @user, display_name: @display_name, **@user.payment_handles, **@handles.compact_blank)
         @roommates.each { |n| h.members.create!(display_name: n) }
         LedgerEvent.record!(household: h, kind: "household.created", subject: h, actor: me,
                             data: { name: @name, kind: @kind, roommates: @roommates })

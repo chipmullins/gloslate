@@ -119,7 +119,7 @@ export type User = {
   quiet_end_hour: number;
   face_id_lock: boolean;
   notification_prefs: Record<string, 'on' | 'off' | 'daily'>;
-  identities: { id: string; provider: string }[];
+  identities: { id: string; provider: string; email?: string | null; label?: string | null; added_at?: string; last_used_at?: string | null }[];
 };
 
 export type SignInResult =

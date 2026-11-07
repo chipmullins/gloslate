@@ -11,6 +11,7 @@ import { HT } from '@/constants/theme';
 import { useHousehold } from '@/hooks/use-household';
 import { api, ApiError, type PayInfo, type Payment } from '@/lib/api';
 import { centsFirst, formatCents, parseCents } from '@/lib/money';
+import { celebrateIfSettled } from '@/lib/celebrate';
 import { toast } from '@/lib/toast';
 import { sendRequest } from '@/app/(tabs)/home';
 import { goBack } from '@/lib/nav';
@@ -65,6 +66,7 @@ export default function GroupSettle() {
   const nameOf = (mid: string) => (mid === meId ? 'You' : group.members.find((m) => m.id === mid)?.first_name ?? 'Former member');
   const other = youPay ? to : from;
   const otherName = nameOf(other);
+  const oneOnOne = group.members.filter((m) => !m.former).length === 2;
   const otherIndex = Math.max(0, group.members.findIndex((m) => m.id === other));
 
   async function record(receiverRecorded: boolean) {
@@ -74,12 +76,13 @@ export default function GroupSettle() {
     setBusy(true);
     setError(null);
     try {
-      await api(`/v1/households/${hid}/payments`, {
+      const res = await api<{ balance?: { net_cents: number } }>(`/v1/households/${hid}/payments`, {
         body: receiverRecorded
           ? { from_member_id: from, to_member_id: to, amount_cents: cents, method }
           : { to_member_id: to, amount_cents: cents, method },
       });
-      toast.show({ text: receiverRecorded ? `Recorded ${formatCents(cents)} from ${otherName}` : `Marked as paid. ${otherName} will confirm.` });
+      if (receiverRecorded && res.balance?.net_cents === 0) celebrateIfSettled(0, oneOnOne ? otherName : undefined);
+      else toast.show({ text: receiverRecorded ? `Recorded ${formatCents(cents)} from ${otherName}` : `Marked as paid. ${otherName} will confirm.` });
       await reload();
       goBack(`/group/${hid}` as Href);
     } catch (e) {
@@ -137,7 +140,7 @@ export default function GroupSettle() {
         </Card>
 
         {!youPay ? (
-          <ConfirmPayments payments={pending.filter((p) => p.from_member_id === from && p.to_member_id === to)} nameOf={nameOf}
+          <ConfirmPayments payments={pending.filter((p) => p.from_member_id === from && p.to_member_id === to)} nameOf={nameOf} oneOnOne={oneOnOne}
             onDone={() => { reload(); load(); }} />
         ) : null}
 

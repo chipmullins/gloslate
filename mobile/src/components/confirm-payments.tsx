@@ -6,6 +6,7 @@ import { BellIcon } from '@/components/icons';
 import { Button, T } from '@/components/ui';
 import { HT } from '@/constants/theme';
 import { api, ApiError, type Payment } from '@/lib/api';
+import { celebrateIfSettled } from '@/lib/celebrate';
 import { formatCents } from '@/lib/money';
 import { toast } from '@/lib/toast';
 
@@ -14,8 +15,10 @@ import { toast } from '@/lib/toast';
  * Shown wherever the money is (home, a group, a settle-up screen) so nobody
  * has to find them in notifications.
  */
-export function ConfirmPayments({ payments, nameOf, onDone }: {
+export function ConfirmPayments({ payments, nameOf, onDone, oneOnOne }: {
   payments: Payment[]; nameOf: (memberId: string) => string; onDone: () => void;
+  /** Just you and one other person: the celebration names them. */
+  oneOnOne?: boolean;
 }) {
   const [busy, setBusy] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -29,8 +32,9 @@ export function ConfirmPayments({ payments, nameOf, onDone }: {
     setBusy(p.id);
     setError(null);
     try {
-      await api(`/v1/payments/${p.id}/confirm`, { body: {} });
-      toast.show({ text: `Confirmed ${formatCents(p.amount_cents)} from ${nameOf(p.from_member_id)}` });
+      const res = await api<{ balance?: { net_cents: number } }>(`/v1/payments/${p.id}/confirm`, { body: {} });
+      if (res.balance?.net_cents === 0) celebrateIfSettled(0, oneOnOne ? nameOf(p.from_member_id) : undefined);
+      else toast.show({ text: `Confirmed ${formatCents(p.amount_cents)} from ${nameOf(p.from_member_id)}` });
       onDone();
     } catch (e) {
       setError(e instanceof ApiError ? e.message : "Couldn't confirm it. Try again.");

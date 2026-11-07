@@ -14,6 +14,12 @@ class Member < ApplicationRecord
 
   def placeholder? = user_id.nil?
   def former? = left_at.present?
+
+  # Swiped off the Friends list, and nothing has happened in that tab since.
+  def hidden?
+    hidden_at.present? && !household.ledger_events.where("created_at > ?", hidden_at)
+                                     .where("kind LIKE 'expense.%' OR kind LIKE 'payment.%' OR kind = 'request.sent'").exists?
+  end
   def first_name = display_name.split.first
 
   # Move-in / move-out: never part of costs outside these dates.

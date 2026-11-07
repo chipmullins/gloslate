@@ -172,7 +172,7 @@ CREATE TABLE public.bill_cycles (
     posted_at timestamp(6) without time zone,
     created_at timestamp(6) without time zone NOT NULL,
     updated_at timestamp(6) without time zone NOT NULL,
-    CONSTRAINT cycle_status_values CHECK (((status)::text = ANY ((ARRAY['upcoming'::character varying, 'waiting'::character varying, 'posted'::character varying, 'skipped'::character varying])::text[])))
+    CONSTRAINT cycle_status_values CHECK (((status)::text = ANY (ARRAY[('upcoming'::character varying)::text, ('waiting'::character varying)::text, ('posted'::character varying)::text, ('skipped'::character varying)::text])))
 );
 
 
@@ -201,7 +201,7 @@ CREATE TABLE public.bills (
     starts_on date DEFAULT CURRENT_DATE NOT NULL,
     CONSTRAINT bill_due_day_range CHECK (((due_day >= 1) AND (due_day <= 28))),
     CONSTRAINT bill_early_range CHECK (((post_days_early >= 0) AND (post_days_early <= 7))),
-    CONSTRAINT bill_kind_values CHECK (((kind)::text = ANY ((ARRAY['fixed'::character varying, 'variable'::character varying])::text[]))),
+    CONSTRAINT bill_kind_values CHECK (((kind)::text = ANY (ARRAY[('fixed'::character varying)::text, ('variable'::character varying)::text]))),
     CONSTRAINT fixed_bill_has_amount CHECK ((((kind)::text = 'variable'::text) OR (amount_cents > 0)))
 );
 
@@ -246,8 +246,8 @@ CREATE TABLE public.expenses (
     itemization jsonb,
     paid_by jsonb,
     CONSTRAINT amount_positive CHECK ((amount_cents > 0)),
-    CONSTRAINT split_kind_values CHECK (((split_kind)::text = ANY ((ARRAY['equal'::character varying, 'percent'::character varying, 'exact'::character varying, 'shares'::character varying])::text[]))),
-    CONSTRAINT urgency_values CHECK (((urgency)::text = ANY ((ARRAY['soon'::character varying, 'tab'::character varying])::text[])))
+    CONSTRAINT split_kind_values CHECK (((split_kind)::text = ANY (ARRAY[('equal'::character varying)::text, ('percent'::character varying)::text, ('exact'::character varying)::text, ('shares'::character varying)::text]))),
+    CONSTRAINT urgency_values CHECK (((urgency)::text = ANY (ARRAY[('soon'::character varying)::text, ('tab'::character varying)::text])))
 );
 
 
@@ -345,6 +345,7 @@ CREATE TABLE public.members (
     auto_remind boolean DEFAULT true NOT NULL,
     remind_threshold_cents bigint DEFAULT 4000 NOT NULL,
     remind_after_days integer DEFAULT 7 NOT NULL,
+    hidden_at timestamp(6) without time zone,
     CONSTRAINT move_dates_order CHECK (((moved_out_on IS NULL) OR (moved_in_on IS NULL) OR (moved_out_on >= moved_in_on)))
 );
 
@@ -434,7 +435,7 @@ CREATE TABLE public.payments (
     reminded_at timestamp(6) without time zone,
     CONSTRAINT payment_distinct_members CHECK ((from_member_id <> to_member_id)),
     CONSTRAINT payment_positive CHECK ((amount_cents > 0)),
-    CONSTRAINT payment_status_values CHECK (((status)::text = ANY ((ARRAY['pending'::character varying, 'confirmed'::character varying, 'disputed'::character varying])::text[])))
+    CONSTRAINT payment_status_values CHECK (((status)::text = ANY (ARRAY[('pending'::character varying)::text, ('confirmed'::character varying)::text, ('disputed'::character varying)::text])))
 );
 
 
@@ -521,7 +522,7 @@ CREATE TABLE public.staff_users (
     disabled_at timestamp(6) without time zone,
     created_at timestamp(6) without time zone NOT NULL,
     updated_at timestamp(6) without time zone NOT NULL,
-    CONSTRAINT staff_role_values CHECK (((role)::text = ANY ((ARRAY['viewer'::character varying, 'support'::character varying, 'admin'::character varying])::text[])))
+    CONSTRAINT staff_role_values CHECK (((role)::text = ANY (ARRAY[('viewer'::character varying)::text, ('support'::character varying)::text, ('admin'::character varying)::text])))
 );
 
 
@@ -1479,6 +1480,7 @@ ALTER TABLE ONLY public.expenses
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
+('20261107040000'),
 ('20261106050000'),
 ('20261105040000'),
 ('20261105030001'),
