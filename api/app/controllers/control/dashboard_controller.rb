@@ -1,9 +1,12 @@
 module Control
   class DashboardController < BaseController
     def show
-      @stats = Control::Stats.dashboard
-      @uptime = Control::Uptime.report
-      @machine = { jobs: Control::Machine.jobs, database: Control::Machine.database, certificate: Control::Machine.certificate }
+      @machine = {}
+      timed(:certificate) { @machine[:certificate] = Control::Machine.certificate }
+      timed(:numbers) { @stats = Control::Stats.dashboard }
+      timed(:uptime) { @uptime = Control::Uptime.report }
+      timed(:jobs) { @machine[:jobs] = Control::Machine.jobs }
+      timed(:database) { @machine[:database] = Control::Machine.database }
       @recent = AdminAuditEvent.where(staff_user_id: current_staff.id).where.not(action: %w[session.created users.search]).order(created_at: :desc).limit(6)
     end
   end
