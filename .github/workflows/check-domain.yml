@@ -21,5 +21,12 @@ jobs:
         run: |
           d="${{ inputs.domain }}"
           for u in "https://$d/up" "https://api.$d/up" "https://app.$d/" "https://www.$d/"; do
-            printf '%s -> ' "$u"; curl -sS -m 15 -o /dev/null -w '%{http_code} (cert ok)\n' "$u" || echo "not yet"
+            printf '%s -> ' "$u"; curl -sS -m 15 -o /dev/null -w '%{http_code}\n' "$u" || echo "no certificate yet"
           done
+      - name: Plain HTTP and the old domain (for comparison)
+        run: |
+          d="${{ inputs.domain }}"
+          for u in "http://$d/up" "http://api.$d/up" "http://$d/.well-known/acme-challenge/test" "https://api.tabitat.app/up"; do
+            printf '%s -> ' "$u"; curl -sS -m 15 -o /dev/null -w '%{http_code} %{redirect_url}\n' "$u" || echo "failed"
+          done
+          echo "== certificate logs (crt.sh) =="; curl -sS -m 20 "https://crt.sh/?q=$d&output=json" | head -c 600 || true
