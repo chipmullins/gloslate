@@ -33,6 +33,17 @@ jobs:
           cache-dependency-path: mobile/package-lock.json
       - run: npm ci
       - run: npm run typecheck && npm test
+      # Updates only reach builds with the same native fingerprint. If this
+      # fails, something native changed since the installed builds: either undo
+      # it, or make new builds and then update native-fingerprints.json.
+      - name: Check the installed builds can receive this
+        run: |
+          for p in ios android; do
+            now=$(npx expo-updates fingerprint:generate --platform $p | node -e 'let s="";process.stdin.on("data",d=>s+=d).on("end",()=>console.log(JSON.parse(s).hash))')
+            want=$(node -p "require('./native-fingerprints.json').$p")
+            echo "$p: $now (installed builds: $want)"
+            if [ "$now" != "$want" ]; then echo "::error::$p native fingerprint changed ($want -> $now). Installed $p builds won't get this update."; exit 1; fi
+          done
       - name: Publish
         run: npx --yes eas-cli@latest update --channel production --message "${{ inputs.message }}" --non-interactive
         env:
