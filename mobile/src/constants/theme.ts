@@ -37,6 +37,8 @@ export const HT = {
     onDarkBorder: '#FFFFFF24',
     /** Glofly's amber. Only the glow: sparkle, highlights, the primary action on night surfaces. */
     glow: '#FFB547',
+    /** The wordmark's "glo" on light screens: amber that still reads on the light ground. */
+    glowDeep: '#E8961F',
     glowHalo: '#FFB54755',
     onGlow: '#2A1A33',
     avatar: [

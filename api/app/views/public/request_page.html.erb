@@ -16,6 +16,7 @@
   .top { display: flex; align-items: center; justify-content: space-between; color: var(--on-dark); }
   .brand { display: flex; align-items: center; gap: 8px; font-family: var(--display); font-weight: 700; font-size: 19px; letter-spacing: -0.02em; }
   .brand > span { display: flex; flex-direction: column; line-height: 1; }
+  .brand .glo { font-weight: inherit; color: var(--glow); text-shadow: 0 0 12px #ffb54788; }
   .brand small { font-family: var(--ui); font-weight: 500; font-size: 11px; letter-spacing: 0.01em; color: var(--on-dark-muted); margin-top: 3px; padding-left: 1px; }
   .top > small { color: var(--on-dark-muted); font-weight: 600; font-size: 12px; }
   .ticket { background: #fff; border-radius: 22px 22px 0 0; padding: 24px 22px 22px; }
@@ -59,7 +60,7 @@
 <% end %>
 <main class="wrap">
   <div class="top">
-    <span class="brand" aria-label="Gloslate by Glofly"><%= render "public/mark", size: 28, inverted: true %><span>gloslate<small>by Glofly</small></span></span>
+    <span class="brand" aria-label="Gloslate by Glofly"><%= render "public/mark", size: 28, inverted: true %><span><span class="word"><b class="glo">glo</b>slate</span><small>by Glofly</small></span></span>
     <small>tabitat.app</small>
   </div>
 
