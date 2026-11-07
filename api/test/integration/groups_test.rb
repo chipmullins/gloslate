@@ -126,4 +126,37 @@ class GroupsTest < ActionDispatch::IntegrationTest
     assert_equal [home_id, @g.id], json["data"].map { _1["id"] }
     assert_equal %w[home group], json["data"].map { _1["kind"] }
   end
+
+  test "a settled tab can be taken off the list, and comes back when anything new happens" do
+    create_group(%w[Ana], name: "Lunch")
+    add(2000, payer: "Chip")
+    post "/v1/households/#{@g.id}/hide", headers: auth(@chip_t), as: :json
+    assert_response :unprocessable_entity
+    assert_equal "Settle up first", json["error"]
+
+    post "/v1/households/#{@g.id}/payments", params: { from_member_id: @m["Ana"].id, to_member_id: @m["Chip"].id, amount_cents: 1000, method: "cash" },
+         headers: auth(@chip_t), as: :json
+    assert_equal 0, json["balance"]["net_cents"]
+    post "/v1/households/#{@g.id}/hide", headers: auth(@chip_t), as: :json
+    assert_response :no_content
+    get "/v1/households", headers: auth(@chip_t)
+    refute_includes json["data"].map { _1["id"] }, @g.id
+    get "/v1/households/#{@g.id}", headers: auth(@chip_t)
+    assert_response :ok # still there, just not listed
+
+    travel 1.minute do
+      add(500, payer: "Chip")
+      get "/v1/households", headers: auth(@chip_t)
+      assert_includes json["data"].map { _1["id"] }, @g.id
+    end
+
+    delete "/v1/households/#{@g.id}/hide", headers: auth(@chip_t)
+    assert_response :no_content
+  end
+
+  test "homes can't be hidden" do
+    post "/v1/households", params: { display_name: "Chip", roommates: %w[Coleman] }, headers: auth(@chip_t), as: :json
+    post "/v1/households/#{json["data"]["id"]}/hide", headers: auth(@chip_t), as: :json
+    assert_response :unprocessable_entity
+  end
 end

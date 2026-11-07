@@ -239,7 +239,7 @@ export default function Add() {
   const amountBlock = (
     <View style={{ alignItems: 'center', paddingTop: wide ? 24 : 4, gap: 4 }}>
       <Text accessibilityLabel={`Amount ${formatCents(cents)}`} adjustsFontSizeToFit numberOfLines={1} maxFontSizeMultiplier={1.2}
-        style={{ fontFamily: HT.font.monoBold, fontSize: wide ? 64 : 56, letterSpacing: -1.5, color: cents ? HT.color.ink : HT.color.faint }}>
+        style={{ fontFamily: HT.font.monoBold, fontSize: wide ? 64 : 52, letterSpacing: -1.5, color: cents ? HT.color.ink : HT.color.faint }}>
         {formatCents(cents)}
       </Text>
       <T v="muted">
@@ -247,9 +247,10 @@ export default function Add() {
           ? ids.length === members.length ? `Split equally${cents ? ` · ${formatCents(perHead)} each` : ''}` : `Split between ${ids.length}${cents ? ` · ${formatCents(perHead)} each` : ''}`
           : `Split by ${kind === 'percent' ? 'percentage' : kind === 'exact' ? 'exact amounts' : 'shares'}`}
       </T>
+      <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, flexWrap: 'wrap', marginTop: 4 }}>
       <TextInput value={description} onChangeText={setDescription} placeholder="What was it? (optional)" placeholderTextColor={HT.color.faint}
         accessibilityLabel="What was it" maxLength={60} returnKeyType="done"
-        style={{ marginTop: 6, height: 44, paddingVertical: 0, minWidth: 220, textAlign: 'center', fontFamily: HT.font.semibold, fontSize: 15, color: HT.color.ink }} />
+        style={{ height: 44, paddingVertical: 0, minWidth: 180, flexShrink: 1, textAlign: 'center', fontFamily: HT.font.semibold, fontSize: 15, color: HT.color.ink }} />
       {!editing ? (
         <View style={{ flexDirection: 'row', gap: 8, flexWrap: 'wrap', justifyContent: 'center' }}>
           <Pressable accessibilityRole="button" accessibilityLabel={photoUri ? 'Retake receipt photo' : 'Scan a receipt'} onPress={() => scan('camera')}
@@ -268,6 +269,7 @@ export default function Add() {
           ) : null}
         </View>
       ) : null}
+      </View>
     </View>
   );
 
@@ -294,7 +296,15 @@ export default function Add() {
 
   const whoPaid = (
     <View style={{ gap: 8 }}>
-      <T v="label" style={{ textAlign: 'center' }}>Who paid?</T>
+      <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', minHeight: 28 }}>
+        <T v="label">Who paid?</T>
+        {members.length > 1 ? (
+          <Pressable accessibilityRole="button" hitSlop={10}
+            onPress={() => { setMulti((v) => !v); if (!multi && cents && me) setPaid({ [payerId ?? me.id]: twoDp(cents) }); }}>
+            <T v="strong" style={{ fontSize: 13, color: HT.color.brand }}>{multi ? 'One person paid' : 'Several people paid'}</T>
+          </Pressable>
+        ) : null}
+      </View>
       {multi ? severalPaid : couple ? (
         <View accessibilityRole="radiogroup" style={{ flexDirection: 'row', backgroundColor: HT.color.segment, borderRadius: HT.radius.tile, padding: 4, gap: 6 }}>
           {members.map((m) => {
@@ -324,21 +334,20 @@ export default function Add() {
           })}
         </View>
       )}
-      {members.length > 1 ? (
-        <Button kind="link" title={multi ? 'One person paid' : 'Several people paid'}
-          onPress={() => { setMulti((v) => !v); if (!multi && cents && me) setPaid({ [payerId ?? me.id]: twoDp(cents) }); }} />
-      ) : null}
     </View>
   );
 
-  const categories = (
-    <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8, justifyContent: 'center' }}>
-      {CATEGORIES.map((c) => (
-        <Pressable key={c.key} accessibilityRole="radio" accessibilityLabel={c.label} accessibilityState={{ checked: category === c.key }} onPress={() => setCategory(c.key)} style={chip(category === c.key)}>
-          <T v="strong" style={{ fontSize: 13, color: category === c.key ? HT.color.brand : HT.color.ink }}>{c.label}</T>
-        </Pressable>
-      ))}
-    </View>
+  const categoryChips = CATEGORIES.map((c) => (
+    <Pressable key={c.key} accessibilityRole="radio" accessibilityLabel={c.label} accessibilityState={{ checked: category === c.key }} onPress={() => setCategory(c.key)} style={chip(category === c.key)}>
+      <T v="strong" style={{ fontSize: 13, color: category === c.key ? HT.color.brand : HT.color.ink }}>{c.label}</T>
+    </Pressable>
+  ));
+  // One swipeable row on phones (two wrapped rows pushed the rest under the keypad).
+  const categories = wide ? (
+    <View accessibilityRole="radiogroup" style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8, justifyContent: 'center' }}>{categoryChips}</View>
+  ) : (
+    <ScrollView horizontal showsHorizontalScrollIndicator={false} accessibilityRole="radiogroup" style={{ marginHorizontal: -20, flexGrow: 0 }}
+      contentContainerStyle={{ gap: 8, paddingHorizontal: 20 }}>{categoryChips}</ScrollView>
   );
 
   const urgencyRow = payer === me.id && !multi ? (
@@ -430,13 +439,13 @@ export default function Add() {
           </View>
         ) : (
           <View style={{ flex: 1, paddingBottom: 8 }}>
-            <ScrollView style={{ flex: 1 }} contentContainerStyle={{ gap: 16, paddingBottom: 12 }} keyboardShouldPersistTaps="handled">
+            <ScrollView style={{ flex: 1 }} contentContainerStyle={{ gap: 14, paddingBottom: 12 }} keyboardShouldPersistTaps="handled">
               {amountBlock}
               {whoPaid}
               {showSplit ? splitPanel : categories}
               {showSplit ? null : urgencyRow}
             </ScrollView>
-            <View style={{ gap: 10 }}>
+            <View style={{ gap: 10, paddingTop: 10, borderTopWidth: 1, borderTopColor: HT.color.hairline }}>
               {showSplit ? null : keypad}
               {actions}
             </View>

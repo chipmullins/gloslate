@@ -6,7 +6,8 @@ module V1
 
     def index
       # Homes first (the app's Home tab uses the first one), then newest groups.
-      homes = current_user.members.current.includes(:household).map(&:household)
+      mine = current_user.members.current.includes(:household).reject { |m| m.hidden? }
+      homes = mine.map(&:household)
                           .sort_by { |h| [h.group? ? 1 : 0, h.group? ? -h.created_at.to_f : h.created_at.to_f] }
       render json: { data: homes.map { |h| summary(h) } }
     end
@@ -20,6 +21,23 @@ module V1
     end
 
     def show = render(json: { data: detail(@household) })
+
+    # POST /v1/households/:id/hide — take a settled one-on-one or group off
+    # your Friends list. Nothing is deleted, and it comes back by itself when
+    # anything new happens in it. Homes can't be hidden.
+    def hide
+      raise Hometab::Error, "Homes can't be hidden" unless @household.group?
+      raise Hometab::Error, "Settle up first" unless @household.balance_for(@me)[:net_cents].zero? && !@household.payments.pending.where("from_member_id = :id OR to_member_id = :id", id: @me.id).exists?
+
+      @me.update!(hidden_at: Time.current)
+      head :no_content
+    end
+
+    # DELETE /v1/households/:id/hide — undo.
+    def unhide
+      @me.update!(hidden_at: nil)
+      head :no_content
+    end
 
     # Household settings: any member can change them; every change is logged.
     def update

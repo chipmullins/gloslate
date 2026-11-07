@@ -111,7 +111,7 @@ export default function Home() {
     : couple && partner ? (net > 0 ? `${partner.first_name} owes you` : `You owe ${partner.first_name}`)
       : net > 0 ? "You're owed" : 'You owe';
 
-  const pendingBanner = <ConfirmPayments payments={pending} nameOf={(mid) => byId.get(mid)?.first_name ?? 'Someone'} onDone={() => { load(); }} />;
+  const pendingBanner = <ConfirmPayments payments={pending} nameOf={(mid) => byId.get(mid)?.first_name ?? 'Someone'} oneOnOne={couple} onDone={() => { load(); }} />;
 
   const balanceCard = (
     <Card dark fireflies style={{ alignItems: 'center', gap: 8, paddingTop: 24, paddingBottom: 20 }}>

@@ -28,10 +28,10 @@ module Households
               household.members.current.find_by!(id: @member_id).tap do |p|
                 raise Hometab::Error, "That spot is already taken" unless p.placeholder?
 
-                p.update!(user: @user)
+                p.update!(user: @user, **@user.payment_handles.select { |k, v| v.present? && p[k].blank? })
               end
             else
-              household.members.create!(user: @user, display_name: @user.first_name.presence || "Roommate")
+              household.members.create!(user: @user, display_name: @user.first_name.presence || "Roommate", **@user.payment_handles)
             end
         @invite.update!(accepted_at: Time.current, accepted_by_user_id: @user.id)
         LedgerEvent.record!(household:, kind: "member.joined", subject: m, actor: m, data: { claimed_placeholder: @member_id.present? && !former, rejoined: former.present? })

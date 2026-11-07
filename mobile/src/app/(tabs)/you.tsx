@@ -1,10 +1,10 @@
 import * as LocalAuthentication from 'expo-local-authentication';
-import { router, useFocusEffect } from 'expo-router';
+import { router, useFocusEffect, type Href } from 'expo-router';
 import { useCallback, useEffect, useState, type ReactNode } from 'react';
 import { Alert, Platform, Pressable, ScrollView, Switch, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-import { DownloadIcon } from '@/components/icons';
+import { ChevronIcon, DownloadIcon } from '@/components/icons';
 import { ordinal, Stepper } from '@/components/stepper';
 import { Avatar, Button, Card, ErrorNote, Field, T } from '@/components/ui';
 import { HT } from '@/constants/theme';
@@ -47,7 +47,10 @@ function Toggle({ label, hint, value, onChange }: { label: string; hint?: string
 export default function You() {
   const { user, households, refresh, signOut } = useSession();
   const { wide, gutter } = useLayout();
-  const id = households.find((h) => h.kind !== 'group')?.id;
+  // Your home if you have one; otherwise any tab you're in (payment apps and
+  // reminders are saved to every tab, so any one shows the current values).
+  const homeId = households.find((h) => h.kind !== 'group')?.id;
+  const id = homeId ?? households[0]?.id;
   const [home, setHome] = useState<Household | null>(null);
   const [me, setMe] = useState<Member | null>(null);
   const [firstName, setFirstName] = useState(user?.first_name ?? '');
@@ -87,7 +90,8 @@ export default function You() {
     }
   }
   const patchMe = (body: object, done?: string) => run(() => api('/v1/me', { method: 'PATCH', body }), done);
-  const patchMember = (mid: string, body: object, done?: string) => run(() => api(`/v1/households/${id}/members/${mid}`, { method: 'PATCH', body }), done);
+  /** Payment apps and reminders: saved to every tab you're in. */
+  const patchMine = (body: object, done?: string) => patchMe({ member: body }, done);
   const patchHome = (body: object, done?: string) => run(() => api(`/v1/households/${id}`, { method: 'PATCH', body }), done);
 
   function confirm(title: string, message: string, action: string, go: () => void) {
@@ -110,21 +114,31 @@ export default function You() {
       run(async () => { await api('/v1/me', { method: 'DELETE', body: { confirm: 'DELETE' } }); await signOut(); router.replace('/welcome'); }));
   }
 
-  if (!user || !home || !me) return <SafeAreaView style={{ flex: 1, backgroundColor: HT.color.ground }} />;
+  if (!user) return <SafeAreaView style={{ flex: 1, backgroundColor: HT.color.ground }} />;
+  const isHome = !!home && home.kind !== 'group';
   const prefs = user.notification_prefs ?? {};
-  const roommates = home.members.filter((m) => !m.you && !m.former);
+  const roommates = isHome && home ? home.members.filter((m) => !m.you && !m.former) : [];
 
   const left = (
     <>
       <Section title="You">
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
-          <Avatar name={user.first_name || '?'} index={home.members.findIndex((m) => m.you)} size={52} />
+          <Avatar name={user.first_name || '?'} index={home ? home.members.findIndex((m) => m.you) : 0} size={52} />
           <View style={{ flex: 1 }}>
             <T v="strong">{user.first_name}</T>
             <T v="small">{[user.phone, user.email].filter(Boolean).join(' · ')}</T>
-            <T v="small">Signs in with {user.identities.map((i) => ({ email: 'email', phone: 'phone', apple: 'Apple', google: 'Google', glofly: 'Glofly' } as Record<string, string>)[i.provider] ?? i.provider).join(', ')}</T>
           </View>
         </View>
+        <Pressable accessibilityRole="button" accessibilityLabel="Sign-in methods" onPress={() => router.push('/sign-in-methods' as Href)}
+          style={({ pressed }) => ({ flexDirection: 'row', alignItems: 'center', gap: 10, minHeight: 52, paddingHorizontal: 14, borderRadius: HT.radius.tile,
+            borderWidth: 1, borderColor: HT.color.hairline, backgroundColor: HT.color.ground, opacity: pressed ? 0.7 : 1 })}>
+          <View style={{ flex: 1 }}>
+            <T v="strong">Sign-in methods</T>
+            <T v="small" numberOfLines={1}>{user.identities.map((i) => ({ email: 'Email', phone: 'Phone', apple: 'Apple', google: 'Google', glofly: 'Glofly' } as Record<string, string>)[i.provider] ?? i.provider).join(' · ')}</T>
+          </View>
+          <T v="strong" style={{ color: HT.color.brand, fontSize: 13 }}>Manage</T>
+          <ChevronIcon size={16} color={HT.color.muted} />
+        </Pressable>
         <Field label="First name" value={firstName} onChangeText={setFirstName} onEndEditing={() => firstName.trim() && firstName !== user.first_name && patchMe({ first_name: firstName.trim() }, 'Saved')} />
       </Section>
 
@@ -132,20 +146,21 @@ export default function You() {
         <Field label="Venmo username" value={venmo} onChangeText={setVenmo} autoCapitalize="none" autoCorrect={false} placeholder="@your-name" />
         <Field label="Cash App $cashtag" value={cashtag} onChangeText={setCashtag} autoCapitalize="none" autoCorrect={false} placeholder="$you" />
         <Field label="Zelle email or phone" value={zelle} onChangeText={setZelle} autoCapitalize="none" autoCorrect={false} keyboardType="email-address" />
-        <Button title="Save payment apps" kind="secondary" onPress={() => patchMember(me.id, { venmo_handle: venmo, cashtag, zelle_contact: zelle }, 'Payment apps saved')} />
+        <Button title="Save payment apps" kind="secondary" onPress={() => patchMine({ venmo_handle: venmo, cashtag, zelle_contact: zelle }, 'Payment apps saved')} />
+        <T v="small">Used for your home, one-on-ones and groups.</T>
       </Section>
 
-      <Section title="Reminders">
-        <Toggle label="Let Gloslate nudge people for you" hint="So nobody has to be the bad guy" value={me.auto_remind ?? true} onChange={(v) => patchMember(me.id, { auto_remind: v })} />
+      {me ? <Section title="Reminders">
+        <Toggle label="Let Gloslate nudge people for you" hint="So nobody has to be the bad guy" value={me.auto_remind ?? true} onChange={(v) => patchMine({ auto_remind: v })} />
         {me.auto_remind !== false ? (
           <>
             <Field label="When someone owes you at least" value={threshold} onChangeText={(t) => setThreshold(centsFirst(t))} keyboardType="number-pad"
-              onEndEditing={() => { const c = parseCents(threshold); if (c) patchMember(me.id, { remind_threshold_cents: c }, 'Saved'); }} />
-            <Stepper label="Or it's been this long" value={me.remind_after_days ?? 7} min={1} max={30} onChange={(v) => patchMember(me.id, { remind_after_days: v })} format={(v) => `${v} day${v > 1 ? 's' : ''}`} />
+              onEndEditing={() => { const c = parseCents(threshold); if (c) patchMine({ remind_threshold_cents: c }, 'Saved'); }} />
+            <Stepper label="Or it's been this long" value={me.remind_after_days ?? 7} min={1} max={30} onChange={(v) => patchMine({ remind_after_days: v })} format={(v) => `${v} day${v > 1 ? 's' : ''}`} />
             <T v="small">At most one nudge every 3 days, never during quiet hours, and it stops the moment a payment is marked.</T>
           </>
         ) : null}
-      </Section>
+      </Section> : null}
     </>
   );
 
@@ -186,7 +201,7 @@ export default function You() {
         </Section>
       ) : null}
 
-      <Section title="Home">
+      {isHome && home ? <Section title="Home">
         <Field label="Name" value={homeName} onChangeText={setHomeName} onEndEditing={() => homeName.trim() && homeName !== home.name && patchHome({ name: homeName.trim() }, 'Saved. Everyone sees the change.')} />
         <Stepper label="Monthly statement on the" value={home.statement_day} min={1} max={28} onChange={(v) => patchHome({ statement_day: v })} format={ordinal} />
         {home.members.filter((m) => !m.former).length > 2 ? (
@@ -206,15 +221,15 @@ export default function You() {
           ))}
           <T v="small">Any change here is logged and shown to everyone.</T>
         </View>
-      </Section>
+      </Section> : null}
 
       <Section title="Account">
         <Button title="Export my data" kind="secondary" icon={<DownloadIcon size={18} />}
-          onPress={() => downloadAndShare('/v1/me/export', 'tabitat-my-data.json', 'application/json').catch(() => setError("Couldn't export."))} />
-        <Button title="Export this year (CSV)" kind="secondary" icon={<DownloadIcon size={18} />}
-          onPress={() => downloadAndShare(`/v1/households/${id}/export?year=${new Date().getFullYear()}`, `Gloslate-${new Date().getFullYear()}.csv`, 'text/csv').catch(() => setError("Couldn't export."))} />
+          onPress={() => downloadAndShare('/v1/me/export', 'gloslate-my-data.json', 'application/json').catch(() => setError("Couldn't export."))} />
+        {isHome ? <Button title="Export this year (CSV)" kind="secondary" icon={<DownloadIcon size={18} />}
+          onPress={() => downloadAndShare(`/v1/households/${id}/export?year=${new Date().getFullYear()}`, `Gloslate-${new Date().getFullYear()}.csv`, 'text/csv').catch(() => setError("Couldn't export."))} /> : null}
         <Button title="Sign out" kind="secondary" onPress={async () => { await signOut(); router.replace('/welcome'); }} />
-        <Button title="Leave this home" kind="link" onPress={() => removeMember({ ...me, first_name: 'You' } as Member)} />
+        {isHome && me ? <Button title="Leave this home" kind="link" onPress={() => removeMember({ ...me, first_name: 'You' } as Member)} /> : null}
         <Button title="Delete my account" kind="link" onPress={deleteAccount} />
       </Section>
     </>

@@ -16,11 +16,13 @@ import { api, ApiError, type Expense, type Payment, type Transfer } from '@/lib/
 import { formatCents } from '@/lib/money';
 import { shareLink } from '@/lib/share';
 import { goBack } from '@/lib/nav';
+import { useSession } from '@/lib/session';
 
 /** One group: where you stand, the fewest payments to settle everyone, and what's been spent. */
 export default function GroupScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const { home: group, reload, error: loadError } = useHousehold(id);
+  const { refresh } = useSession();
   const { wide, gutter } = useLayout();
   const [items, setItems] = useState<Expense[] | null>(null);
   const [newName, setNewName] = useState('');
@@ -97,7 +99,7 @@ export default function GroupScreen() {
           </T>
           {waitingOn(t) > 0 ? (
             <T v="small" style={{ color: HT.color.brand }}>
-              {formatCents(waitingOn(t))} marked paid · {t.to_member_id === me.id ? 'confirm above' : `waiting on ${nameOf(t.to_member_id)}`}
+              {t.to_member_id === me.id ? `${formatCents(waitingOn(t))} marked paid` : `${formatCents(waitingOn(t))} waiting on ${nameOf(t.to_member_id)}`}
             </T>
           ) : null}
         </View>
@@ -119,7 +121,7 @@ export default function GroupScreen() {
 
   const settle = (
     <View style={{ gap: 8 }}>
-      <ConfirmPayments payments={pending} nameOf={(mid) => byId.get(mid)?.first_name ?? 'Someone'} onDone={() => { reload(); loadPending(); }} />
+      <View style={{ marginBottom: pending.some((p) => p.can_confirm) ? 8 : 0 }}><ConfirmPayments payments={pending} nameOf={(mid) => byId.get(mid)?.first_name ?? 'Someone'} oneOnOne={group.members.filter((m) => !m.former).length === 2} onDone={() => { reload(); loadPending(); }} /></View>
       <T v="heading">Settle up</T>
       <Card style={{ paddingVertical: 4 }}>
         {plan.length === 0 ? (
@@ -185,6 +187,20 @@ export default function GroupScreen() {
     </View>
   );
 
+  // Settled: it can come off the Friends list (it comes back if anything new is added).
+  const canRemove = net === 0 && !pending.some((p) => p.from_member_id === me.id || p.to_member_id === me.id) && (items?.length ?? 0) > 0;
+  const removeLink = canRemove ? (
+    <Button kind="link" title="Remove from my Friends list" onPress={async () => {
+      try {
+        await api(`/v1/households/${id}/hide`, { body: {} });
+        await refresh();
+        goBack('/groups' as Href);
+      } catch (e) {
+        setError(e instanceof ApiError ? e.message : "Couldn't remove it.");
+      }
+    }} />
+  ) : null;
+
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: HT.color.ground }} edges={['top', 'left', 'right']}>
       <ScrollView contentContainerStyle={{ paddingBottom: 40 }} keyboardShouldPersistTaps="handled">
@@ -197,11 +213,11 @@ export default function GroupScreen() {
           </View>
           {wide ? (
             <View style={{ flexDirection: 'row', gap: 24, alignItems: 'flex-start' }}>
-              <View style={{ flex: 5, gap: 18 }}>{summary}{settle}{people}</View>
+              <View style={{ flex: 5, gap: 18 }}>{summary}{settle}{people}{removeLink}</View>
               <View style={{ flex: 6 }}>{list}</View>
             </View>
           ) : (
-            <>{summary}{settle}{list}{people}</>
+            <>{summary}{settle}{list}{people}{removeLink}</>
           )}
         </View>
       </ScrollView>
