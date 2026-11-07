@@ -100,7 +100,7 @@ class AuthFlowTest < ActionDispatch::IntegrationTest
     assert_response :unprocessable_content
   end
 
-  test "glofly isn't a route yet but needs no schema change" do
+  test "Glofly never takes a bare ID token (only the code flow)" do
     assert_includes Identity::PROVIDERS, "glofly"
     post "/v1/auth/glofly", params: { id_token: "x" }
     assert_response :not_found

@@ -3,7 +3,7 @@ module Auth
     module_function
 
     def complete(provider:, uid:, device:, email: nil, email_verified: false, phone: nil,
-                 first_name: nil, last_name: nil, match_existing: false)
+                 first_name: nil, last_name: nil, match_existing: false, account_email: true)
       new_user = false
       user = User.transaction do
         identity = Identity.find_by(provider:, provider_uid: uid)
@@ -15,7 +15,7 @@ module Auth
           raise Hometab::Error, "New accounts are paused for a little while. Please try again later." unless Hometab::Switches.feature?("signups")
 
           new_user = true
-          user = User.create!(email: (email if email_verified), phone:, first_name: first_name.to_s, last_name:)
+          user = User.create!(email: (email if email_verified && account_email), phone:, first_name: first_name.to_s, last_name:)
         end
         identity ||= user.identities.create!(provider:, provider_uid: uid, email:, email_verified:)
         identity.update!(last_used_at: Time.current)

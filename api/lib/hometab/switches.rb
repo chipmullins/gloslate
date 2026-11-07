@@ -5,7 +5,7 @@ module Hometab
   #
   #   pause:     { on, message, since, by }   everything but Control answers "paused"
   #   read_only: { on, message, since, by }   people can look but not change anything
-  #   features:  { signups, requests, reminders, pushes, web_app } (true = on)
+  #   features:  { signups, requests, reminders, pushes, web_app, glofly_sign_in } (true = on)
   module Switches
     CACHE = 5 # seconds
     FEATURES = {
@@ -13,7 +13,8 @@ module Hometab
       "requests" => "Sending requests",
       "reminders" => "Automatic reminders",
       "pushes" => "Push notifications",
-      "web_app" => "Web app (app.gloslate.app)"
+      "web_app" => "Web app (app.gloslate.app)",
+      "glofly_sign_in" => "Sign in with Glofly"
     }.freeze
     DEFAULT_PAUSE_MESSAGE = "We're doing some quick maintenance. Back in a few minutes."
 

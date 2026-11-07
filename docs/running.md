@@ -33,6 +33,7 @@ In Expo Go, receipt scanning falls back to attaching the photo and typing the to
 - **Google Play**: developer account ($25), upload key SHA-256 for `assetlinks.json`.
 - **Expo/EAS**: `npx eas-cli init` (sets `extra.eas.projectId`, required for push tokens).
 - **Google sign-in**: OAuth client IDs (iOS, Android, web) → `GOOGLE_CLIENT_IDS`.
+- **Glofly sign-in**: Gloslate's `gfa_…` client ID from Glofly → `GLOFLY_CLIENT_IDS` (see docs/glofly-integration.md).
 
 ## Production environment variables (api)
 
@@ -45,6 +46,7 @@ In Expo Go, receipt scanning falls back to attaching the photo and typing the to
 | `S3_BUCKET`, `AWS_REGION` | receipts / exports (instance role, no keys) |
 | `MAIL_FROM` | `Gloslate <hello@tabitat.app>` |
 | `APPLE_CLIENT_IDS`, `GOOGLE_CLIENT_IDS` | ID token audiences |
+| `GLOFLY_CLIENT_IDS`, `GLOFLY_ISSUER`, `GLOFLY_REDIRECT_URIS` | Sign in with Glofly: client ID (empty = off), issuer (default `https://api.glofly.app`; dev `http://localhost:4000`), allowed return addresses |
 | `APPLE_TEAM_ID`, `ANDROID_CERT_SHA256` | universal links (`/.well-known/...`) |
 | `EXPO_ACCESS_TOKEN` | optional, for Expo push security |
 | `APP_STORE_URL`, `PLAY_STORE_URL` | store links on the website and invite pages ("Coming soon" until set) |

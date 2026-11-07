@@ -1,4 +1,4 @@
-# Builds signed ID tokens with a throwaway key, standing in for Apple/Google.
+# Builds signed ID tokens with a throwaway key, standing in for Apple/Google/Glofly.
 module OidcTestKeys
   KEY = OpenSSL::PKey::RSA.new(2048)
   KID = "test-key"
@@ -17,8 +17,8 @@ module OidcTestKeys
   end
 
   def self.claims(provider, sub:, email: nil, verified: true, aud: nil, exp: 1.hour.from_now)
-    iss = provider == "apple" ? "https://appleid.apple.com" : "https://accounts.google.com"
-    aud ||= provider == "apple" ? "app.tabitat" : "google-test-client"
+    iss = { "apple" => "https://appleid.apple.com", "glofly" => "https://api.glofly.app" }.fetch(provider, "https://accounts.google.com")
+    aud ||= { "apple" => "app.tabitat", "glofly" => "gfa_test" }.fetch(provider, "google-test-client")
     { iss:, aud:, sub:, email:, email_verified: verified, exp: exp.to_i, iat: Time.now.to_i }.compact
   end
 end

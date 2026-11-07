@@ -7,6 +7,7 @@ import { BackIcon, CheckIcon } from '@/components/icons';
 import { Button, Card, ErrorNote, Field, IconButton, Screen, T } from '@/components/ui';
 import { HT } from '@/constants/theme';
 import { api, ApiError, type User } from '@/lib/api';
+import { finishLink, GloflyError, gloflyAvailable, openGlofly } from '@/lib/glofly';
 import { goBack } from '@/lib/nav';
 import { prettyPhone } from '@/lib/phone';
 import { useSession } from '@/lib/session';
@@ -17,6 +18,7 @@ const NAMES: Record<string, string> = { email: 'Email', phone: 'Phone', apple: '
 
 function describe(i: Identity) {
   if (i.provider === 'phone') return i.label ? prettyPhone(i.label) : 'Phone number';
+  if (i.provider === 'glofly') return i.label ?? 'Glofly account';
   if (i.provider === 'apple') return i.label?.endsWith('privaterelay.appleid.com') ? 'Hidden email (Apple)' : i.label ?? 'Apple ID';
   return i.label ?? '';
 }
@@ -31,9 +33,11 @@ export default function SignInMethods() {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [appleAvailable, setAppleAvailable] = useState(false);
+  const [gloflyOn, setGloflyOn] = useState(false);
 
   useEffect(() => {
     if (Platform.OS === 'ios') AppleAuthentication.isAvailableAsync().then(setAppleAvailable).catch(() => {});
+    gloflyAvailable().then(setGloflyOn);
   }, []);
 
   if (!user) return null;
@@ -90,6 +94,19 @@ export default function SignInMethods() {
     } catch (e: unknown) {
       if ((e as { code?: string }).code === 'ERR_REQUEST_CANCELED') return;
       setError(e instanceof ApiError ? e.message : "Couldn't add Apple. Try again.");
+    }
+  }
+
+  async function addGlofly() {
+    setError(null);
+    try {
+      const back = await openGlofly('link');
+      if (!back) return; // cancelled
+      await finishLink(back);
+      await refresh();
+      toast.show({ text: 'Added Glofly. You can sign in with it now.' });
+    } catch (e) {
+      setError(e instanceof ApiError || e instanceof GloflyError ? e.message : "Couldn't add Glofly. Try again.");
     }
   }
 
@@ -177,7 +194,8 @@ export default function SignInMethods() {
             {!has('phone') ? addRow('Add a phone number', 'Sign in with a text code', () => setAdding('phone')) : null}
             {!has('email') ? addRow('Add an email', 'Sign in with an emailed code', () => setAdding('email')) : null}
             {appleAvailable && !has('apple') ? addRow('Add Sign in with Apple', 'One tap on iPhone and iPad', addApple) : null}
-            {has('phone') && has('email') && (has('apple') || !appleAvailable) ? (
+            {gloflyOn && !has('glofly') ? addRow('Add Glofly', 'Sign in with your Glofly account', addGlofly) : null}
+            {has('phone') && has('email') && (has('apple') || !appleAvailable) && (has('glofly') || !gloflyOn) ? (
               <T v="small" style={{ paddingVertical: 16 }}>You have every sign-in method available here.</T>
             ) : null}
           </Card>
