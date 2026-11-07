@@ -13,5 +13,5 @@ class Invite < ApplicationRecord
   scope :open, -> { where(accepted_at: nil, revoked_at: nil).where("expires_at > ?", Time.current) }
 
   def open? = accepted_at.nil? && revoked_at.nil? && expires_at.future?
-  def url = "#{ENV.fetch('PUBLIC_URL', 'https://tabitat.app')}/i/#{token}"
+  def url = "#{ENV.fetch('PUBLIC_URL', 'https://gloslate.app')}/i/#{token}"
 end
