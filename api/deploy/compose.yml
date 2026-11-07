@@ -20,11 +20,13 @@ services:
     image: caddy:2
     restart: unless-stopped
     # Changing this label makes the server start Caddy fresh (it then retries any certificates right away).
-    labels: { app.tabitat.caddy-config: "2026-11-06-gloslate" }
+    labels: { app.tabitat.caddy-config: "2026-11-06-folder" }
     ports: ["80:80", "443:443", "443:443/udp"]
     env_file: [/data/env/server.env]
     volumes:
-      - /opt/tabitat/Caddyfile:/etc/caddy/Caddyfile:ro
+      # The whole folder, not the single file: the updater swaps in a new
+      # Caddyfile (a new file), and a single-file mount would keep the old one.
+      - /opt/tabitat:/etc/caddy:ro
       - /data/caddy:/data
 
   staging-db:
