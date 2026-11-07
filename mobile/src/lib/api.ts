@@ -93,6 +93,8 @@ export type HouseholdSummary = {
   id: string; kind: HouseholdKind; name: string; member_count: number; balance: Balance; created_at?: string;
   /** First names of everyone else in it (up to 5). */
   people?: string[];
+  /** Marked paid to you, waiting on you to confirm. */
+  to_confirm_cents?: number;
 };
 /** One payment in the quickest way to settle everyone up. */
 export type Transfer = { from_member_id: string; to_member_id: string; cents: number };

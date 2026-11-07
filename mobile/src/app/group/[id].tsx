@@ -4,6 +4,7 @@ import { Pressable, ScrollView, TextInput, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { FullScreenLoader } from '@/components/bunny-loader';
+import { ConfirmPayments } from '@/components/confirm-payments';
 import { ExpenseRow } from '@/components/expense-row';
 import { ArrowIcon } from '@/components/group-icons';
 import { BackIcon, PlusIcon, ShareIcon } from '@/components/icons';
@@ -11,7 +12,7 @@ import { Avatar, Button, Card, ErrorNote, IconButton, Money, T } from '@/compone
 import { HT } from '@/constants/theme';
 import { useHousehold } from '@/hooks/use-household';
 import { useLayout } from '@/hooks/use-layout';
-import { api, ApiError, type Expense, type Transfer } from '@/lib/api';
+import { api, ApiError, type Expense, type Payment, type Transfer } from '@/lib/api';
 import { formatCents } from '@/lib/money';
 import { shareLink } from '@/lib/share';
 import { goBack } from '@/lib/nav';
@@ -26,9 +27,15 @@ export default function GroupScreen() {
   const [adding, setAdding] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  const [pending, setPending] = useState<Payment[]>([]);
+
+  const loadPending = useCallback(() => {
+    api<{ data: Payment[] }>(`/v1/households/${id}/payments?status=pending`).then((r) => setPending(r.data)).catch(() => {});
+  }, [id]);
   useFocusEffect(useCallback(() => {
     api<{ data: Expense[] }>(`/v1/households/${id}/expenses?limit=100`).then((r) => setItems(r.data)).catch(() => setItems([]));
-  }, [id]));
+    loadPending();
+  }, [id, loadPending]));
 
   if (!group) {
     if (!loadError) return <FullScreenLoader label="Opening the group" />;
@@ -69,6 +76,9 @@ export default function GroupScreen() {
   const openTransfer = (t: Transfer) =>
     router.push(`/group/settle?hid=${id}&from=${t.from_member_id}&to=${t.to_member_id}` as Href);
 
+  const waitingOn = (t: Transfer) => pending.filter((p) => p.from_member_id === t.from_member_id && p.to_member_id === t.to_member_id)
+    .reduce((sum, p) => sum + p.amount_cents, 0);
+
   const transferRow = (t: Transfer, i: number, list: Transfer[], tappable: boolean) => {
     const youPay = t.from_member_id === me.id;
     const color = !tappable ? HT.color.ink : youPay ? HT.color.youOwe : HT.color.owedToYou;
@@ -81,9 +91,16 @@ export default function GroupScreen() {
         <Avatar name={byId.get(t.from_member_id)?.first_name ?? '?'} index={byId.get(t.from_member_id)?.index} size={34} />
         <ArrowIcon />
         <Avatar name={byId.get(t.to_member_id)?.first_name ?? '?'} index={byId.get(t.to_member_id)?.index} size={34} />
-        <T v="strong" style={{ flex: 1 }} numberOfLines={2}>
-          {nameOf(t.from_member_id)} {youPay ? 'pay' : 'pays'} {t.to_member_id === me.id ? 'you' : nameOf(t.to_member_id)}
-        </T>
+        <View style={{ flex: 1 }}>
+          <T v="strong" numberOfLines={2}>
+            {nameOf(t.from_member_id)} {youPay ? 'pay' : 'pays'} {t.to_member_id === me.id ? 'you' : nameOf(t.to_member_id)}
+          </T>
+          {waitingOn(t) > 0 ? (
+            <T v="small" style={{ color: HT.color.brand }}>
+              {formatCents(waitingOn(t))} marked paid · {t.to_member_id === me.id ? 'confirm above' : `waiting on ${nameOf(t.to_member_id)}`}
+            </T>
+          ) : null}
+        </View>
         <Money cents={t.cents} size={16} color={color} />
       </Pressable>
     );
@@ -102,6 +119,7 @@ export default function GroupScreen() {
 
   const settle = (
     <View style={{ gap: 8 }}>
+      <ConfirmPayments payments={pending} nameOf={(mid) => byId.get(mid)?.first_name ?? 'Someone'} onDone={() => { reload(); loadPending(); }} />
       <T v="heading">Settle up</T>
       <Card style={{ paddingVertical: 4 }}>
         {plan.length === 0 ? (

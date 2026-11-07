@@ -42,7 +42,9 @@ module V1
       me = h.members.find_by(user: current_user)
       others = h.members.current.where.not(id: me.id).order(:created_at).limit(5).map(&:first_name)
       { id: h.id, kind: h.kind, name: h.name, member_count: h.members.current.count, balance: h.balance_for(me),
-        people: others, created_at: h.created_at }
+        people: others, created_at: h.created_at,
+        # Marked paid to you, waiting on you to say it arrived.
+        to_confirm_cents: h.payments.pending.where(to_member: me).sum(:amount_cents) }
     end
 
     def detail(h)

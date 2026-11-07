@@ -70,4 +70,16 @@ class DoubleMarkTest < ActionDispatch::IntegrationTest
     assert_equal 1, @h.payments.count
     assert_equal 0, @h.balance_for(@chip)[:net_cents]
   end
+
+  test "the list of tabs shows what's waiting for you to confirm, until you confirm it" do
+    mark(3000)
+    get "/v1/households", headers: auth(@chip_t)
+    assert_equal 3000, json["data"].first["to_confirm_cents"]
+    get "/v1/households", headers: auth(@cole_t)
+    assert_equal 0, json["data"].first["to_confirm_cents"] # the payer has nothing to confirm
+
+    post "/v1/payments/#{@h.payments.last.id}/confirm", headers: auth(@chip_t), as: :json
+    get "/v1/households", headers: auth(@chip_t)
+    assert_equal 0, json["data"].first["to_confirm_cents"]
+  end
 end

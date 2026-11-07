@@ -1,14 +1,16 @@
 import { router, useFocusEffect, type Href } from 'expo-router';
-import { useCallback, type ReactNode } from 'react';
+import { useCallback, useState, type ReactNode } from 'react';
 import { Pressable, ScrollView, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
+import { NotificationBell } from '@/components/confirm-payments';
 import { GroupIcon } from '@/components/group-icons';
 import { ChevronIcon, SendIcon } from '@/components/icons';
 import { Avatar, Card, Money, T } from '@/components/ui';
 import { HT } from '@/constants/theme';
 import { useLayout } from '@/hooks/use-layout';
-import type { HouseholdSummary } from '@/lib/api';
+import { api, type HouseholdSummary } from '@/lib/api';
+import { formatCents } from '@/lib/money';
 import { useSession } from '@/lib/session';
 
 /** Words for a balance: "Jordan owes you" / "You owe Jordan" / "Settled". */
@@ -42,14 +44,18 @@ export default function Friends() {
   const all = households.filter((h) => h.kind === 'group');
   const people = all.filter((h) => h.member_count === 2);
   const groups = all.filter((h) => h.member_count !== 2);
-  useFocusEffect(useCallback(() => { refresh().catch(() => {}); }, [refresh]));
+  const [unread, setUnread] = useState(0);
+  useFocusEffect(useCallback(() => {
+    refresh().catch(() => {});
+    api<{ unread: number }>('/v1/notifications').then((r) => setUnread(r.unread)).catch(() => {});
+  }, [refresh]));
 
   const row = (g: HouseholdSummary, i: number, list: HouseholdSummary[], oneOnOne: boolean) => {
     const line = balanceLine(g, oneOnOne);
     const title = oneOnOne ? g.people?.[0] ?? g.name : g.name;
     const sub = oneOnOne ? 'One-on-one' : `${g.member_count} people${g.people?.length ? ` · ${g.people.slice(0, 3).join(', ')}${g.member_count > 4 ? '…' : ''}` : ''}`;
     return (
-      <Pressable key={g.id} accessibilityRole="button" accessibilityLabel={`${title}, ${line.text}${g.balance.net_cents ? ` ${Math.abs(g.balance.net_cents) / 100} dollars` : ''}`}
+      <Pressable key={g.id} accessibilityRole="button" accessibilityLabel={`${title}, ${line.text}${g.balance.net_cents ? ` ${formatCents(Math.abs(g.balance.net_cents))}` : ''}${g.to_confirm_cents ? `. ${formatCents(g.to_confirm_cents)} marked paid, waiting for you to confirm` : ''}`}
         onPress={() => router.push(`/group/${g.id}` as Href)}
         style={({ pressed }) => ({ flexDirection: 'row', alignItems: 'center', gap: 12, minHeight: 72, paddingHorizontal: 4, opacity: pressed ? 0.7 : 1,
           borderBottomWidth: i < list.length - 1 ? 1 : 0, borderBottomColor: HT.color.hairline })}>
@@ -64,7 +70,12 @@ export default function Friends() {
           <T v="strong" numberOfLines={1}>{title}</T>
           <T v="small" numberOfLines={1}>{sub}</T>
         </View>
-        <View style={{ alignItems: 'flex-end' }}>
+        <View style={{ alignItems: 'flex-end', gap: 2 }}>
+          {g.to_confirm_cents ? (
+            <View style={{ backgroundColor: HT.color.brand, borderRadius: 10, paddingHorizontal: 8, paddingVertical: 3 }}>
+              <T v="small" style={{ color: '#FFFFFF', fontFamily: HT.font.bold, fontSize: 12 }}>Confirm {formatCents(g.to_confirm_cents)}</T>
+            </View>
+          ) : null}
           <T v="small" style={{ color: line.color }}>{line.text}</T>
           {g.balance.net_cents !== 0 ? <Money cents={Math.abs(g.balance.net_cents)} size={16} color={line.color} /> : null}
         </View>
@@ -77,7 +88,10 @@ export default function Friends() {
     <SafeAreaView style={{ flex: 1, backgroundColor: HT.color.ground }} edges={['top', 'left', 'right']}>
       <ScrollView contentContainerStyle={{ paddingBottom: 32 }}>
         <View style={{ width: '100%', maxWidth: HT.maxWidth.form + (wide ? 240 : 0), alignSelf: 'center', paddingHorizontal: gutter, paddingTop: 16, gap: 16 }}>
-          <T v="display" accessibilityRole="header">Friends</T>
+          <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
+            <T v="display" accessibilityRole="header">Friends</T>
+            <NotificationBell unread={unread} />
+          </View>
           <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 10 }}>
             <Action icon={<SendIcon size={18} color={HT.color.brand} />} title="Settle up with someone" sub="One person owes the other" onPress={() => router.push('/request-friend' as Href)} />
             <Action icon={<GroupIcon size={22} color={HT.color.brand} />} title="Start a group" sub="A trip, dinners, anything shared" onPress={() => router.push('/group/new' as Href)} />
