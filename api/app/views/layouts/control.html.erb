@@ -42,6 +42,7 @@
       <div class="flash <%= flash_message["kind"] == "alert" ? "alert" : "notice" %>" role="status"><%= flash_message["text"] %></div>
     <% end %>
     <%= yield %>
+    <p class="muted" style="margin:8px 0 0;font-size:11px;text-align:right">Made in <%= page_ms %> ms on the server</p>
   </main>
 </div>
 <datalist id="quick-reasons">
