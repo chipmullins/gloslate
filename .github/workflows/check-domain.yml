@@ -6,6 +6,10 @@ on:
       domain:
         description: Domain to check
         default: gloslate.app
+      urls:
+        description: Extra URLs to fetch (space-separated; shows status, redirect and the first lines)
+        required: false
+        default: ""
 jobs:
   check:
     runs-on: ubuntu-latest
@@ -30,3 +34,8 @@ jobs:
             printf '%s -> ' "$u"; curl -sS -m 15 -o /dev/null -w '%{http_code} %{redirect_url}\n' "$u" || echo "failed"
           done
           echo "== certificate logs (crt.sh) =="; curl -sS -m 20 "https://crt.sh/?q=$d&output=json" | head -c 600 || true
+      - name: Extra URLs
+        if: inputs.urls != ''
+        env: { URLS: "${{ inputs.urls }}" }
+        run: |
+          for u in $URLS; do echo "== $u =="; curl -sS -m 15 -D - -o body.txt "$u" | head -12 || true; head -c 400 body.txt; echo; done
