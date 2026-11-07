@@ -1,4 +1,4 @@
-import { router, useLocalSearchParams } from 'expo-router';
+import { router, useLocalSearchParams, type Href } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { Pressable, View } from 'react-native';
 
@@ -26,6 +26,8 @@ export default function Join() {
       .catch(() => setError("This invite link doesn't work. Ask for a new one."));
   }, [token]);
 
+  const noun = preview?.noun ?? 'home';
+
   async function join() {
     if (!session) {
       setPendingInvite(token);
@@ -35,10 +37,10 @@ export default function Join() {
     setBusy(true);
     setError(null);
     try {
-      await api(`/v1/invites/${token}/accept`, { body: spot ? { member_id: spot } : {} });
+      const res = await api<{ data: { household_id: string } }>(`/v1/invites/${token}/accept`, { body: spot ? { member_id: spot } : {} });
       setPendingInvite(null);
       await refresh();
-      router.replace('/home');
+      router.replace((preview?.kind === 'group' ? `/group/${res.data.household_id}` : '/home') as Href);
     } catch (e) {
       setError(e instanceof ApiError ? e.message : 'Something went wrong.');
     } finally {
@@ -49,13 +51,13 @@ export default function Join() {
   return (
     <Screen
       maxWidth={HT.maxWidth.form}
-      footer={preview?.open ? <Button title={session ? `Join ${preview.inviter}'s home` : 'Sign in to join'} onPress={join} loading={busy} /> : null}>
+      footer={preview?.open ? <Button title={session ? `Join ${preview.inviter}'s ${noun}` : 'Sign in to join'} onPress={join} loading={busy} /> : null}>
       <View style={{ gap: 22, paddingTop: 24, alignItems: 'stretch' }}>
         <HouseMark size={64} />
         {preview ? (
           <>
             <View style={{ gap: 8 }}>
-              <T v="display" accessibilityRole="header">Join {preview.inviter}'s home?</T>
+              <T v="display" accessibilityRole="header">Join {preview.inviter}'s {noun}?</T>
               <T v="muted">
                 {preview.open ? `${preview.household_name} · ${preview.members.join(', ')}` : 'This invite has expired or was already used. Ask for a new link.'}
               </T>

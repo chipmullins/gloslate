@@ -11,6 +11,7 @@ Rails.application.routes.draw do
   post "r/:token/paid", to: "public#mark_paid"
   get "r/:token/image.png", to: "public#request_image"
   get "i/:token", to: "public#invite"
+  get "f/:token", to: "public#friend"
   get "icon.svg", to: "public#icon"
   get "favicon.ico", to: redirect("/icon.svg")
   get ".well-known/apple-app-site-association", to: "public#apple_app_site_association"
@@ -27,6 +28,14 @@ Rails.application.routes.draw do
       get :export
     end
     resources :identities, only: %i[create destroy]
+    resources :friends, only: %i[index create destroy] do
+      collection do
+        get :preview
+        post :link, action: :reset_link
+      end
+      post :tab, on: :member
+    end
+
     resources :notifications, only: :index do
       post :read, on: :collection
     end

@@ -1,5 +1,12 @@
 # Gloslate decisions
 
+## Settled Nov 7, 2026: friends, settled moments, account-wide settings
+
+- **Friends** are separate from homes: add someone once with your link (`gloslate.app/f/<token>`, rotatable), and requests/charges between you go out as notifications instead of texted links. Friendships are stored both ways; a one-on-one tab with a friend has both real users in it (no invite). Joining someone's one-on-one invite makes you friends automatically. Unfriending keeps all tabs and history.
+- **Hiding a settled tab** (`members.hidden_at`) only takes it off your Friends list; it reappears on any new expense, payment or request in it. Homes can't be hidden.
+- **Payment apps and reminder settings** are saved to every tab you're in (`PATCH /v1/me { member: {...} }`); new tabs start with the payment apps you already set.
+- **Pending native change** (do it with the next Xcode/APK build, not before: it changes the OTA runtime): add `"pathPrefix": "/f/"` entries next to the `/i/` ones in `mobile/app.json` Android intent filters. iOS already opens `/f/` links (the paths come from the server's apple-app-site-association).
+
 ## Settled Nov 6, 2026: Gloslate and Plum Night
 
 | Topic | Decision |

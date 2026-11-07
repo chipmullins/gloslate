@@ -6,7 +6,6 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { ConfirmPayments, NotificationBell } from '@/components/confirm-payments';
 import { ExpenseRow, shortDate } from '@/components/expense-row';
 import { ChevronIcon, HouseMark, PlusIcon, SendIcon, ShareIcon, SparkleIcon } from '@/components/icons';
-import { ToastHost } from '@/components/toast-host';
 import { FullScreenLoader } from '@/components/bunny-loader';
 import { Avatar, Button, Card, Money, T } from '@/components/ui';
 import { HT } from '@/constants/theme';
@@ -25,8 +24,14 @@ function names(members: Member[]) {
   return `You, ${others.slice(0, -1).join(', ')} & ${others.at(-1)}`;
 }
 
-export async function sendRequest(householdId: string, memberId: string) {
-  const res = await api<{ data: { url: string; message: string } }>(`/v1/households/${householdId}/requests`, { body: { member_id: memberId } });
+export async function sendRequest(householdId: string, memberId: string, name?: string) {
+  const res = await api<{ data: { url: string; message: string; in_app?: boolean; amount_cents: number } }>(`/v1/households/${householdId}/requests`, { body: { member_id: memberId } });
+  if (res.data.in_app) {
+    // They have Gloslate: it already reached them as a notification.
+    toast.show({ text: `Sent ${formatCents(res.data.amount_cents)} request${name ? ` to ${name}` : ''} in Gloslate.`, ms: 5000,
+      action: { label: 'Text it too', run: () => { shareLink(res.data.message, res.data.url).catch(() => {}); } } });
+    return;
+  }
   await shareLink(res.data.message, res.data.url);
 }
 
@@ -254,7 +259,6 @@ export default function Home() {
           )}
         </View>
       </ScrollView>
-      <ToastHost bottom={92} />
       <View pointerEvents="box-none" style={{ position: 'absolute', left: 0, right: 0, bottom: 0, paddingBottom: 16, alignItems: 'center' }}>
         <Pressable accessibilityRole="button" accessibilityLabel="Add an expense" onPress={() => router.push('/add' as Href)}
           style={({ pressed }) => ({ minHeight: 58, paddingHorizontal: 36, borderRadius: HT.radius.pill, backgroundColor: HT.color.brand,

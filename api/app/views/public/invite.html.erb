@@ -1,14 +1,16 @@
-<% content_for :title, @invite ? "Join #{@invite.created_by.first_name}'s home on Gloslate" : "Invite not found · Gloslate" %>
+<% what = @invite && (@invite.household.group? ? (@invite.household.members.current.count <= 2 ? "tab" : "group") : "home") %>
+<% content_for :title, @invite ? "Join #{@invite.created_by.first_name}'s #{what} on Gloslate" : "Invite not found · Gloslate" %>
 <% content_for :head do %>
   <meta name="robots" content="noindex">
-  <% if @invite %><meta property="og:title" content="Join <%= @invite.created_by.first_name %>'s home on Gloslate"><meta property="og:description" content="Keep a running tab of rent, bills and groceries. No more 'you owe me' texts."><% end %>
+  <% if @invite %><meta property="og:title" content="Join <%= @invite.created_by.first_name %>'s <%= what %> on Gloslate"><meta property="og:description" content="A running tab of who owes what. No more 'you owe me' texts."><% end %>
 <% end %>
 <main style="max-width:440px;margin:0 auto;padding:56px 20px;display:flex;flex-direction:column;gap:18px">
   <%= render "public/mark", size: 64 %>
   <% if @invite&.open? %>
-    <h1 style="margin:0;font-size:32px;line-height:1.15;font-weight:800;letter-spacing:-0.02em">Join <%= @invite.created_by.first_name %>'s home?</h1>
-    <p style="margin:0;color:var(--muted);line-height:1.5"><%= @invite.household.name %>. Anything already logged with your name shows up the moment you join.</p>
+    <h1 style="margin:0;font-size:32px;line-height:1.15;font-weight:800;letter-spacing:-0.02em">Join <%= @invite.created_by.first_name %>'s <%= what %>?</h1>
+    <p style="margin:0;color:var(--muted);line-height:1.5"><%= what == "tab" ? "Just the two of you" : @invite.household.name %>. Anything already logged with your name shows up the moment you join.</p>
     <a href="tabitat://join/<%= @invite.token %>" style="min-height:54px;border-radius:16px;background:var(--brand);color:#fff;font-weight:800;display:flex;align-items:center;justify-content:center;text-decoration:none">Open in Gloslate</a>
+    <a href="https://app.<%= URI(ENV.fetch('PUBLIC_URL', 'https://gloslate.app')).host %>/join/<%= @invite.token %>" style="min-height:50px;border-radius:16px;border:1px solid #DCCFD8;color:var(--ink);font-weight:700;display:flex;align-items:center;justify-content:center;text-decoration:none">Use it on the web</a>
     <p style="margin:0;color:var(--muted);font-size:14px;text-align:center">Don't have it yet? Get Gloslate for <a href="<%= ENV.fetch('APP_STORE_URL', '#') %>">iPhone & iPad</a> or <a href="<%= ENV.fetch('PLAY_STORE_URL', '#') %>">Android</a>, then tap this link again.</p>
   <% else %>
     <h1 style="margin:0;font-size:28px;font-weight:800">This invite has expired</h1>

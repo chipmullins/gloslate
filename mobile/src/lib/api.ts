@@ -122,12 +122,17 @@ export type User = {
   identities: { id: string; provider: string; email?: string | null; label?: string | null; added_at?: string; last_used_at?: string | null }[];
 };
 
+/** Someone you've added: charge or pay them in the app, no links. */
+export type Friend = { user_id: string; first_name: string; last_initial?: string; tab_id: string | null; net_cents: number };
+
 export type SignInResult =
   | { status: 'signed_in'; token: string; new_user: boolean; user: User }
   | { status: 'link_offer'; link_token: string; existing_methods: string[] };
 
 export type InvitePreview = {
   open: boolean;
+  kind?: HouseholdKind;
+  noun?: 'home' | 'tab' | 'group';
   household_name: string;
   inviter: string;
   for_member_id: string | null;

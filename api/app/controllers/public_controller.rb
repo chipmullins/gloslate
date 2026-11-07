@@ -73,6 +73,12 @@ class PublicController < ActionController::Base
     render status: @invite ? :ok : :not_found
   end
 
+  # "Add Chip as a friend": opens the app, or explains how to get it.
+  def friend
+    @friend = User.find_by(friend_token: params[:token], deleted_at: nil)
+    render status: @friend ? :ok : :not_found
+  end
+
   def home; end
 
   # Universal links: invites (/i/...) open the app when it's installed.
@@ -80,7 +86,7 @@ class PublicController < ActionController::Base
     team = ENV["APPLE_TEAM_ID"]
     return head(:not_found) if team.blank?
 
-    render json: { applinks: { details: [{ appIDs: ["#{team}.app.tabitat"], components: [{ "/" => "/i/*" }] }] } }
+    render json: { applinks: { details: [{ appIDs: ["#{team}.app.tabitat"], components: [{ "/" => "/i/*" }, { "/" => "/f/*" }] }] } }
   end
 
   def asset_links

@@ -11,6 +11,7 @@ import { HT } from '@/constants/theme';
 import { useLayout } from '@/hooks/use-layout';
 import { api, ApiError, type Household, type Member } from '@/lib/api';
 import { downloadAndShare } from '@/lib/files';
+import { prettyPhone } from '@/lib/phone';
 import { centsFirst, formatCents, parseCents } from '@/lib/money';
 import { useSession } from '@/lib/session';
 import { toast } from '@/lib/toast';
@@ -126,7 +127,7 @@ export default function You() {
           <Avatar name={user.first_name || '?'} index={home ? home.members.findIndex((m) => m.you) : 0} size={52} />
           <View style={{ flex: 1 }}>
             <T v="strong">{user.first_name}</T>
-            <T v="small">{[user.phone, user.email].filter(Boolean).join(' · ')}</T>
+            <T v="small">{[user.phone ? prettyPhone(user.phone) : null, user.email].filter(Boolean).join(' · ')}</T>
           </View>
         </View>
         <Pressable accessibilityRole="button" accessibilityLabel="Sign-in methods" onPress={() => router.push('/sign-in-methods' as Href)}

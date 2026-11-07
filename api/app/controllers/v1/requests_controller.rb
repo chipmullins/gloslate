@@ -10,6 +10,8 @@ module V1
       amount = Hometab::Money.format(req.amount_cents)
       render json: { data: { token: req.token, url: req.url, image_url: req.image_url, amount_cents: req.amount_cents,
                              breakdown: req.breakdown,
+                             # They have the app: it already reached them as a notification.
+                             in_app: recipient.user_id.present?,
                              message: "Hey #{recipient.first_name}! Here's where we're at: #{amount}. Breakdown and pay buttons: #{req.url}" } },
              status: :created
     end
