@@ -9,6 +9,8 @@ module Requests
     module_function
 
     def run(now = Time.current)
+      return unless Hometab::Switches.feature?("reminders") # turned off in Control
+
       Household.find_each do |h|
         remind_household(h, now)
       rescue StandardError => e

@@ -1,0 +1,14 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex, nofollow">
+  <title>Sign in · Gloslate Control</title>
+  <link rel="icon" href="/icon.svg" type="image/svg+xml">
+  <style><%= raw File.read(Rails.root.join("app/assets/stylesheets/tokens.css")) %><%= raw File.read(Rails.root.join("app/assets/stylesheets/control.css")) %></style>
+</head>
+<body class="night" style="min-height:100vh;display:flex;align-items:center;justify-content:center;padding:48px 16px;box-sizing:border-box">
+  <%= yield %>
+</body>
+</html>

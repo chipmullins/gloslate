@@ -3,6 +3,7 @@ module Requests
     module_function
 
     def call(household:, requester:, recipient:)
+      raise Hometab::Error, "Sending requests is paused for a little while. Try again soon." unless Hometab::Switches.feature?("requests")
       raise Hometab::Error, "Pick someone else" if requester.id == recipient.id
 
       b = Payments::Breakdown.call(household:, me: requester, other: recipient)

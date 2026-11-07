@@ -30,7 +30,12 @@ module Hometab
 
     # The web version of the app (app.<domain>), served from public/webapp.
     require_relative "../lib/hometab/web_app"
+    require_relative "../lib/hometab/pause"
+    # Control's kill switch and read-only mode come first: they cover the web app too.
+    config.middleware.use Hometab::Pause
     config.middleware.use Hometab::WebApp
+    # Control (staff console) signs in with a cookie; nothing else uses cookies.
+    config.middleware.use ActionDispatch::Cookies
 
     # Configuration for the application, engines, and railties goes here.
     #

@@ -1,0 +1,13 @@
+<form action="<%= control_sign_in_path %>" method="post" class="night" style="width:100%;max-width:400px;display:flex;flex-direction:column;gap:16px;padding:32px;border-radius:24px;background:#FFFFFF0D;border:1px solid #FFFFFF1F">
+  <div style="display:flex;align-items:center;gap:12px">
+    <%= render "public/mark", size: 48, inverted: true %>
+    <span style="display:flex;flex-direction:column;gap:3px"><span class="c-word" style="font-size:24px"><b>glo</b>slate</span><span class="c-tag">CONTROL · STAFF ONLY</span></span>
+  </div>
+  <% if flash_message && flash_message["text"].present? %><div class="flash alert" role="alert"><%= flash_message["text"] %></div><% end %>
+  <div><label class="l" for="email">Staff email</label><input class="f" id="email" name="email" type="email" autocomplete="username" required autofocus></div>
+  <div><label class="l" for="password">Password</label><input class="f" id="password" name="password" type="password" autocomplete="current-password" required></div>
+  <div><label class="l" for="otp">6-digit code from your authenticator app</label>
+    <input class="f" id="otp" name="otp" inputmode="numeric" autocomplete="one-time-code" pattern="[0-9 ]{6,7}" maxlength="7" required style="font-size:22px;letter-spacing:0.3em;text-align:center;min-height:54px"></div>
+  <button class="btn glow" type="submit" style="min-height:52px;font-size:16px">Sign in</button>
+  <p class="muted small" style="margin:0;text-align:center;line-height:1.5">Sessions last 12 hours. 10 wrong tries locks the staff account for 15 minutes. Every sign-in is in the audit log.</p>
+</form>

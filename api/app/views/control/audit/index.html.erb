@@ -1,0 +1,72 @@
+<% content_for :title, "Audit log" %><% content_for :nav, "audit" %>
+<header class="c-head">
+  <div class="grow"><h1 class="c-title">Audit log</h1><p class="c-sub">Every staff look at personal data and every change. Nobody can edit or delete it.</p></div>
+  <a class="btn" href="<%= control_audit_path(format: :csv, staff: params[:staff], q: params[:q]) %>">Download (CSV)</a>
+</header>
+<% if (otp = @new_otp) %>
+  <section class="c-card" style="border-color:var(--glow-deep)">
+    <h2>Authenticator setup for <%= otp["name"] %> (shown once)</h2>
+    <p class="small" style="margin:0">In their authenticator app (Google Authenticator, 1Password, Authy…): add an account → <b>Enter a setup key</b> → name it “Gloslate Control”, paste this key, time-based:</p>
+    <div class="secret"><%= otp["secret"].scan(/.{1,4}/).join(" ") %></div>
+    <p class="muted small" style="margin:0">Or open this link on their phone: <code style="word-break:break-all"><%= otp["uri"] %></code></p>
+  </section>
+<% end %>
+<form class="search" action="<%= control_audit_path %>" method="get" role="search">
+  <input type="search" name="q" value="<%= params[:q] %>" placeholder="Filter by action, e.g. users.delete or server.pause" aria-label="Filter">
+  <% if params[:staff].present? %><input type="hidden" name="staff" value="<%= params[:staff] %>"><% end %>
+</form>
+<section class="c-card">
+  <div class="scroll"><table class="t">
+    <thead><tr><th>When</th><th>Staff</th><th>Action</th><th>On</th><th>Reason</th><th>From</th></tr></thead>
+    <tbody>
+      <% @events.each do |e| %>
+        <% danger = e.action.match?(/delete|pause|restart|backup|lock\z|read_only_on|denied|failed/) %>
+        <tr><td class="muted" style="white-space:nowrap"><%= local_time(e.created_at) %></td><td><b><%= @staff_names[e.staff_user_id] || "—" %></b></td>
+          <td><span class="pill <%= danger ? 'bad' : e.action.end_with?('.show', '.search', 'session.created') ? 'plain' : '' %>"><%= e.action %></span></td>
+          <td class="small"><% if e.target_type == "User" %><a href="<%= control_account_path(e.target_id) %>">Account</a><% elsif e.target_type == "Household" %><a href="<%= control_tab_path(e.target_id) %>">Tab</a><% else %><span class="muted"><%= e.target_type %></span><% end %></td>
+          <td class="muted small"><%= e.reason %></td><td class="muted small" style="white-space:nowrap"><%= e.ip %></td></tr>
+      <% end %>
+    </tbody>
+  </table></div>
+  <div class="pager">
+    <% if @page > 1 %><a class="btn sm" href="<%= control_audit_path(page: @page - 1, q: params[:q], staff: params[:staff]) %>">Newer</a><% end %>
+    <% if @more %><a class="btn sm" href="<%= control_audit_path(page: @page + 1, q: params[:q], staff: params[:staff]) %>">Older</a><% end %>
+  </div>
+</section>
+
+<section class="c-card">
+  <h2>Staff</h2>
+  <div class="list">
+    <% @staff.each do |s| %>
+      <div style="flex-wrap:wrap;padding:6px 0">
+        <span class="avatar"><%= s.name[0] %></span>
+        <span class="grow"><span><%= s.name %><%= " (you)" if s.id == current_staff.id %></span><span><%= s.email %> · authenticator <%= s.otp_enabled? ? "set up" : "not used yet" %><%= " · turned off" if s.disabled_at %></span></span>
+        <span class="pill"><%= s.role.capitalize %></span>
+        <a class="btn sm" href="<%= control_audit_path(staff: s.id) %>">Their actions</a>
+        <% unless s.id == current_staff.id %>
+          <details class="act" style="background:none;border:0"><summary class="btn sm" style="min-height:36px;padding:0 12px">Change</summary>
+            <form method="post" action="<%= update_control_staff_path(s) %>" class="fields" style="padding:12px 0 0;min-width:260px"><%= render "control/shared/form_token" %>
+              <div><label class="l" for="role<%= s.id %>">Role</label><select class="f" id="role<%= s.id %>" name="role"><% StaffUser::ROLES.each do |r| %><option value="<%= r %>"<%= " selected" if r == s.role %>><%= r.capitalize %></option><% end %></select></div>
+              <label class="small"><input type="hidden" name="disabled" value="0"><input type="checkbox" name="disabled" value="1"<%= " checked" if s.disabled_at %>> Turned off (can't sign in)</label>
+              <%= render "control/shared/reason" %><button class="btn sm primary" type="submit">Save</button></form>
+            <form method="post" action="<%= reset_otp_control_staff_path(s) %>" class="fields" style="padding:12px 0 0"><%= render "control/shared/form_token" %>
+              <%= render "control/shared/reason", placeholder: "e.g. Lost their phone" %><button class="btn sm" type="submit">New authenticator secret</button></form>
+          </details>
+        <% end %>
+      </div>
+    <% end %>
+  </div>
+  <details class="act"><summary>Add staff</summary>
+    <form method="post" action="<%= control_staff_index_path %>" class="fields"><%= render "control/shared/form_token" %>
+      <div class="two">
+        <div><label class="l" for="sn">Name</label><input class="f" id="sn" name="name" required></div>
+        <div><label class="l" for="se">Email</label><input class="f" id="se" name="email" type="email" required></div>
+        <div><label class="l" for="sr">Role</label><select class="f" id="sr" name="role"><option value="viewer">Viewer: looks only, contact details hidden</option><option value="support">Support: account actions</option><option value="admin">Admin: everything</option></select></div>
+        <div><label class="l" for="sp">Starting password (12+ characters)</label><input class="f" id="sp" name="password" type="password" minlength="12" required autocomplete="new-password"></div>
+      </div>
+      <%= render "control/shared/reason" %><button class="btn primary" type="submit">Add</button>
+      <p class="muted small" style="margin:0">Their authenticator setup key shows once on the next page. Give it and the password to them privately.</p>
+    </form>
+  </details>
+  <p class="muted small" style="margin:0">Viewer: sees everything, contact details masked, can't change anything · Support: account actions · Admin: everything, including the pause switch, deletes, backups and staff.</p>
+</section>

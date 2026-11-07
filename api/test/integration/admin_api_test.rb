@@ -126,4 +126,26 @@ class AdminApiTest < ActionDispatch::IntegrationTest
     post "/admin/v1/session", params: { email: staff.email, password: PASSWORD }
     assert_includes [401, 429], response.status, "locked (or rate limited) either way"
   end
+
+  test "server data and the pause switch through the admin API (for a desktop Control)" do
+    admin = make_staff("admin")
+    token = staff_sign_in(admin)
+    get "/admin/v1/server", headers: auth(token)
+    assert_response :success
+    assert_equal false, json["data"]["pause"]["on"].present?
+    assert json["data"]["uptime"]["percent"]
+    get "/admin/v1/insights", headers: auth(token)
+    assert json["data"]["funnel"]
+
+    travel 31.seconds
+    post "/admin/v1/server/pause", params: { on: true, reason: "Testing the switch", otp: Hometab::Totp.code_at(admin.reload.otp_secret, Time.now.to_i / 30) }, headers: auth(token)
+    assert_response :success
+    assert Hometab::Switches.paused?
+    get "/admin/v1/server", headers: auth(token)
+    assert_response :success, "staff routes stay open while paused"
+
+    support = staff_sign_in(make_staff("support"))
+    post "/admin/v1/server/feature", params: { name: "signups", on: false, reason: "Not allowed" }, headers: auth(support)
+    assert_response :forbidden
+  end
 end

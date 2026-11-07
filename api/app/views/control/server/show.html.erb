@@ -1,0 +1,105 @@
+<% content_for :title, "Server" %><% content_for :nav, "server" %>
+<% admin = at_least?(:admin) %>
+<% paused = @pause["on"] == true %>
+<header class="c-head"><div class="grow"><h1 class="c-title">Server</h1><p class="c-sub"><%= Rails.env.capitalize %> · version <%= @machine[:revision].to_s[0, 7] %></p></div></header>
+
+<section class="c-card night" style="flex-direction:row;flex-wrap:wrap;gap:24px;align-items:flex-start">
+  <div style="flex:1 1 420px;display:flex;flex-direction:column;gap:8px">
+    <span class="c-tag">KILL SWITCH</span>
+    <h2 style="font-size:26px"><%= paused ? "Gloslate is paused" : "Gloslate is running" %></h2>
+    <% if paused %><p class="muted" style="margin:0">Since <%= local_time(Time.zone.parse(@pause["since"].to_s)) %> by <%= @pause["by"] %>: “<%= @pause["message"] %>”</p><% end %>
+    <p style="margin:0;color:#D9CCE0;font-size:14px;line-height:1.5">While paused, every app shows a “Gloslate is paused” screen with your message and checks again every 30 seconds; websites and request links show the same message. Nothing is lost. Control keeps working.</p>
+  </div>
+  <% if admin %>
+    <form method="post" action="<%= control_server_pause_path %>" class="fields" style="flex:1 1 320px"><%= render "control/shared/form_token" %>
+      <input type="hidden" name="on" value="<%= paused ? 0 : 1 %>">
+      <% unless paused %><div><label class="l" for="pm">Message people see</label><input class="f" id="pm" name="message" maxlength="300" value="<%= Hometab::Switches::DEFAULT_PAUSE_MESSAGE %>"></div><% end %>
+      <div class="two">
+        <div><label class="l" for="pr">Reason</label><input class="f" id="pr" name="reason" required minlength="5" list="quick-reasons"></div>
+        <div><label class="l" for="po">Authenticator code</label><input class="f" id="po" name="otp" required inputmode="numeric" autocomplete="one-time-code" maxlength="7"></div>
+      </div>
+      <button class="btn <%= paused ? 'glow' : 'coral' %>" type="submit" style="min-height:52px;font-size:16px"><%= paused ? "Resume Gloslate" : "Pause Gloslate" %></button>
+    </form>
+  <% end %>
+</section>
+
+<div class="c-grid">
+  <section class="c-card">
+    <h2>Switches</h2>
+    <div class="list">
+      <% ro = @read_only["on"] == true %>
+      <div><span class="grow"><span>Read-only mode</span><span>People can look but not add, change or pay. Signing in still works.</span></span>
+        <% if admin %>
+          <details class="act" style="background:none;border:0"><summary class="switch <%= 'on' if ro %>" aria-label="Read-only mode: <%= ro ? 'on' : 'off' %>"><span></span></summary>
+            <form method="post" action="<%= control_server_read_only_path %>" class="fields" style="padding:12px 0 0;min-width:260px"><%= render "control/shared/form_token" %><input type="hidden" name="on" value="<%= ro ? 0 : 1 %>">
+              <%= render "control/shared/reason" %><div><label class="l" for="roo">Authenticator code</label><input class="f" id="roo" name="otp" required inputmode="numeric" maxlength="7"></div>
+              <button class="btn sm <%= ro ? 'primary' : 'danger' %>" type="submit"><%= ro ? "Turn read-only off" : "Turn read-only on" %></button></form></details>
+        <% else %><span class="pill <%= ro ? 'warn' : 'good' %>"><%= ro ? "On" : "Off" %></span><% end %>
+      </div>
+      <% @features.each do |key, on| %>
+        <div><span class="grow"><span><%= Hometab::Switches::FEATURES[key] %></span><span><%= on ? "On" : "Off" %></span></span>
+          <% if admin %>
+            <details class="act" style="background:none;border:0"><summary class="switch <%= 'on' if on %>" aria-label="<%= Hometab::Switches::FEATURES[key] %>: <%= on ? 'on' : 'off' %>"><span></span></summary>
+              <form method="post" action="<%= control_server_feature_path %>" class="fields" style="padding:12px 0 0;min-width:240px"><%= render "control/shared/form_token" %>
+                <input type="hidden" name="name" value="<%= key %>"><input type="hidden" name="on" value="<%= on ? 0 : 1 %>">
+                <%= render "control/shared/reason" %><button class="btn sm <%= on ? 'danger' : 'primary' %>" type="submit"><%= on ? "Turn off" : "Turn on" %></button></form></details>
+          <% else %><span class="pill <%= on ? 'good' : 'warn' %>"><%= on ? "On" : "Off" %></span><% end %>
+        </div>
+      <% end %>
+    </div>
+  </section>
+
+  <section class="c-card">
+    <div class="row-head"><h2>Up time, last 30 days</h2><span class="num owed" style="font-family:var(--display);font-size:28px;font-weight:700"><%= format("%.2f", @uptime[:percent]) %>%</span></div>
+    <div class="updays">
+      <% @uptime[:days].each do |d| %><span class="<%= d[:status] unless d[:status] == 'up' %>" title="<%= Date.parse(d[:day]).strftime('%b %-d') %>: <%= d[:note] || 'Up all day' %>"></span><% end %>
+    </div>
+    <div class="legend"><span><i class="good"></i>Up</span><span><i class="alt"></i>Updates, restarts or paused by staff</span><span><i class="bad"></i>Down</span></div>
+    <div class="list">
+      <% @uptime[:events].first(8).each do |e| %>
+        <div><span class="dot <%= e[:kind] == 'outage' ? 'bad' : 'warn' %>"></span><span class="grow"><span><%= e[:label] %></span><span><%= local_time(e[:started_at]) %><%= " · #{e[:note]}" if e[:note].present? %></span></span></div>
+      <% end %>
+      <% if @uptime[:events].empty? %><p class="muted small" style="margin:0">Nothing recorded. Up time is measured by a heartbeat the server writes every 30 seconds; a gap over 90 seconds is written down when it comes back.</p><% end %>
+    </div>
+  </section>
+
+  <section class="c-card">
+    <h2>Machine</h2>
+    <% m = @machine %>
+    <div class="kv"><span>Running since</span><b><%= local_time(m[:booted_at]) %> (<%= ago(m[:booted_at]).sub(" ago", "") %>)</b></div>
+    <div class="kv"><span>Last heartbeat</span><b><%= m[:heartbeat_at] ? ago(Time.zone.parse(m[:heartbeat_at])) : "—" %></b></div>
+    <% if m[:memory] %><div class="kv"><span>Memory</span><b class="num"><%= number_to_human_size(m[:memory][:total] - m[:memory][:available]) %> of <%= number_to_human_size(m[:memory][:total]) %></b></div>
+      <div class="kv"><span>This server process</span><b class="num"><%= number_to_human_size(m[:memory][:process]) %></b></div><% end %>
+    <% if m[:disk] %><div class="kv"><span>Disk</span><b class="num"><%= number_to_human_size(m[:disk][:used]) %> of <%= number_to_human_size(m[:disk][:total]) %></b></div><% end %>
+    <% if m[:database] %><div class="kv"><span>Database</span><b class="num"><%= number_to_human_size(m[:database][:size]) %> · <%= m[:database][:connections] %> connections</b></div><% end %>
+    <% if m[:jobs] %><div class="kv"><span>Background jobs</span><b class="num"><%= m[:jobs][:waiting] %> waiting · <%= m[:jobs][:scheduled] %> scheduled · <%= m[:jobs][:failed] %> failed · <%= m[:jobs][:workers] %> workers</b></div><% end %>
+  </section>
+
+  <section class="c-card">
+    <h2>What's live</h2>
+    <div class="kv"><span>Server version</span><b><%= m[:revision].to_s[0, 7] %><%= " · #{local_time(Time.zone.parse(m[:built_at]), '%b %-d, %-l:%M %p')}" if m[:built_at] %></b></div>
+    <div class="kv"><span>Ruby on Rails</span><b><%= m[:rails] %> · Ruby <%= m[:ruby] %></b></div>
+    <% if m[:database] %><div class="kv"><span>Postgres</span><b><%= m[:database][:version].to_s.split.first %></b></div><% end %>
+    <div class="kv"><span>Certificate</span><b><%= m[:certificate] ? "#{m[:certificate][:host]} · #{m[:certificate][:days_left]} days left" : "—" %></b></div>
+  </section>
+
+  <% if admin %>
+  <section class="c-card wide">
+    <h2>Tools</h2>
+    <div class="c-grid" style="grid-template-columns:repeat(auto-fit,minmax(280px,1fr))">
+      <details class="act"><summary>Retry failed background jobs<%= " (#{m[:jobs][:failed]})" if m[:jobs] %></summary>
+        <form method="post" action="<%= control_server_retry_jobs_path %>" class="fields"><%= render "control/shared/form_token" %><%= render "control/shared/reason" %><button class="btn primary" type="submit">Retry them</button></form></details>
+      <details class="act"><summary>Download a database backup</summary>
+        <form method="post" action="<%= control_server_backup_path %>" class="fields"><%= render "control/shared/form_token" %>
+          <p class="small" style="margin:0">A full copy of the database (everyone's data). Keep it somewhere safe and delete it when you're done. Restore with <code>pg_restore</code>.</p>
+          <%= render "control/shared/reason" %><div><label class="l" for="bo">Authenticator code</label><input class="f" id="bo" name="otp" required inputmode="numeric" maxlength="7"></div>
+          <button class="btn" type="submit">Download backup</button></form></details>
+      <details class="act"><summary>Restart the app server</summary>
+        <form method="post" action="<%= control_server_restart_path %>" class="fields"><%= render "control/shared/form_token" %>
+          <p class="small" style="margin:0">Reloads the app in place (a few seconds). Use it if something is stuck. It's recorded as a restart, not an outage.</p>
+          <%= render "control/shared/reason" %><div><label class="l" for="ro2">Authenticator code</label><input class="f" id="ro2" name="otp" required inputmode="numeric" maxlength="7"></div>
+          <button class="btn danger" type="submit">Restart</button></form></details>
+    </div>
+  </section>
+  <% end %>
+</div>

@@ -1,0 +1,90 @@
+<% content_for :title, "Dashboard" %><% content_for :nav, "dashboard" %>
+<% s = @stats %>
+<% hour = Time.current.in_time_zone(ActiveDay::ZONE).hour %>
+<header class="c-head">
+  <div class="grow">
+    <h1 class="c-title">Good <%= hour < 12 ? "morning" : hour < 18 ? "afternoon" : "evening" %>, <%= current_staff.name.split.first %></h1>
+    <p class="c-sub"><%= s[:attention].any? { _1[:level] == "bad" } ? "A few things need a look." : "Everything is running." %></p>
+  </div>
+  <form class="search" action="<%= control_accounts_path %>" method="get" role="search" style="min-width:min(320px,100%)">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#685A66" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M11 18a7 7 0 100-14 7 7 0 000 14zM21 21l-5-5"/></svg>
+    <input type="search" name="q" placeholder="Find a person by name, email or phone" aria-label="Find a person">
+  </form>
+</header>
+
+<section class="c-tiles" aria-label="Totals">
+  <div class="c-tile"><span class="k">Accounts</span><span class="v"><%= number_with_delimiter(s[:accounts]) %></span><span class="s">+<%= s[:accounts_this_week] %> this week</span></div>
+  <div class="c-tile"><span class="k">Active today</span><span class="v"><%= number_with_delimiter(s[:active_today]) %></span><span class="s"><%= s[:accounts].zero? ? "—" : "#{(100.0 * s[:active_today] / s[:accounts]).round}% of accounts" %></span></div>
+  <div class="c-tile"><span class="k">Open tabs</span><span class="v"><%= number_with_delimiter(s[:tabs][:total]) %></span><span class="s"><%= s[:tabs][:homes] %> homes · <%= s[:tabs][:one_on_ones] %> one-on-ones · <%= s[:tabs][:groups] %> groups</span></div>
+  <div class="c-tile"><span class="k">Expenses today</span><span class="v"><%= s[:expenses_today] %></span><span class="s"><%= money(s[:expenses_today_cents]) %> logged</span></div>
+  <div class="c-tile"><span class="k">Up, last 30 days</span><span class="v"><%= format("%.2f", @uptime[:percent]) %>%</span><span class="s"><%= @uptime[:events].count { _1[:kind] == "outage" }.then { _1.zero? ? "No outages" : "#{_1} #{_1 == 1 ? 'outage' : 'outages'}" } %></span></div>
+</section>
+
+<div class="c-grid">
+  <section class="c-card" style="grid-column: span 2">
+    <div class="row-head"><h2>Last 14 days</h2><span class="legend"><span><i></i>People active</span><span><i class="alt"></i>Expenses added</span></span></div>
+    <% max = [s[:series].map { [_1[:active], _1[:expenses]].max }.max.to_i, 1].max %>
+    <div class="bars">
+      <% s[:series].each do |d| %>
+        <div class="col" title="<%= Date.parse(d[:day]).strftime('%b %-d') %>: <%= d[:active] %> people, <%= d[:expenses] %> expenses">
+          <span class="b" style="height:<%= (100.0 * d[:active] / max).round(1) %>%"></span><span class="b alt" style="height:<%= (100.0 * d[:expenses] / max).round(1) %>%"></span>
+        </div>
+      <% end %>
+    </div>
+    <div class="axis"><span><%= Date.parse(s[:series].first[:day]).strftime("%b %-d") %></span><span><%= Date.parse(s[:series][7][:day]).strftime("%b %-d") %></span><span>Today</span></div>
+  </section>
+
+  <section class="c-card night">
+    <h2>Health</h2>
+    <div class="list">
+      <div><span class="dot"></span><span class="grow"><span>Server</span></span><b class="num">Answering</b></div>
+      <% if (db = @machine[:database]) %><div><span class="dot"></span><span class="grow"><span>Database</span></span><b class="num"><%= number_to_human_size(db[:size]) %></b></div><% end %>
+      <% if (j = @machine[:jobs]) %><div><span class="dot <%= 'bad' if j[:failed].positive? %>" style="<%= 'background:#FF9E80' if j[:failed].positive? %>"></span><span class="grow"><span>Background jobs</span></span><b class="num"><%= j[:waiting] %> waiting · <%= j[:failed] %> failed</b></div><% end %>
+      <div><span class="dot" style="<%= 'background:#FF9E80' if Hometab::Switches.paused? %>"></span><span class="grow"><span>Pause switch</span></span><b><%= Hometab::Switches.paused? ? "Paused" : "Running" %></b></div>
+      <% if (c = @machine[:certificate]) %><div><span class="dot"></span><span class="grow"><span>Certificate</span></span><b class="num"><%= c[:days_left] %> days left</b></div><% end %>
+    </div>
+    <a class="btn glass" href="<%= control_server_path %>" style="margin-top:auto">Server and pause switch</a>
+  </section>
+
+  <section class="c-card">
+    <h2>This month</h2>
+    <span class="num" style="font-family:var(--display);font-size:32px;font-weight:700"><%= money(s[:month][:expenses_cents]) %></span>
+    <span class="muted small">Expenses logged. Gloslate never holds money.</span>
+    <div class="kv"><span>Requests sent</span><b class="num"><%= s[:month][:requests] %></b></div>
+    <div class="kv"><span>Payments marked</span><b class="num"><%= s[:month][:payments_marked] %></b></div>
+    <div class="kv"><span>Confirmed by a person</span><b class="num"><%= s[:month][:payments_confirmed] %></b></div>
+    <div class="kv"><span>Disputed</span><b class="num <%= 'owe' if s[:month][:disputed].positive? %>"><%= s[:month][:disputed] %></b></div>
+    <div class="kv"><span>Friendships</span><b class="num"><%= s[:friendships] %></b></div>
+  </section>
+
+  <section class="c-card">
+    <div class="row-head"><h2>New accounts</h2><a class="small" href="<%= control_accounts_path(filter: 'new') %>">All new</a></div>
+    <div class="list">
+      <% s[:new_accounts].each do |u| %>
+        <a class="rowlink" href="<%= control_account_path(u[:id]) %>"><span class="avatar"><%= u[:name][0] %></span><span class="grow"><span><%= u[:name] %></span><span><%= u[:how] %></span></span><span class="muted small"><%= ago(u[:created_at]) %></span></a>
+      <% end %>
+      <% if s[:new_accounts].empty? %><p class="muted small">No accounts yet.</p><% end %>
+    </div>
+  </section>
+
+  <section class="c-card">
+    <h2>Needs a look</h2>
+    <div class="list">
+      <% s[:attention].each do |a| %>
+        <div><span class="dot <%= a[:level] %>"></span><span class="grow"><span><%= a[:title] %></span><span><%= a[:detail] %></span></span></div>
+      <% end %>
+      <% if s[:attention].empty? %><div><span class="dot"></span><span class="grow"><span>Nothing right now</span><span>No disputes, failed jobs or outages</span></span></div><% end %>
+    </div>
+  </section>
+
+  <section class="c-card wide">
+    <div class="row-head"><h2>Your recent actions</h2><% if at_least?(:admin) %><a class="small" href="<%= control_audit_path %>">Audit log</a><% end %></div>
+    <div class="scroll"><table class="t">
+      <thead><tr><th>When</th><th>Action</th><th>Reason</th></tr></thead>
+      <tbody>
+        <% @recent.each do |e| %><tr><td class="muted"><%= local_time(e.created_at) %></td><td><b><%= e.action %></b></td><td class="muted"><%= e.reason %></td></tr><% end %>
+        <% if @recent.empty? %><tr><td colspan="3" class="muted">Nothing yet.</td></tr><% end %>
+      </tbody>
+    </table></div>
+  </section>
+</div>

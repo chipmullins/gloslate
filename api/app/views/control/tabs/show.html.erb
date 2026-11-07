@@ -1,0 +1,59 @@
+<% t = @tab %><% content_for :title, t.name.presence || "Tab" %><% content_for :nav, "tabs" %>
+<% current = @members.select { _1.left_at.nil? } %>
+<% kind = t.group? ? (current.size <= 2 ? "One-on-one" : "Group") : "Home" %>
+<div class="small"><a href="<%= control_tabs_path %>">Tabs</a> <span class="muted">/ <%= t.name %></span></div>
+<header class="c-head">
+  <div class="grow">
+    <span class="c-tag" style="color:var(--muted)"><%= kind.upcase %> · <%= current.size %> PEOPLE<%= " · FEWEST PAYMENTS ON" if t.simplified? %></span>
+    <h1 class="c-title"><%= t.name.presence || "Untitled" %></h1>
+    <p class="c-sub">Started <%= local_time(t.created_at, "%b %-d, %Y") %> · <%= money(@spent) %> spent · read-only</p>
+  </div>
+  <a class="btn" href="<%= history_control_tab_path(t, format: :csv) %>">Download history (CSV)</a>
+</header>
+
+<div class="c-grid">
+  <section class="c-card">
+    <h2>Balances</h2>
+    <div class="list">
+      <% @balances.each do |m, net| %>
+        <div><span class="grow"><span><% if m.user_id %><a href="<%= control_account_path(m.user_id) %>"><%= m.display_name %></a><% else %><%= m.display_name %><% end %></span>
+          <span><%= m.left_at ? "Left #{local_time(m.left_at, '%b %-d')}" : (m.user_id ? "Has the app" : "Hasn't joined (gets links)") %></span></span>
+          <b class="num <%= net.positive? ? 'owed' : net.negative? ? 'owe' : 'muted' %>"><%= net.zero? ? "$0.00" : "#{net.positive? ? '+' : '−'}#{money(net.abs)}" %></b></div>
+      <% end %>
+    </div>
+    <% total = @balances.sum { _2 } %>
+    <span class="small <%= total.zero? ? 'owed' : 'owe' %>"><%= total.zero? ? "Balances add up to $0.00 ✓" : "Balances don't add up to zero (#{money(total)}): look into this" %></span>
+  </section>
+
+  <section class="c-card night" style="grid-column: span 2">
+    <h2><%= t.simplified? ? "Settle-up plan (fewest payments)" : "Who owes whom" %></h2>
+    <div class="list">
+      <% @plan.each do |d| %>
+        <% waiting = @pending.select { _1.from_member_id == d.debtor && _1.to_member_id == d.creditor }.sum(&:amount_cents) %>
+        <div><span class="grow"><span><%= @names[d.debtor] %> → <%= @names[d.creditor] %></span><span><%= waiting.positive? ? "#{money(waiting)} marked paid, waiting to be confirmed" : "Not paid yet" %></span></span>
+          <b class="num" style="color:var(--glow)"><%= money(d.cents) %></b></div>
+      <% end %>
+      <% if @plan.empty? %><div><span class="grow"><span>Everyone is settled</span></span></div><% end %>
+    </div>
+  </section>
+
+  <section class="c-card wide">
+    <div class="row-head"><h2>Everything that happened</h2><span class="muted small">Append-only: edits keep the old and new values</span></div>
+    <div class="scroll"><table class="t">
+      <thead><tr><th>When</th><th>What</th><th>By</th><th>Details</th></tr></thead>
+      <tbody>
+        <% @events.each do |e| %>
+          <% d = e.data || {} %>
+          <tr><td class="muted" style="white-space:nowrap"><%= local_time(e.occurred_at) %></td><td><b><%= e.kind.tr("._", "  ").capitalize %></b></td>
+            <td><%= @names[e.actor_member_id] || (e.actor_type == "staff" ? "Staff" : e.actor_type.to_s.capitalize) %></td>
+            <td class="muted small"><%= d.except("before", "after").map { |k, v| "#{k.humanize}: #{v.is_a?(Integer) && k.end_with?('cents') ? money(v) : v.to_s.truncate(60)}" }.first(4).join(" · ") %>
+              <% if d["before"] && d["after"] %><br><%= (d["after"].keys & d["before"].keys).reject { d["before"][_1] == d["after"][_1] }.first(3).map { |k| "#{k.humanize}: #{d['before'][k].to_s.truncate(30)} → #{d['after'][k].to_s.truncate(30)}" }.join(" · ") %><% end %></td></tr>
+        <% end %>
+      </tbody>
+    </table></div>
+    <div class="pager">
+      <% if @page > 1 %><a class="btn sm" href="<%= control_tab_path(t, page: @page - 1) %>">Newer</a><% end %>
+      <% if @more %><a class="btn sm" href="<%= control_tab_path(t, page: @page + 1) %>">Older</a><% end %>
+    </div>
+  </section>
+</div>

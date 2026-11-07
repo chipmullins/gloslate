@@ -1,0 +1,146 @@
+<% u = @user %><% content_for :title, u.first_name.presence || "Account" %><% content_for :nav, "accounts" %>
+<% support = at_least?(:support) %>
+<div class="small"><a href="<%= control_accounts_path %>">Accounts</a> <span class="muted">/ <%= u.first_name %></span></div>
+
+<section class="c-card night" style="flex-direction:row;flex-wrap:wrap;align-items:center;gap:20px">
+  <span class="avatar big"><%= u.first_name.to_s[0] || "?" %></span>
+  <div style="flex:1 1 280px;display:flex;flex-direction:column;gap:4px">
+    <span style="font-family:var(--display);font-size:26px;font-weight:700"><%= [u.first_name.presence || "No name", u.last_name].compact.join(" ") %>
+      <% if u.deleted? %><span class="pill plain">Deleted</span><% elsif u.locked? %><span class="pill bad">Locked</span><% end %></span>
+    <span class="muted small">Joined <%= local_time(u.created_at, "%b %-d, %Y") %> · last active <%= ago(u.last_active_at) %> · active <%= @active_days %> of the last 30 days · id <%= u.id %></span>
+    <% if u.locked? %><span class="small" style="color:#FFC0AD">Locked: <%= u.locked_reason %></span><% end %>
+  </div>
+  <div style="display:flex;flex-direction:column;align-items:flex-end;gap:2px">
+    <span class="muted small"><%= @overall.negative? ? "Owes overall" : "Owed overall" %></span>
+    <span class="num <%= @overall.negative? ? 'owe' : 'owed' %>" style="font-family:var(--display);font-size:26px;font-weight:700"><%= money(@overall.abs) %></span>
+  </div>
+</section>
+
+<div class="c-grid">
+  <section class="c-card">
+    <h2>Sign-in methods</h2>
+    <div class="list">
+      <% @identities.each do |i| %>
+        <div>
+          <span class="grow"><span><%= { "phone" => "Phone", "email" => "Email", "apple" => "Apple", "google" => "Google" }[i.provider] || i.provider %></span>
+            <span><%= mask(i.provider == "phone" ? i.provider_uid : (i.email.presence || "Hidden email")) %> · <%= i.last_used_at ? "used #{ago(i.last_used_at)}" : "never used" %></span></span>
+          <% if support && %w[phone email].include?(i.provider) && !u.deleted? %>
+            <details class="act" style="background:none;border:0"><summary class="btn sm" style="min-height:36px;padding:0 12px">Send code</summary>
+              <form method="post" action="<%= send_code_control_account_path(u) %>" class="fields" style="padding:12px 0 0;min-width:260px"><%= render "control/shared/form_token" %><input type="hidden" name="identity_id" value="<%= i.id %>">
+                <%= render "control/shared/reason" %><button class="btn sm primary" type="submit">Send a sign-in code</button></form>
+            </details>
+          <% end %>
+          <% if support && @identities.size > 1 %>
+            <details class="act" style="background:none;border:0"><summary class="btn sm" style="min-height:36px;padding:0 12px">Remove</summary>
+              <form method="post" action="<%= remove_identity_control_account_path(u, identity_id: i.id) %>" class="fields" style="padding:12px 0 0;min-width:260px"><%= render "control/shared/form_token" %>
+                <%= render "control/shared/reason" %><button class="btn sm danger" type="submit">Remove this sign-in</button></form>
+            </details>
+          <% end %>
+        </div>
+      <% end %>
+      <% if @identities.empty? %><p class="muted small">None (deleted account).</p><% end %>
+    </div>
+    <% if support && !u.deleted? %>
+      <details class="act"><summary>Change email or phone</summary>
+        <form method="post" action="<%= change_contact_control_account_path(u) %>" class="fields"><%= render "control/shared/form_token" %>
+          <div><label class="l" for="dest">New email or phone</label><input class="f" id="dest" name="destination" required autocomplete="off"></div>
+          <label class="small"><input type="checkbox" name="replace" value="1" checked> Remove the old one of the same kind</label>
+          <%= render "control/shared/reason", placeholder: "e.g. Lost access to old number (checked by …)" %>
+          <button class="btn primary" type="submit">Change it</button>
+          <p class="muted small" style="margin:0">They sign in with a code sent to the new one. Only change it after checking it's really them.</p>
+        </form>
+      </details>
+    <% end %>
+  </section>
+
+  <section class="c-card">
+    <div class="row-head"><h2>Signed in on</h2>
+      <% if support && @sessions.any? { _1.revoked_at.nil? } %>
+        <details class="act" style="background:none;border:0"><summary class="btn sm" style="min-height:36px;padding:0 12px">Sign out everywhere</summary>
+          <form method="post" action="<%= revoke_sessions_control_account_path(u) %>" class="fields" style="padding:12px 0 0;min-width:260px"><%= render "control/shared/form_token" %><%= render "control/shared/reason" %><button class="btn sm danger" type="submit">Sign out of every device</button></form>
+        </details>
+      <% end %></div>
+    <div class="list">
+      <% @sessions.each do |s| %>
+        <div>
+          <span class="grow"><span><%= s.device_name.presence || s.platform.to_s.capitalize.presence || "Device" %><%= " (signed out)" if s.revoked_at %></span>
+            <span><%= [s.platform, (s.app_version && "app #{s.app_version}")].compact.join(" · ") %> · last seen <%= ago(s.last_seen_at) %></span></span>
+          <% if support && s.revoked_at.nil? %>
+            <details class="act" style="background:none;border:0"><summary class="btn sm" style="min-height:36px;padding:0 12px">Sign out</summary>
+              <form method="post" action="<%= revoke_session_control_account_path(u, session_id: s.id) %>" class="fields" style="padding:12px 0 0;min-width:240px"><%= render "control/shared/form_token" %><%= render "control/shared/reason" %><button class="btn sm danger" type="submit">Sign out this device</button></form>
+            </details>
+          <% end %>
+        </div>
+      <% end %>
+      <% if @sessions.empty? %><p class="muted small">Never signed in on a device.</p><% end %>
+    </div>
+  </section>
+
+  <section class="c-card wide">
+    <h2>Tabs</h2>
+    <div class="scroll"><table class="t">
+      <thead><tr><th>Tab</th><th>Kind</th><th>People</th><th>Joined</th><th class="r">Their balance</th></tr></thead>
+      <tbody>
+      <% @members.each do |m| h = m.household; next unless h %>
+        <% count = h.members.count { _1.left_at.nil? } %>
+        <% net = m.left_at ? 0 : h.balance_for(m)[:net_cents] %>
+        <tr><td><a href="<%= control_tab_path(h) %>"><b><%= h.name.presence || "Untitled" %></b></a><%= " (left)" if m.left_at %></td>
+          <td class="muted"><%= h.group? ? (count <= 2 ? "One-on-one" : "Group") : "Home" %></td><td class="muted"><%= count %></td><td class="muted"><%= local_time(m.created_at, "%b %-d, %Y") %></td>
+          <td class="r num <%= net.positive? ? 'owed' : net.negative? ? 'owe' : 'muted' %>"><b><%= net.zero? ? "$0.00" : "#{net.positive? ? '+' : '−'}#{money(net.abs)}" %></b></td></tr>
+      <% end %>
+      <% if @members.empty? %><tr><td colspan="5" class="muted">Not in any tab.</td></tr><% end %>
+      </tbody>
+    </table></div>
+    <span class="muted small">Friends: <%= @friends.map { |f| [f.first_name, f.last_name.to_s[0]&.then { "#{_1}." }].compact.join(" ") }.join(", ").presence || "none" %></span>
+  </section>
+
+  <section class="c-card">
+    <h2>Recent activity</h2>
+    <div class="list">
+      <% @activity.each do |e| %><div><span class="grow"><span><%= Control::Stats::FEATURE_EVENTS[e.name] || e.name.humanize %></span><span><%= local_time(e.created_at) %></span></span></div><% end %>
+      <% if @activity.empty? %><p class="muted small">Nothing recorded.</p><% end %>
+    </div>
+  </section>
+
+  <section class="c-card">
+    <h2>Staff actions on this account</h2>
+    <div class="list">
+      <% @staff_history.each do |e| %><div><span class="grow"><span><%= e.action %></span><span><%= local_time(e.created_at) %> · <%= e.reason %></span></span></div><% end %>
+      <% if @staff_history.empty? %><p class="muted small">None.</p><% end %>
+    </div>
+  </section>
+
+  <% if support && !u.deleted? %>
+  <section class="c-card wide">
+    <h2>Support actions</h2>
+    <div class="c-grid" style="grid-template-columns:repeat(auto-fit,minmax(280px,1fr))">
+      <% if u.locked? %>
+        <details class="act"><summary>Unlock account</summary>
+          <form method="post" action="<%= unlock_control_account_path(u) %>" class="fields"><%= render "control/shared/form_token" %><%= render "control/shared/reason" %><button class="btn primary" type="submit">Unlock</button></form></details>
+      <% else %>
+        <details class="act"><summary>Lock account</summary>
+          <form method="post" action="<%= lock_control_account_path(u) %>" class="fields"><%= render "control/shared/form_token" %><%= render "control/shared/reason", placeholder: "They see this reason when they try to sign in" %>
+            <p class="muted small" style="margin:0">Signs them out everywhere and blocks signing in until unlocked.</p><button class="btn danger" type="submit">Lock</button></form></details>
+      <% end %>
+      <details class="act"><summary>Change name</summary>
+        <form method="post" action="<%= rename_control_account_path(u) %>" class="fields"><%= render "control/shared/form_token" %>
+          <div class="two"><div><label class="l" for="fn">First name</label><input class="f" id="fn" name="first_name" value="<%= u.first_name %>" required></div><div><label class="l" for="ln">Last name</label><input class="f" id="ln" name="last_name" value="<%= u.last_name %>"></div></div>
+          <%= render "control/shared/reason" %><button class="btn primary" type="submit">Save</button></form></details>
+      <details class="act"><summary>Message as the Gloslate team</summary>
+        <form method="post" action="<%= message_control_account_path(u) %>" class="fields"><%= render "control/shared/form_token" %>
+          <div><label class="l" for="msg">Message (shows in their notifications)</label><textarea class="f" id="msg" name="body" maxlength="500" required></textarea></div>
+          <%= render "control/shared/reason" %><button class="btn primary" type="submit">Send</button></form></details>
+      <details class="act"><summary>Export their data</summary>
+        <form method="post" action="<%= export_control_account_path(u) %>" class="fields"><%= render "control/shared/form_token" %><%= render "control/shared/reason", placeholder: "e.g. Asked for a copy of their data" %>
+          <p class="muted small" style="margin:0">Downloads a JSON file: their profile, tabs, expenses and payments.</p><button class="btn" type="submit">Download</button></form></details>
+      <% if at_least?(:admin) %>
+        <details class="act danger"><summary>Delete account</summary>
+          <form method="post" action="<%= delete_control_account_path(u) %>" class="fields"><%= render "control/shared/form_token" %>
+            <p class="small" style="margin:0">Removes their sign-ins and personal details and signs them out. Tabs keep the history as “Former member” so everyone else's math stays right. Can't be undone.</p>
+            <div><label class="l" for="confirm">Type their first name (<b><%= u.first_name %></b>) to confirm</label><input class="f" id="confirm" name="confirm" required autocomplete="off"></div>
+            <%= render "control/shared/reason" %><button class="btn danger" type="submit">Delete this account</button></form></details>
+      <% end %>
+    </div>
+  </section>
+  <% end %>
+</div>

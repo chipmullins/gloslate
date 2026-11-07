@@ -1,0 +1,82 @@
+<% content_for :title, "Insights" %><% content_for :nav, "insights" %>
+<% i = @insights %>
+<header class="c-head">
+  <div class="grow"><h1 class="c-title">Insights</h1><p class="c-sub">Days are US Eastern. People counted once per day they open Gloslate.</p></div>
+  <nav class="chips" aria-label="Period">
+    <% [7, 30, 90].each do |d| %><a href="<%= control_insights_path(days: d) %>" aria-current="<%= d == @days %>"><%= d %> days</a><% end %>
+  </nav>
+  <a class="btn" href="<%= control_insights_path(days: @days, format: :csv) %>">Download CSV</a>
+</header>
+
+<section class="c-card">
+  <div style="display:flex;flex-wrap:wrap;gap:32px">
+    <div class="c-tile" style="border:0;padding:0"><span class="k">People today</span><span class="v"><%= i[:active][:day] %></span></div>
+    <div class="c-tile" style="border:0;padding:0"><span class="k">Last 7 days</span><span class="v"><%= i[:active][:week] %></span></div>
+    <div class="c-tile" style="border:0;padding:0"><span class="k">Last 30 days</span><span class="v"><%= i[:active][:month] %></span></div>
+    <div class="c-tile" style="border:0;padding:0"><span class="k">Stickiness (day ÷ month)</span><span class="v"><%= i[:active][:month].zero? ? "—" : "#{(100.0 * i[:active][:day] / i[:active][:month]).round}%" %></span></div>
+  </div>
+  <% max = [i[:daily].map { _1[:active] }.max.to_i, 1].max %>
+  <div class="bars" style="gap:<%= @days > 30 ? 1 : 4 %>px">
+    <% i[:daily].each_with_index do |d, n| %><span class="b <%= 'alt' if n == i[:daily].size - 1 %>" title="<%= Date.parse(d[:day]).strftime('%b %-d') %>: <%= d[:active] %>" style="height:<%= (100.0 * d[:active] / max).round(1) %>%"></span><% end %>
+  </div>
+  <div class="axis"><span><%= Date.parse(i[:daily].first[:day]).strftime("%b %-d") %></span><span>Today</span></div>
+</section>
+
+<div class="c-grid">
+  <section class="c-card">
+    <h2>New people: how far they get</h2>
+    <p class="muted small" style="margin:0">Everyone who signed up in the last <%= @days %> days.</p>
+    <% i[:funnel].each do |f| pct = f[:of].zero? ? 0 : (100.0 * f[:count] / f[:of]).round %>
+      <div style="display:flex;flex-direction:column;gap:4px">
+        <div class="kv"><span style="color:var(--ink)"><%= f[:step] %></span><b class="num"><%= f[:count] %> · <%= pct %>%</b></div>
+        <div class="meter"><span style="width:<%= pct %>%"></span></div>
+      </div>
+    <% end %>
+    <% if i[:funnel].empty? %><p class="muted small">No sign-ups in this period.</p><% end %>
+  </section>
+
+  <section class="c-card">
+    <h2>Do new people come back?</h2>
+    <p class="muted small" style="margin:0">Of each week's sign-ups, the share who used Gloslate 1–4 weeks later.</p>
+    <div class="scroll"><table class="t heat">
+      <thead><tr><th>Joined</th><th class="r">People</th><th>Wk 1</th><th>Wk 2</th><th>Wk 3</th><th>Wk 4</th></tr></thead>
+      <tbody>
+        <% i[:cohorts].each do |c| %>
+          <tr><td style="text-align:left;font-weight:600"><%= Date.parse(c[:week]).strftime("%b %-d") %></td><td class="r muted"><%= c[:people] %></td>
+          <% c[:weeks].each do |v| %>
+            <% bg, fg = v.nil? ? ["transparent", "inherit"] : v >= 50 ? ["#6B3A63", "#fff"] : v >= 35 ? ["#A77A9E", "#fff"] : v >= 20 ? ["#D9C2D3", "#241A23"] : ["#EFE3EC", "#241A23"] %>
+            <td style="background:<%= bg %>;color:<%= fg %>"><%= v.nil? ? "" : "#{v}%" %></td>
+          <% end %></tr>
+        <% end %>
+      </tbody>
+    </table></div>
+  </section>
+
+  <section class="c-card">
+    <h2>What people use</h2>
+    <p class="muted small" style="margin:0">People who did each at least once in the period.</p>
+    <% fmax = [i[:features].map { _1[:people] }.max.to_i, 1].max %>
+    <% i[:features].each do |f| %>
+      <div style="display:grid;grid-template-columns:minmax(120px,190px) minmax(0,1fr) 48px;gap:10px;align-items:center;font-size:14px">
+        <span><%= f[:label] %></span><div class="meter amber"><span style="width:<%= (100.0 * f[:people] / fmax).round %>%"></span></div><b class="num" style="text-align:right"><%= f[:people] %></b>
+      </div>
+    <% end %>
+  </section>
+
+  <section class="c-card">
+    <h2>Where people use it</h2>
+    <div class="list">
+      <% i[:platforms].each do |p| %>
+        <div><span class="grow"><span><%= { "ios" => "iPhone & iPad", "android" => "Android", "web" => "Web app" }[p[:platform]] || p[:platform].to_s.capitalize %></span><span><%= p[:top_version] ? "Most on #{p[:top_version]}" : "" %></span></span><b class="num"><%= p[:percent] %>%</b></div>
+      <% end %>
+      <% if i[:platforms].empty? %><p class="muted small">Not enough data yet.</p><% end %>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:6px;padding:12px 14px;border-radius:14px;background:var(--ground);font-size:13px">
+      <b>How long settling takes (median)</b>
+      <span class="muted">Request sent → marked paid: <%= i[:settle_times][:request_to_marked_hours] ? "#{i[:settle_times][:request_to_marked_hours]} hours" : "—" %> ·
+        marked → confirmed: <%= i[:settle_times][:marked_to_confirmed_hours] ? "#{i[:settle_times][:marked_to_confirmed_hours]} hours" : "—" %></span>
+    </div>
+    <div class="kv"><span>Expenses in the period</span><b class="num"><%= i[:money][:expenses] %> · <%= money(i[:money][:expenses_cents]) %></b></div>
+    <div class="kv"><span>Payments confirmed</span><b class="num"><%= money(i[:money][:confirmed_cents]) %></b></div>
+  </section>
+</div>

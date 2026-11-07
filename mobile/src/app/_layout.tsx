@@ -15,6 +15,7 @@ import { useEffect } from 'react';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 
+import { PausedScreen } from '@/components/paused-screen';
 import { SettledHost } from '@/components/settled-host';
 import { ToastHost } from '@/components/toast-host';
 import { FullScreenLoader } from '@/components/bunny-loader';
@@ -74,6 +75,7 @@ function Root() {
         </Stack>
         <ToastHost />
         <SettledHost />
+        <PausedScreen />
       </LockGate>
     </>
   );

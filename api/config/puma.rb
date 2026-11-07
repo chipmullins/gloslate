@@ -40,3 +40,7 @@ plugin :solid_queue if ENV["SOLID_QUEUE_IN_PUMA"]
 # Specify the PID file. Defaults to tmp/pids/server.pid in development.
 # In other environments, only set the PID file if requested.
 pidfile ENV["PIDFILE"] if ENV["PIDFILE"]
+
+# Up time for Control: the web server writes a heartbeat every 30 seconds
+# (lib/hometab/heartbeat.rb). Production images only.
+after_booted { Hometab::Heartbeat.start if ENV["RAILS_ENV"] == "production" && ENV["HEARTBEAT"] != "off" }

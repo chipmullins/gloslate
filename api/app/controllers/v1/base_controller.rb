@@ -13,9 +13,11 @@ module V1
       return render(json: { error: "Sign in again" }, status: :unauthorized) unless @current_session
       return render(json: { error: "This account is locked. Contact support." }, status: :forbidden) if current_user.locked?
 
-      if @current_session.last_seen_at.nil? || @current_session.last_seen_at < 5.minutes.ago
+      seen = @current_session.last_seen_at
+      if seen.nil? || seen < 5.minutes.ago || seen.in_time_zone(ActiveDay::ZONE).to_date != ActiveDay.today
         @current_session.update_columns(last_seen_at: Time.current, ip: request.remote_ip)
         current_user.update_columns(last_active_at: Time.current)
+        ActiveDay.note!(current_user, platform: @current_session.platform)
       end
     end
 
