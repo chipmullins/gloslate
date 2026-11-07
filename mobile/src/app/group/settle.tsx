@@ -4,6 +4,7 @@ import { useCallback, useRef, useState } from 'react';
 import { Linking, Pressable, View } from 'react-native';
 
 import { FullScreenLoader } from '@/components/bunny-loader';
+import { ConfirmPayments } from '@/components/confirm-payments';
 import { BackIcon, CheckIcon, CopyIcon, SendIcon } from '@/components/icons';
 import { Avatar, Button, Card, ErrorNote, Field, IconButton, Money, Screen, T } from '@/components/ui';
 import { HT } from '@/constants/theme';
@@ -135,13 +136,16 @@ export default function GroupSettle() {
           {waiting > 0 ? <T v="small" style={{ color: HT.color.darkCardMuted }}>{formatCents(waiting)} marked paid, waiting to be confirmed</T> : null}
         </Card>
 
-        {planCents > 0 && left === 0 ? (
+        {!youPay ? (
+          <ConfirmPayments payments={pending.filter((p) => p.from_member_id === from && p.to_member_id === to)} nameOf={nameOf}
+            onDone={() => { reload(); load(); }} />
+        ) : null}
+
+        {youPay && planCents > 0 && left === 0 ? (
           <Card style={{ gap: 8 }}>
             <View style={{ flexDirection: 'row', gap: 10, alignItems: 'center' }}>
               <CheckIcon size={20} color={HT.color.owedToYou} />
-              <T v="strong" style={{ flex: 1 }}>
-                {youPay ? `You marked ${formatCents(waiting)} paid. Waiting on ${otherName} to confirm.` : `${otherName} marked ${formatCents(waiting)} paid. Confirm it from your notifications.`}
-              </T>
+              <T v="strong" style={{ flex: 1 }}>You marked {formatCents(waiting)} paid. Waiting on {otherName} to confirm.</T>
             </View>
           </Card>
         ) : null}

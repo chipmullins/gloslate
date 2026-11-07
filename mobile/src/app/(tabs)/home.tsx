@@ -3,8 +3,9 @@ import { useCallback, useEffect, useState } from 'react';
 import { Pressable, RefreshControl, ScrollView, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
+import { ConfirmPayments, NotificationBell } from '@/components/confirm-payments';
 import { ExpenseRow, shortDate } from '@/components/expense-row';
-import { BellIcon, ChevronIcon, HouseMark, PlusIcon, SendIcon, ShareIcon, SparkleIcon } from '@/components/icons';
+import { ChevronIcon, HouseMark, PlusIcon, SendIcon, ShareIcon, SparkleIcon } from '@/components/icons';
 import { ToastHost } from '@/components/toast-host';
 import { FullScreenLoader } from '@/components/bunny-loader';
 import { Avatar, Button, Card, Money, T } from '@/components/ui';
@@ -84,14 +85,6 @@ export default function Home() {
     }
   }
 
-  async function confirm(p: Payment) {
-    try {
-      await api(`/v1/payments/${p.id}/confirm`, { body: {} });
-      toast.show({ text: `Confirmed ${formatCents(p.amount_cents)}` });
-    } catch (e) {
-      setError(e instanceof ApiError ? e.message : 'Something went wrong.');
-    }
-  }
 
   if (!home && !id) {
     // In a group but not a home: offer to set one up.
@@ -118,19 +111,7 @@ export default function Home() {
     : couple && partner ? (net > 0 ? `${partner.first_name} owes you` : `You owe ${partner.first_name}`)
       : net > 0 ? "You're owed" : 'You owe';
 
-  const pendingBanner = pending.length > 0 ? (
-    <View style={{ gap: 8 }}>
-      {pending.map((p) => (
-        <View key={p.id} style={{ flexDirection: 'row', alignItems: 'center', gap: 10, backgroundColor: HT.color.brandTint, borderRadius: HT.radius.tile, padding: 12 }}>
-          <Pressable style={{ flex: 1 }} accessibilityRole="button" onPress={() => router.push(`/payments/${p.id}` as Href)}>
-            <T v="strong" style={{ color: HT.color.brand }}>{byId.get(p.from_member_id)?.first_name} marked {formatCents(p.amount_cents)} paid</T>
-            <T v="small">Did it arrive? Confirms itself in 3 days.</T>
-          </Pressable>
-          <Button title="Confirm" onPress={() => confirm(p)} style={{ minHeight: 44, paddingHorizontal: 14 }} />
-        </View>
-      ))}
-    </View>
-  ) : null;
+  const pendingBanner = <ConfirmPayments payments={pending} nameOf={(mid) => byId.get(mid)?.first_name ?? 'Someone'} onDone={() => { load(); }} />;
 
   const balanceCard = (
     <Card dark fireflies style={{ alignItems: 'center', gap: 8, paddingTop: 24, paddingBottom: 20 }}>
@@ -243,12 +224,7 @@ export default function Home() {
               </View>
             </View>
             <View style={{ flexDirection: 'row', gap: 8 }}>
-              <Pressable accessibilityRole="button" accessibilityLabel={unread ? `Notifications, ${unread} new` : 'Notifications'} onPress={() => router.push('/notifications' as Href)}
-                style={({ pressed }) => ({ width: 44, height: 44, borderRadius: 22, borderWidth: 1, borderColor: HT.color.chipBorder, backgroundColor: HT.color.surface,
-                  alignItems: 'center', justifyContent: 'center', opacity: pressed ? 0.7 : 1 })}>
-                <BellIcon size={19} />
-                {unread > 0 ? <View style={{ position: 'absolute', top: 9, right: 10, width: 9, height: 9, borderRadius: 5, backgroundColor: HT.color.youOwe, borderWidth: 1.5, borderColor: '#fff' }} /> : null}
-              </Pressable>
+              <NotificationBell unread={unread} />
               {home.members.filter((m) => !m.former).length < 5 ? (
                 <Pressable accessibilityRole="button" accessibilityLabel="Invite a roommate" onPress={() => invite()}
                   style={({ pressed }) => ({ minHeight: 44, paddingHorizontal: 14, borderRadius: 22, borderWidth: 1, borderColor: HT.color.chipBorder,
