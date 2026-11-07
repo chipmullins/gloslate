@@ -3,7 +3,7 @@
 	email {$ACME_EMAIL}
 }
 
-# Gloslate's domain.
+# Gloslate's domain (live since Nov 6, 2026).
 gloslate.app, api.gloslate.app, admin-api.gloslate.app, app.gloslate.app {
 	encode zstd gzip
 	reverse_proxy production-web:80
