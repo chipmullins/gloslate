@@ -85,12 +85,14 @@ export function HouseMark({ size = 32, inverted = false }: { size?: number; inve
       )}
       {tier === 's' ? (
         <>
-          <Rect x={14} y={52} width={72} height={38} rx={10} fill={n.edge} stroke={fur} strokeWidth={6} />
-          <Ellipse cx={40} cy={44} rx={14} ry={11} fill={fur} />
-          <Circle cx={51} cy={33} r={9.5} fill={fur} />
-          <Ellipse cx={50} cy={15} rx={5} ry={12} transform="rotate(4 50 15)" fill={fur} />
-          <Circle cx={55} cy={32} r={3.2} fill={n.edge} />
-          <Path d="M80 14 Q81 28 95 29 Q81 30 80 44 Q79 30 65 29 Q79 28 80 14 Z" fill={HT.color.glow} />
+          <Rect x={15} y={50} width={70} height={40} rx={10} fill={n.edge} stroke={fur} strokeWidth={5.5} />
+          <Path d="M35 70 L45 79 L65 59" fill="none" stroke={fur} strokeWidth={7.5} strokeLinecap="round" strokeLinejoin="round" />
+          <Ellipse cx={40} cy={43} rx={13.5} ry={10.5} fill={fur} />
+          <Circle cx={50} cy={33} r={9} fill={fur} />
+          <Ellipse cx={46.5} cy={17} rx={4.3} ry={11} transform="rotate(-8 46.5 17)" fill={fur} />
+          <Ellipse cx={55.5} cy={18} rx={4.3} ry={10.5} transform="rotate(14 55.5 18)" fill={fur} />
+          <Circle cx={53.5} cy={32} r={2.8} fill={n.edge} />
+          <Path d="M80 15 Q81 28 94 29 Q81 30 80 43 Q79 30 66 29 Q79 28 80 15 Z" fill={HT.color.glow} />
         </>
       ) : tier === 'm' ? (
         <>
