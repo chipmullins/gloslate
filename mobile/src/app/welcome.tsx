@@ -121,7 +121,7 @@ export default function Welcome() {
             />
           ) : null}
           {glofly ? (
-            <Button title="Continue with Glofly" kind="secondary" icon={<GloflyGlyph />} onPress={withGlofly} loading={gloflyBusy} />
+            <Button title="Sign in with Glofly" kind="secondary" icon={<GloflyGlyph />} onPress={withGlofly} loading={gloflyBusy} />
           ) : null}
           {appleAvailable || glofly ? (
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
