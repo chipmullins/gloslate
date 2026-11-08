@@ -29,26 +29,29 @@ Code: `api/app/services/auth/glofly_flow.rb`, `api/lib/hometab/oidc.rb` (`glofly
 | Scopes | `openid profile email` (email is optional for the person) |
 | Control switch | Server → "Sign in with Glofly" turns the button off without a deploy |
 
-### What Chip does in Glofly (once Glofly's sign-in server is live)
+### What Chip did in Glofly
 
-1. Glofly → Settings → **Developer** → **New app**: name `Gloslate`, website `https://gloslate.app`.
+Since Glofly 0.9.0, sign-in apps are made only in **Glofly Control → Sign-in apps** (first-party only; no Developer page).
+
+1. New app: name `Gloslate`, website `https://gloslate.app`.
    - Return addresses: `tabitat://auth/glofly` and `https://app.gloslate.app/auth/glofly/callback`.
    - Extra permission: **email**. Skip roles.
    - Kind: **"A phone app or browser-only site (no secret, PKCE)"**.
 2. Copy the `gfa_…` client ID into `GLOFLY_CLIENT_IDS` in `api/deploy/production.env`, push, promote.
-3. Glofly Control → Sign-in apps → mark Gloslate **"Made by Glofly"**.
 
 Staging uses live Glofly and the same registration (same return addresses).
 
 ### Suggested Glofly changes (for the Glofly chat, not done here)
 
-- **"New Glofly app" in Glofly Control**: create first-party sign-in apps owned by Glofly (not a personal account) with "Made by Glofly" already on, audit-logged. Useful once Petal/ForkRoad also use Glofly sign-in.
 - Before going live: security review of the sign-in server (exact return-address matching, single-use 60-second codes, rate limits) and how the RS256 signing key is stored.
 - Glofly's privacy policy should say what it shares with apps people approve; Gloslate's says what it receives (Glofly user id, name, username, photo, email if allowed).
 
+### Button
+
+"Sign in with Glofly" with Glofly's firefly (`GloflyGlyph` in `mobile/src/components/icons.tsx`, copied from the glofly repo's `site/logo.svg`, fly only, no tile).
+
 ### Not done yet
 
-- Glofly's firefly mark on the button (a plain amber glow dot stands in: `GloflyGlyph` in `mobile/src/components/icons.tsx`).
 - Showing "@username" on the Sign-in methods row (would need storing `preferred_username`; today it shows the email if shared, else "Glofly account").
 - A real sign-in on a phone and on the web app (needs a person at the consent screen).
 

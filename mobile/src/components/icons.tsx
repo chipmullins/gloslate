@@ -1,4 +1,4 @@
-import Svg, { Circle, Defs, Ellipse, Path, RadialGradient, Rect, Stop } from 'react-native-svg';
+import Svg, { Circle, Defs, Ellipse, G, LinearGradient, Path, RadialGradient, Rect, Stop } from 'react-native-svg';
 
 import { HT } from '@/constants/theme';
 
@@ -18,18 +18,35 @@ export const BackIcon = (p: IconProps) => <Stroke {...p} d="M15 5l-7 7 7 7" />;
 export const SendIcon = (p: IconProps) => <Stroke {...p} strokeWidth={p.strokeWidth ?? 2} d="M22 2L11 13M22 2l-7 20-4-9-9-4z" />;
 export const CheckIcon = (p: IconProps) => <Stroke {...p} strokeWidth={p.strokeWidth ?? 2.6} d="M5 12l5 5 9-10" />;
 export const ShareIcon = (p: IconProps) => <Stroke {...p} d="M12 3v12M7 8l5-5 5 5M5 13v6a2 2 0 002 2h10a2 2 0 002-2v-6" />;
-/** Stand-in Glofly mark for "Continue with Glofly": an amber glow dot with a soft halo. Swap for Glofly's firefly mark when Chip provides it. */
+/** Glofly's firefly, taken from Glofly's own logo (glofly repo `site/logo.svg`) without its tile. For "Sign in with Glofly". */
 export function GloflyGlyph({ size = 22 }: { size?: number }) {
   return (
-    <Svg width={size} height={size} viewBox="0 0 24 24" accessibilityElementsHidden importantForAccessibility="no">
+    <Svg width={size} height={size} viewBox="110 120 800 800" accessibilityElementsHidden importantForAccessibility="no">
       <Defs>
-        <RadialGradient id="gfHalo" cx="50%" cy="50%" r="50%">
-          <Stop offset="0" stopColor={HT.color.glow} stopOpacity={0.55} />
-          <Stop offset="1" stopColor={HT.color.glow} stopOpacity={0} />
-        </RadialGradient>
+        <LinearGradient id="gfBody" x1="0" y1="0" x2="0.3" y2="1">
+          <Stop offset="0" stopColor="#FFD24A" />
+          <Stop offset="1" stopColor="#FFB000" />
+        </LinearGradient>
+        <LinearGradient id="gfTail" x1="1" y1="0" x2="0" y2="1">
+          <Stop offset="0" stopColor="#FFD21F" />
+          <Stop offset="0.55" stopColor="#FF9A10" />
+          <Stop offset="1" stopColor="#FF6A00" />
+        </LinearGradient>
       </Defs>
-      <Circle cx={12} cy={12} r={12} fill="url(#gfHalo)" />
-      <Circle cx={12} cy={12} r={5} fill={HT.color.glow} />
+      <Path d="M520 352 C524 332 520 316 506 304" fill="none" stroke="#FFB000" strokeWidth={22} strokeLinecap="round" />
+      <Circle cx={505} cy={301} r={14} fill="#FFB000" />
+      <Path d="M596 398 C616 380 640 374 662 382" fill="none" stroke="#FFB000" strokeWidth={22} strokeLinecap="round" />
+      <Circle cx={664} cy={382} r={14} fill="#FFB000" />
+      <Ellipse cx={455} cy={528} rx={78} ry={52} transform="rotate(-38 455 528)" fill="url(#gfBody)" />
+      <Circle cx={540} cy={428} r={74} fill="url(#gfBody)" />
+      <G fill="none" stroke="#FFA030" strokeWidth={30} strokeLinejoin="round">
+        <Path d="M490 490 C420 380 268 222 182 238 C124 250 136 330 200 382 C280 444 400 470 490 490 Z" />
+        <Path d="M490 490 C400 456 262 432 192 456 C142 474 150 536 222 546 C302 556 410 520 490 490 Z" />
+        <Path d="M490 490 C620 500 800 520 860 580 C905 626 870 690 780 680 C680 668 572 560 490 490 Z" />
+        <Path d="M490 490 C500 600 540 705 598 768 C632 804 694 796 676 736 C658 672 566 566 490 490 Z" />
+      </G>
+      <Rect x={282} y={588} width={216} height={154} rx={50} fill="url(#gfTail)" />
+      <Path d="M322 722 L318 778 Q320 794 336 784 L392 738 Z" fill="#FF7000" />
     </Svg>
   );
 }
