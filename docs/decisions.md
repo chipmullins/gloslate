@@ -58,5 +58,5 @@ Rails 8 API + Postgres + Solid Queue; Expo/TypeScript/expo-router; integer cents
 
 - [x] Steps 1–12 built (Nov 4, 2026): ledger engine, auth + admin realm, households/invites, expenses, bills, payments, requests + public pages, statements + exports, notifications + widgets, receipts (on-device OCR + itemizing), settings/Face ID/export/deletion. API ~100 tests, app typecheck + lint + tests in CI.
 - [ ] Step 13: AWS (one CloudFormation upload, see docs/deploy.md), TestFlight (Android later), beta. Needs Chip's accounts — see docs/running.md.
-- [x] Sign in with Glofly built (Nov 7) and off. Waiting on Glofly shipping its sign-in server to `main` and Gloslate's client ID (docs/glofly-integration.md).
+- [x] Sign in with Glofly built (Nov 7), switched on Nov 8 with live Glofly (docs/glofly-integration.md).
 - Not yet verified on a real device: Sign in with Apple, push delivery, widgets, Face ID, native receipt OCR (all need a development build). Google sign-in button in the app needs client IDs.
