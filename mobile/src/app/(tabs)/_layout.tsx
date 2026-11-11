@@ -1,5 +1,5 @@
 import { Tabs } from 'expo-router';
-import { Text } from 'react-native';
+import { Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { GroupIcon } from '@/components/group-icons';
@@ -16,8 +16,16 @@ export default function TabsLayout() {
   const toConfirm = households.filter((h) => h.kind === 'group' && (h.to_confirm_cents ?? 0) > 0).length;
   // Sized from the real safe area so labels never sit under the iPhone's home indicator.
   const { bottom } = useSafeAreaInsets();
-  const label = (title: string) => function TabLabel({ focused }: { focused: boolean }) { return (
-    <Text style={{ fontFamily: focused ? HT.font.extrabold : HT.font.semibold, fontSize: 11.5, color: focused ? HT.color.brand : HT.color.muted }}>{title}</Text>
+  // Wide screens put the label beside the icon, where the icon badge would sit on the word: show the count after it instead.
+  const label = (title: string, badge?: number) => function TabLabel({ focused }: { focused: boolean }) { return (
+    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+      <Text style={{ fontFamily: focused ? HT.font.extrabold : HT.font.semibold, fontSize: 11.5, color: focused ? HT.color.brand : HT.color.muted }}>{title}</Text>
+      {wide && badge ? (
+        <View style={{ minWidth: 18, height: 18, borderRadius: 9, paddingHorizontal: 5, backgroundColor: HT.color.youOwe, alignItems: 'center', justifyContent: 'center' }}>
+          <Text style={{ fontFamily: HT.font.bold, fontSize: 11, color: '#FFFFFF' }}>{badge}</Text>
+        </View>
+      ) : null}
+    </View>
   ); };
   return (
     <Tabs
@@ -31,8 +39,8 @@ export default function TabsLayout() {
         sceneStyle: { backgroundColor: HT.color.ground },
       }}>
       <Tabs.Screen name="home" options={{ title: 'Home', tabBarLabel: label('Home'), tabBarIcon: ({ color }) => <HouseIcon color={String(color)} size={22} /> }} />
-      <Tabs.Screen name="groups" options={{ title: 'Friends', tabBarLabel: label('Friends'), tabBarIcon: ({ color }) => <GroupIcon color={String(color)} size={22} />,
-        tabBarBadge: toConfirm || undefined, tabBarBadgeStyle: { backgroundColor: HT.color.youOwe, fontFamily: HT.font.bold, fontSize: 11 } }} />
+      <Tabs.Screen name="groups" options={{ title: 'Friends', tabBarLabel: label('Friends', toConfirm), tabBarIcon: ({ color }) => <GroupIcon color={String(color)} size={22} />,
+        tabBarBadge: (!wide && toConfirm) || undefined, tabBarAccessibilityLabel: toConfirm ? `Friends, ${toConfirm} to confirm` : 'Friends', tabBarBadgeStyle: { backgroundColor: HT.color.youOwe, fontFamily: HT.font.bold, fontSize: 11 } }} />
       <Tabs.Screen name="activity" options={{ title: 'Activity', tabBarLabel: label('Activity'), tabBarIcon: ({ color }) => <ActivityIcon color={String(color)} size={22} /> }} />
       <Tabs.Screen name="bills" options={{ title: 'Bills', tabBarLabel: label('Bills'), tabBarIcon: ({ color }) => <CalendarIcon color={String(color)} size={22} /> }} />
       <Tabs.Screen name="you" options={{ title: 'You', tabBarLabel: label('You'), tabBarIcon: ({ color }) => <PersonIcon color={String(color)} size={22} /> }} />

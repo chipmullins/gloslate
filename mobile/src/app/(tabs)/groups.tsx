@@ -34,17 +34,14 @@ function SectionHead({ title, note }: { title: string; note?: string }) {
   );
 }
 
+/** A compact shortcut tile: three sit in one row at every size, so Balances stays near the top. */
 function Action({ icon, title, sub, onPress }: { icon: ReactNode; title: string; sub: string; onPress: () => void }) {
   return (
     <Pressable accessibilityRole="button" accessibilityLabel={`${title}. ${sub}`} onPress={onPress}
-      style={({ pressed }) => ({ flex: 1, minWidth: 220, flexDirection: 'row', alignItems: 'center', gap: 12, minHeight: 68, paddingHorizontal: 16,
+      style={({ pressed }) => ({ flex: 1, alignItems: 'center', justifyContent: 'center', gap: 8, minHeight: 88, paddingVertical: 12, paddingHorizontal: 6,
         borderRadius: HT.radius.card, backgroundColor: HT.color.surface, borderWidth: 1, borderColor: HT.color.hairline, opacity: pressed ? 0.75 : 1 })}>
       <View style={{ width: 40, height: 40, borderRadius: HT.radius.tile, backgroundColor: HT.color.brandTint, alignItems: 'center', justifyContent: 'center' }}>{icon}</View>
-      <View style={{ flex: 1 }}>
-        <T v="strong">{title}</T>
-        <T v="small">{sub}</T>
-      </View>
-      <ChevronIcon size={18} color={HT.color.muted} />
+      <T v="strong" style={{ fontSize: 13.5, textAlign: 'center' }} numberOfLines={2}>{title}</T>
     </Pressable>
   );
 }
@@ -183,10 +180,10 @@ export default function Friends() {
             <T v="display" accessibilityRole="header">Friends</T>
             <NotificationBell unread={unread} />
           </View>
-          <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 10 }}>
-            <Action icon={<SendIcon size={18} color={HT.color.brand} />} title="Settle up with someone" sub="One person owes the other" onPress={() => router.push('/request-friend' as Href)} />
-            <Action icon={<GroupIcon size={22} color={HT.color.brand} />} title="Start a group" sub="A trip, dinners, anything shared" onPress={() => router.push('/group/new' as Href)} />
-            <Action icon={<AddPersonIcon size={20} color={HT.color.brand} />} title="Add a friend" sub="Send each other requests in the app" onPress={inviteFriend} />
+          <View style={{ flexDirection: 'row', gap: 10 }}>
+            <Action icon={<SendIcon size={18} color={HT.color.brand} />} title="Settle up" sub="One person owes the other" onPress={() => router.push('/request-friend' as Href)} />
+            <Action icon={<GroupIcon size={22} color={HT.color.brand} />} title="New group" sub="A trip, dinners, anything shared" onPress={() => router.push('/group/new' as Href)} />
+            <Action icon={<AddPersonIcon size={20} color={HT.color.brand} />} title="Add friend" sub="Send each other requests in the app" onPress={inviteFriend} />
           </View>
 
           {all.length === 0 && friends.length === 0 ? (
@@ -202,7 +199,7 @@ export default function Friends() {
             <View style={{ flexDirection: 'row', gap: 24, alignItems: 'flex-start' }}>
               <View style={{ flex: 1, gap: 16 }}>
                 <View style={{ gap: 8 }}>
-              <SectionHead title="Balances" note={balances.length ? undefined : 'Nobody owes anybody'} />
+              <SectionHead title="Balances" />
               {balances.length > 0 ? (
                 <Card style={{ paddingVertical: 4 }}>{balances.map((g, i) => renderRow(g, i, balances, true, friendTabs.has(g.id)))}</Card>
               ) : (
