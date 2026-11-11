@@ -7,7 +7,7 @@ import { BackIcon } from '@/components/icons';
 import { Button, Card, ErrorNote, Field, IconButton, Money, Screen, T } from '@/components/ui';
 import { HT } from '@/constants/theme';
 import { useHousehold } from '@/hooks/use-household';
-import { api, ApiError, type Payment } from '@/lib/api';
+import { api, ApiError, type Balance, type Payment } from '@/lib/api';
 import { celebrateIfSettled } from '@/lib/celebrate';
 import { toast } from '@/lib/toast';
 import { goBack } from '@/lib/nav';
@@ -36,11 +36,10 @@ export default function PaymentDetail() {
   async function act(path: string, body: object = {}, done?: string) {
     setError(null);
     try {
-      const res = await api<{ balance?: { net_cents: number } }>(`/v1/payments/${id}/${path}`, { body });
-      if (path === 'confirm' && res.balance?.net_cents === 0) {
-        const others = (home?.members ?? []).filter((m) => !m.you && !m.former);
-        celebrateIfSettled(0, others.length === 1 ? others[0].first_name : undefined);
-      } else if (done) toast.show({ text: done });
+      const res = await api<{ balance?: Balance }>(`/v1/payments/${id}/${path}`, { body });
+      const from = home?.members.find((m) => m.id === p?.from_member_id);
+      const played = path === 'confirm' && celebrateIfSettled({ balance: res.balance, otherId: from?.id, otherName: from?.first_name, amountCents: p?.amount_cents, key: id });
+      if (!played && done) toast.show({ text: done });
       setNote('');
       setDisputing(false);
       load();

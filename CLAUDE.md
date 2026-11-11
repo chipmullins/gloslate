@@ -2,7 +2,7 @@
 
 Gloslate keeps a running tab of shared home costs for 2–5 people, does the math, and tells each person what to send. Payment happens in Venmo / Cash App / Zelle. **Gloslate never holds or moves money.**
 
-Owner: Chip Mullins. Brand line: "Gloslate by Glofly". Legal owner: HarborWorks.
+Owner: Chip Mullins. Brand line: "Gloslate by Glofly". Legal owner: **Chip Mullins personally** (Nov 11, 2026) until his LLC exists; HarborWorks is no longer the legal owner.
 
 ## Source of truth
 

@@ -10,11 +10,12 @@ import { Avatar, Button, Card, ErrorNote, Field, IconButton, Money, Screen, T } 
 import { HT } from '@/constants/theme';
 import { useHousehold } from '@/hooks/use-household';
 import { useLayout } from '@/hooks/use-layout';
-import { api, ApiError, type Breakdown, type PayInfo } from '@/lib/api';
+import { api, ApiError, type Balance, type Breakdown, type PayInfo } from '@/lib/api';
 import { centsFirst, formatCents, parseCents } from '@/lib/money';
 import { celebrateIfSettled } from '@/lib/celebrate';
 import { toast } from '@/lib/toast';
 import { sendRequest } from '@/app/(tabs)/home';
+import { TonePicker, type ToneKey } from '@/components/tone-picker';
 import { goBack } from '@/lib/nav';
 
 const METHODS = [
@@ -36,6 +37,7 @@ export default function Settle() {
   const { home, error: loadError } = useHousehold(hid);
   const { wide } = useLayout();
   const [b, setB] = useState<Breakdown | null>(null);
+  const [tone, setTone] = useState<ToneKey | undefined>();
   const [pay, setPay] = useState<PayInfo | null>(null);
   const [picked, setPicked] = useState<string[]>([]);
   const [amount, setAmount] = useState('');
@@ -113,13 +115,13 @@ export default function Settle() {
     setError(null);
     try {
       const allocations = Object.fromEntries(owedByMe.filter((i) => picked.includes(i.expense_id)).map((i) => [i.expense_id, -i.cents - i.paid_cents]));
-      const res = await api<{ balance?: { net_cents: number } }>(`/v1/households/${home.id}/payments`, {
+      const res = await api<{ data?: { id: string }; balance?: Balance }>(`/v1/households/${home.id}/payments`, {
         body: receiverRecorded
           ? { from_member_id: other.id, to_member_id: home.me.id, amount_cents: cents, method }
           : { to_member_id: other.id, amount_cents: cents, method, allocations },
       });
-      if (receiverRecorded && res.balance?.net_cents === 0) celebrateIfSettled(0, home.members.filter((m) => !m.former).length === 2 ? other.first_name : undefined);
-      else toast.show({ text: receiverRecorded ? `Recorded ${formatCents(cents)} from ${other.first_name}` : `Marked as paid. ${other.first_name} will confirm.` });
+      const played = receiverRecorded && celebrateIfSettled({ balance: res.balance, otherId: other.id, otherName: other.first_name, amountCents: cents, key: res.data?.id });
+      if (!played) toast.show({ text: receiverRecorded ? `Recorded ${formatCents(cents)} from ${other.first_name}` : `Marked as paid. ${other.first_name} will confirm.` });
       setPicked([]);
       setAmount('');
       setOpened(false);
@@ -160,7 +162,8 @@ export default function Settle() {
       {b.credit_cents.theirs > 0 ? <T v="small" style={{ color: HT.color.onDarkOwed }}>{other.first_name} has {formatCents(b.credit_cents.theirs)} credit from overpaying</T> : null}
       {b.credit_cents.mine > 0 ? <T v="small" style={{ color: HT.color.onDarkOwed }}>You have {formatCents(b.credit_cents.mine)} credit</T> : null}
       {pendingPay ? (
-        <Pressable onPress={() => router.push(`/payments/${pendingPay.id}` as Href)} style={{ marginTop: 6, backgroundColor: HT.color.onDarkButton, borderRadius: 12, paddingHorizontal: 12, paddingVertical: 8 }}>
+        <Pressable accessibilityRole="button" accessibilityHint="Opens the payment" onPress={() => router.push(`/payments/${pendingPay.id}` as Href)}
+          style={{ marginTop: 6, minHeight: 44, justifyContent: 'center', backgroundColor: HT.color.onDarkButton, borderRadius: 12, paddingHorizontal: 12, paddingVertical: 8 }}>
           <T v="small" style={{ color: HT.color.onDarkText }}>Pending · {formatCents(pendingPay.amount_cents)} waiting on {pendingPay.you_sent ? other.first_name : 'you'} to confirm</T>
         </Pressable>
       ) : null}
@@ -181,8 +184,9 @@ export default function Settle() {
 
   const actions = theyOwe ? (
     <Card style={{ gap: 12 }}>
+      <TonePicker value={tone} onChange={setTone} preview="share" />
       <Button title={`Request ${formatCents(net)}`} icon={<SendIcon size={18} color="#fff" />}
-        onPress={() => sendRequest(home.id, other.id).catch((e) => setError(e instanceof ApiError ? e.message : "Couldn't send it."))} />
+        onPress={() => sendRequest(home.id, other.id, undefined, tone).catch((e) => setError(e instanceof ApiError ? e.message : "Couldn't send it."))} />
       {recording ? (
         <View style={{ gap: 12 }}>
           <Field label={`How much did ${other.first_name} pay you?`} value={amount} onChangeText={(t) => setAmount(centsFirst(t))} keyboardType="number-pad" />

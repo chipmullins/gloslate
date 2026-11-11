@@ -5,7 +5,7 @@ import { Pressable, View } from 'react-native';
 import { BellIcon } from '@/components/icons';
 import { Button, T } from '@/components/ui';
 import { HT } from '@/constants/theme';
-import { api, ApiError, type Payment } from '@/lib/api';
+import { api, ApiError, type Balance, type Payment } from '@/lib/api';
 import { celebrateIfSettled } from '@/lib/celebrate';
 import { formatCents } from '@/lib/money';
 import { toast } from '@/lib/toast';
@@ -32,9 +32,9 @@ export function ConfirmPayments({ payments, nameOf, onDone, oneOnOne }: {
     setBusy(p.id);
     setError(null);
     try {
-      const res = await api<{ balance?: { net_cents: number } }>(`/v1/payments/${p.id}/confirm`, { body: {} });
-      if (res.balance?.net_cents === 0) celebrateIfSettled(0, oneOnOne ? nameOf(p.from_member_id) : undefined);
-      else toast.show({ text: `Confirmed ${formatCents(p.amount_cents)} from ${nameOf(p.from_member_id)}` });
+      const res = await api<{ balance?: Balance }>(`/v1/payments/${p.id}/confirm`, { body: {} });
+      const played = celebrateIfSettled({ balance: res.balance, otherId: p.from_member_id, otherName: nameOf(p.from_member_id), amountCents: p.amount_cents, key: p.id });
+      if (!played) toast.show({ text: `Confirmed ${formatCents(p.amount_cents)} from ${nameOf(p.from_member_id)}` });
       onDone();
     } catch (e) {
       setError(e instanceof ApiError ? e.message : "Couldn't confirm it. Try again.");

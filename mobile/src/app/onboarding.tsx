@@ -5,9 +5,12 @@ import { type NativeScrollEvent, type NativeSyntheticEvent, Pressable, ScrollVie
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { GroupIcon } from '@/components/group-icons';
-import { CheckIcon, HouseIcon, SendIcon } from '@/components/icons';
+import { ButtonBunny } from '@/components/bunny-loader';
+import { CheckIcon, ChevronIcon, HouseIcon, SendIcon } from '@/components/icons';
 import { Avatar, Button, Card, Money, T } from '@/components/ui';
 import { HT } from '@/constants/theme';
+import { api } from '@/lib/api';
+import { useSession } from '@/lib/session';
 
 /** A tiny mock row for the illustrations. */
 function MockRow({ title, sub, caption, cents, owed }: { title: string; sub: string; caption: string; cents: number; owed: boolean }) {
@@ -76,7 +79,7 @@ const PAGES = [
   },
 ];
 
-/** First run: how Gloslate works, then pick how to start. */
+/** First run: how Gloslate works, then a home or just friends. */
 export default function Onboarding() {
   const { width } = useWindowDimensions();
   const pageWidth = Math.min(width, 560);
@@ -88,23 +91,41 @@ export default function Onboarding() {
   const onScroll = (e: NativeSyntheticEvent<NativeScrollEvent>) => setPage(Math.round(e.nativeEvent.contentOffset.x / pageWidth));
   const go = (i: number) => scroller.current?.scrollTo({ x: i * pageWidth, animated: true });
 
+  const { refresh } = useSession();
+  const [busy, setBusy] = useState<'home' | 'friends' | null>(null);
+
+  // Either way onboarding is done for this account (all devices); a home can be set up any time later.
+  async function start(path: 'home' | 'friends') {
+    setBusy(path);
+    try {
+      await api('/v1/me', { method: 'PATCH', body: { onboarded: true } });
+      await refresh();
+    } catch {
+      // Not worth blocking on: worst case onboarding shows again next launch.
+    }
+    setBusy(null);
+    if (path === 'home') router.push('/setup' as Href);
+    else router.replace('/groups' as Href);
+  }
+
   const choices = (
     <View style={{ width: pageWidth, height: pageHeight || undefined, paddingHorizontal: 24, justifyContent: 'center', gap: 14 }}>
-      <T v="display" accessibilityRole="header">How do you want to start?</T>
-      <T v="muted">You can do all three. This just picks where to begin.</T>
-      {[
-        { icon: <HouseIcon size={22} color={HT.color.brand} />, title: 'I live with people', sub: 'Set up your home', to: '/setup' },
-        { icon: <SendIcon size={20} color={HT.color.brand} />, title: 'Settle up with someone', sub: 'One person owes the other', to: '/request-friend' },
-        { icon: <GroupIcon size={22} color={HT.color.brand} />, title: 'A trip or a group', sub: 'Split it between friends', to: '/group/new' },
-      ].map((c) => (
-        <Pressable key={c.to} accessibilityRole="button" accessibilityLabel={`${c.title}. ${c.sub}`} onPress={() => router.push(c.to as Href)}
-          style={({ pressed }) => ({ flexDirection: 'row', alignItems: 'center', gap: 14, minHeight: 72, paddingHorizontal: 16, borderRadius: HT.radius.card,
-            backgroundColor: HT.color.surface, borderWidth: 1, borderColor: HT.color.hairline, opacity: pressed ? 0.75 : 1 })}>
+      <T v="display" accessibilityRole="header">How will you use Gloslate?</T>
+      <T v="muted">Pick one to start. You can set up a home later, and use it with friends either way.</T>
+      {([
+        { key: 'home', icon: <HouseIcon size={22} color={HT.color.brand} />, title: 'I live with people', sub: 'Set up your home: rent, bills, groceries' },
+        { key: 'friends', icon: <GroupIcon size={22} color={HT.color.brand} />, title: 'Just with friends', sub: 'Settle up with someone, split a trip. No home needed' },
+      ] as const).map((c) => (
+        <Pressable key={c.key} accessibilityRole="button" accessibilityLabel={`${c.title}. ${c.sub}`} accessibilityState={{ busy: busy === c.key }}
+          disabled={!!busy} onPress={() => start(c.key)}
+          style={({ pressed }) => ({ flexDirection: 'row', alignItems: 'center', gap: 14, minHeight: 80, paddingHorizontal: 16, borderRadius: HT.radius.card,
+            backgroundColor: HT.color.surface, borderWidth: 1, borderColor: HT.color.hairline, opacity: pressed || (busy && busy !== c.key) ? 0.6 : 1 })}>
           <View style={{ width: 44, height: 44, borderRadius: HT.radius.tile, backgroundColor: HT.color.brandTint, alignItems: 'center', justifyContent: 'center' }}>{c.icon}</View>
           <View style={{ flex: 1 }}>
             <T v="strong">{c.title}</T>
             <T v="small">{c.sub}</T>
           </View>
+          {busy === c.key ? <ButtonBunny color={HT.color.brand} eye={HT.color.surface} /> : <ChevronIcon size={18} color={HT.color.muted} />}
         </Pressable>
       ))}
     </View>

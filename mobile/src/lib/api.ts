@@ -92,6 +92,7 @@ export type Member = {
   auto_remind?: boolean;
   remind_threshold_cents?: number;
   remind_after_days?: number;
+  reminder_tone?: 'gentle' | 'plain' | 'cheeky';
   first_name: string;
   placeholder: boolean;
   former: boolean;
@@ -133,6 +134,10 @@ export type User = {
   quiet_end_hour: number;
   face_id_lock: boolean;
   notification_prefs: Record<string, 'on' | 'off' | 'daily'>;
+  /** Set once onboarding is done (any path, including friends-only). Older servers don't send it. */
+  onboarded_at?: string | null;
+  /** Clean slate moment: full screen (default), a card at the top, or a bottom sheet. */
+  celebration_style?: 'full' | 'card' | 'sheet';
   identities: { id: string; provider: string; email?: string | null; label?: string | null; added_at?: string; last_used_at?: string | null }[];
 };
 

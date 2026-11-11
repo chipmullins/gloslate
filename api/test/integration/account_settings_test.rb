@@ -31,6 +31,27 @@ class AccountSettingsTest < ActionDispatch::IntegrationTest
     assert_equal "chip-m", c.members.find_by(user: User.last).venmo_handle
   end
 
+  test "finishing onboarding with no home or tab is remembered on the account" do
+    get "/v1/me", headers: auth(@t)
+    assert_nil json["onboarded_at"]
+    patch "/v1/me", params: { onboarded: true }, headers: auth(@t), as: :json
+    assert_response :ok
+    first = json["onboarded_at"]
+    assert first.present?
+    # Sending it again doesn't move the date; it's never cleared.
+    patch "/v1/me", params: { onboarded: false, first_name: "Chip" }, headers: auth(@t), as: :json
+    assert_equal first, json["onboarded_at"]
+  end
+
+  test "clean slate style defaults to full screen and can be switched" do
+    get "/v1/me", headers: auth(@t)
+    assert_equal "full", json["celebration_style"]
+    patch "/v1/me", params: { celebration_style: "sheet" }, headers: auth(@t), as: :json
+    assert_equal "sheet", json["celebration_style"]
+    patch "/v1/me", params: { celebration_style: "confetti" }, headers: auth(@t), as: :json
+    assert_response :unprocessable_content
+  end
+
   test "the sign-in list says what each method is" do
     get "/v1/me", headers: auth(@t)
     phone = json["identities"].find { _1["provider"] == "phone" }

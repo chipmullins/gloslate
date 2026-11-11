@@ -37,6 +37,8 @@ h1, h2, h3 { color: var(--ink); }
 .hero .store { background: var(--glow); color: var(--on-glow); box-shadow: 0 0 22px var(--glow-halo); }
 .hero .store.alt { background: var(--glass); color: var(--on-dark); border: 1px solid var(--glass-border); box-shadow: none; }
 .hero .small-print { color: var(--on-dark-muted); }
+.web-link { margin: 14px 0 0; font-size: 14px; color: var(--on-dark-muted); }
+.web-link a { color: var(--on-dark); font-weight: 700; }
 .hero > * { position: relative; }
 .fly { position: absolute !important; width: 5px; height: 5px; border-radius: 50%; background: var(--glow); box-shadow: 0 0 10px var(--glow); opacity: .5; animation: fly-drift 7s ease-in-out infinite; pointer-events: none; }
 @keyframes fly-drift { 0%, 100% { transform: translate(0, 0); opacity: .5; } 50% { transform: translate(8px, -12px); opacity: .15; } }

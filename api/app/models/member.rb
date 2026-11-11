@@ -1,4 +1,5 @@
 class Member < ApplicationRecord
+  validates :reminder_tone, inclusion: { in: Requests::Tone::KEYS, message: "should be Gentle, Plain or Cheeky" }
   belongs_to :household
   belongs_to :user, optional: true
 
@@ -32,7 +33,7 @@ class Member < ApplicationRecord
   def as_api_json(viewer: nil)
     base = { id:, display_name:, first_name:, placeholder: placeholder?, former: former?, you: viewer&.id == id,
              moved_in_on:, moved_out_on:, handles: }
-    viewer&.id == id ? base.merge(auto_remind:, remind_threshold_cents:, remind_after_days:) : base
+    viewer&.id == id ? base.merge(auto_remind:, remind_threshold_cents:, remind_after_days:, reminder_tone:) : base
   end
 
   private

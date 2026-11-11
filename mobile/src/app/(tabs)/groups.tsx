@@ -6,8 +6,8 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { NotificationBell } from '@/components/confirm-payments';
 import { GroupIcon } from '@/components/group-icons';
-import { AddPersonIcon, ChevronIcon, SendIcon } from '@/components/icons';
-import { Avatar, Card, Money, T } from '@/components/ui';
+import { AddPersonIcon, CheckIcon, ChevronIcon, SendIcon } from '@/components/icons';
+import { Avatar, Button, Card, Money, T } from '@/components/ui';
 import { HT } from '@/constants/theme';
 import { useLayout } from '@/hooks/use-layout';
 import { api, ApiError, type Friend, type HouseholdSummary } from '@/lib/api';
@@ -25,22 +25,28 @@ function balanceLine(g: HouseholdSummary, oneOnOne: boolean) {
   return net > 0 ? { text: "You're owed", color: HT.color.owedToYou } : { text: 'You owe', color: HT.color.youOwe };
 }
 
+function SectionHead({ title, note }: { title: string; note?: string }) {
+  return (
+    <View style={{ flexDirection: 'row', alignItems: 'baseline', justifyContent: 'space-between' }}>
+      <T v="heading" accessibilityRole="header">{title}</T>
+      {note ? <T v="small">{note}</T> : null}
+    </View>
+  );
+}
+
+/** A compact shortcut tile: three sit in one row at every size, so Balances stays near the top. */
 function Action({ icon, title, sub, onPress }: { icon: ReactNode; title: string; sub: string; onPress: () => void }) {
   return (
     <Pressable accessibilityRole="button" accessibilityLabel={`${title}. ${sub}`} onPress={onPress}
-      style={({ pressed }) => ({ flex: 1, minWidth: 220, flexDirection: 'row', alignItems: 'center', gap: 12, minHeight: 68, paddingHorizontal: 16,
+      style={({ pressed }) => ({ flex: 1, alignItems: 'center', justifyContent: 'center', gap: 8, minHeight: 88, paddingVertical: 12, paddingHorizontal: 6,
         borderRadius: HT.radius.card, backgroundColor: HT.color.surface, borderWidth: 1, borderColor: HT.color.hairline, opacity: pressed ? 0.75 : 1 })}>
       <View style={{ width: 40, height: 40, borderRadius: HT.radius.tile, backgroundColor: HT.color.brandTint, alignItems: 'center', justifyContent: 'center' }}>{icon}</View>
-      <View style={{ flex: 1 }}>
-        <T v="strong">{title}</T>
-        <T v="small">{sub}</T>
-      </View>
-      <ChevronIcon size={18} color={HT.color.muted} />
+      <T v="strong" style={{ fontSize: 13.5, textAlign: 'center' }} numberOfLines={2}>{title}</T>
     </Pressable>
   );
 }
 
-/** Everyone outside your home: one-on-one tabs with a person, and groups that settle together. */
+/** Everyone outside your home: Balances (who owes, either way), Friends (square, A–Z), then Groups. */
 export default function Friends() {
   const { households, refresh } = useSession();
   const { gutter, wide } = useLayout();
@@ -60,9 +66,17 @@ export default function Friends() {
   }, [refresh, loadFriends]));
 
   const friendTabs = new Set(friends.map((f) => f.tab_id).filter(Boolean) as string[]);
-  // Friends you don't have a tab with yet (with a tab, they're already in People).
   const tabIds = new Set(people.map((p) => p.id));
-  const noTabYet = friends.filter((f) => !f.tab_id || !tabIds.has(f.tab_id));
+  const owing = (g: HouseholdSummary) => g.balance.net_cents !== 0 || (g.to_confirm_cents ?? 0) > 0;
+  // Balances: one-on-ones where money is owed either way or a payment waits for you; waiting first, then biggest.
+  const balances = people.filter(owing).sort((a, b) =>
+    Number(!!b.to_confirm_cents) - Number(!!a.to_confirm_cents) || Math.abs(b.balance.net_cents) - Math.abs(a.balance.net_cents));
+  const owingTabs = new Set(balances.map((g) => g.id));
+  // Friends: everyone you're friends with and square with (settled tab, hidden tab or no tab yet), A–Z.
+  const squareFriends = friends.filter((f) => !f.tab_id || !owingTabs.has(f.tab_id))
+    .sort((a, b) => a.first_name.localeCompare(b.first_name));
+  // Settled one-on-ones with people who aren't friends: kept below friends, and still swipe away.
+  const settledOthers = people.filter((g) => !owing(g) && !friendTabs.has(g.id));
 
   async function inviteFriend() {
     const url = link ?? (await api<{ link: string }>('/v1/friends').then((r) => r.link).catch(() => null));
@@ -127,6 +141,26 @@ export default function Friends() {
     );
   };
 
+  const friendRow = (f: Friend, i: number) => {
+    const visibleTab = f.tab_id && tabIds.has(f.tab_id) ? f.tab_id : null;
+    const name = `${f.first_name}${f.last_initial ? ` ${f.last_initial}.` : ''}`;
+    const sub = f.tab_id ? 'Friend · all square' : 'Friend · no tab yet';
+    return (
+      <Pressable key={f.user_id} accessibilityRole="button" accessibilityLabel={`${name}. ${sub}.${f.tab_id ? ' Open your tab.' : ' Start a tab.'}`}
+        onPress={() => (visibleTab ? router.push(`/group/${visibleTab}` as Href) : openFriend(f))}
+        style={({ pressed }) => ({ flexDirection: 'row', alignItems: 'center', gap: 12, minHeight: 64, paddingHorizontal: 4, opacity: pressed ? 0.7 : 1,
+          borderTopWidth: i > 0 ? 1 : 0, borderTopColor: HT.color.hairline })}>
+        <Avatar name={f.first_name} index={(i % 4) + 1} size={40} />
+        <View style={{ flex: 1 }}>
+          <T v="strong" numberOfLines={1}>{name}</T>
+          <T v="small" numberOfLines={1}>{sub}</T>
+        </View>
+        {f.tab_id ? null : <T v="strong" style={{ color: HT.color.brand, fontSize: 13 }}>Start a tab</T>}
+        <ChevronIcon size={18} color={HT.color.muted} />
+      </Pressable>
+    );
+  };
+
   async function hide(g: HouseholdSummary, title: string) {
     try {
       await api(`/v1/households/${g.id}/hide`, { body: {} });
@@ -141,15 +175,15 @@ export default function Friends() {
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: HT.color.ground }} edges={['top', 'left', 'right']}>
       <ScrollView contentContainerStyle={{ paddingBottom: 32 }}>
-        <View style={{ width: '100%', maxWidth: HT.maxWidth.form + (wide ? 240 : 0), alignSelf: 'center', paddingHorizontal: gutter, paddingTop: 16, gap: 16 }}>
+        <View style={{ width: '100%', maxWidth: wide ? HT.maxWidth.content : HT.maxWidth.form, alignSelf: 'center', paddingHorizontal: gutter, paddingTop: 16, gap: 16 }}>
           <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
             <T v="display" accessibilityRole="header">Friends</T>
             <NotificationBell unread={unread} />
           </View>
-          <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 10 }}>
-            <Action icon={<SendIcon size={18} color={HT.color.brand} />} title="Settle up with someone" sub="One person owes the other" onPress={() => router.push('/request-friend' as Href)} />
-            <Action icon={<GroupIcon size={22} color={HT.color.brand} />} title="Start a group" sub="A trip, dinners, anything shared" onPress={() => router.push('/group/new' as Href)} />
-            <Action icon={<AddPersonIcon size={20} color={HT.color.brand} />} title="Add a friend" sub="Send each other requests in the app" onPress={inviteFriend} />
+          <View style={{ flexDirection: 'row', gap: 10 }}>
+            <Action icon={<SendIcon size={18} color={HT.color.brand} />} title="Settle up" sub="One person owes the other" onPress={() => router.push('/request-friend' as Href)} />
+            <Action icon={<GroupIcon size={22} color={HT.color.brand} />} title="New group" sub="A trip, dinners, anything shared" onPress={() => router.push('/group/new' as Href)} />
+            <Action icon={<AddPersonIcon size={20} color={HT.color.brand} />} title="Add friend" sub="Send each other requests in the app" onPress={inviteFriend} />
           </View>
 
           {all.length === 0 && friends.length === 0 ? (
@@ -161,34 +195,85 @@ export default function Friends() {
             </Card>
           ) : null}
 
-          {people.length > 0 || noTabYet.length > 0 ? (
-            <View style={{ gap: 8 }}>
-              <T v="heading">People</T>
-              <Card style={{ paddingVertical: 4 }}>
-                {people.map((g, i) => renderRow(g, i, people, true, friendTabs.has(g.id)))}
-                {noTabYet.map((f, i) => (
-                  <Pressable key={f.user_id} accessibilityRole="button" accessibilityLabel={`${f.first_name}, friend. Start a tab.`} onPress={() => openFriend(f)}
-                    style={({ pressed }) => ({ flexDirection: 'row', alignItems: 'center', gap: 12, minHeight: 72, paddingHorizontal: 4, opacity: pressed ? 0.7 : 1,
-                      borderTopWidth: i > 0 || people.length > 0 ? 1 : 0, borderTopColor: HT.color.hairline })}>
-                    <Avatar name={f.first_name} index={((people.length + i) % 4) + 1} size={44} />
-                    <View style={{ flex: 1 }}>
-                      <T v="strong" numberOfLines={1}>{f.first_name}{f.last_initial ? ` ${f.last_initial}.` : ''}</T>
-                      <T v="small">Friend · no tab yet</T>
-                    </View>
-                    <T v="strong" style={{ color: HT.color.brand, fontSize: 13 }}>Start a tab</T>
-                    <ChevronIcon size={18} color={HT.color.muted} />
-                  </Pressable>
-                ))}
-              </Card>
+          {all.length > 0 || friends.length > 0 ? (wide ? (
+            <View style={{ flexDirection: 'row', gap: 24, alignItems: 'flex-start' }}>
+              <View style={{ flex: 1, gap: 16 }}>
+                <View style={{ gap: 8 }}>
+              <SectionHead title="Balances" />
+              {balances.length > 0 ? (
+                <Card style={{ paddingVertical: 4 }}>{balances.map((g, i) => renderRow(g, i, balances, true, friendTabs.has(g.id)))}</Card>
+              ) : (
+                <Card style={{ flexDirection: 'row', alignItems: 'center', gap: 10, paddingVertical: 16 }}>
+                  <CheckIcon size={18} color={HT.color.owedToYou} />
+                  <T v="muted" style={{ flex: 1 }}>You're all square with everyone. New requests and anything waiting to confirm show up here.</T>
+                </Card>
+              )}
             </View>
-          ) : null}
-
-          {groups.length > 0 ? (
-            <View style={{ gap: 8 }}>
-              <T v="heading">Groups</T>
-              <Card style={{ paddingVertical: 4 }}>{groups.map((g, i) => renderRow(g, i, groups, false))}</Card>
+                {groups.length > 0 ? (
+              <View style={{ gap: 8 }}>
+                <SectionHead title="Groups" />
+                <Card style={{ paddingVertical: 4 }}>{groups.map((g, i) => renderRow(g, i, groups, false))}</Card>
+              </View>
+            ) : null}
+              </View>
+              <View style={{ flex: 1, gap: 16 }}>
+                <View style={{ gap: 8 }}>
+              <SectionHead title="Friends" note={squareFriends.length ? String(squareFriends.length) : undefined} />
+              {squareFriends.length > 0 ? (
+                <Card style={{ paddingVertical: 4 }}>{squareFriends.map(friendRow)}</Card>
+              ) : (
+                <Card style={{ gap: 10, paddingVertical: 16 }}>
+                  <T v="muted">Add friends with your link, then send each other requests in the app instead of texting.</T>
+                  <Button title="Add a friend" kind="secondary" icon={<AddPersonIcon size={18} color={HT.color.brand} />} onPress={inviteFriend} />
+                </Card>
+              )}
+              {settledOthers.length > 0 ? (
+                <>
+                  <T v="small" style={{ marginTop: 6 }}>Settled one-on-ones</T>
+                  <Card style={{ paddingVertical: 4 }}>{settledOthers.map((g, i) => renderRow(g, i, settledOthers, true))}</Card>
+                </>
+              ) : null}
             </View>
-          ) : null}
+              </View>
+            </View>
+          ) : (
+            <>
+              <View style={{ gap: 8 }}>
+              <SectionHead title="Balances" note={balances.length ? undefined : 'Nobody owes anybody'} />
+              {balances.length > 0 ? (
+                <Card style={{ paddingVertical: 4 }}>{balances.map((g, i) => renderRow(g, i, balances, true, friendTabs.has(g.id)))}</Card>
+              ) : (
+                <Card style={{ flexDirection: 'row', alignItems: 'center', gap: 10, paddingVertical: 16 }}>
+                  <CheckIcon size={18} color={HT.color.owedToYou} />
+                  <T v="muted" style={{ flex: 1 }}>You're all square with everyone. New requests and anything waiting to confirm show up here.</T>
+                </Card>
+              )}
+            </View>
+              <View style={{ gap: 8 }}>
+              <SectionHead title="Friends" note={squareFriends.length ? String(squareFriends.length) : undefined} />
+              {squareFriends.length > 0 ? (
+                <Card style={{ paddingVertical: 4 }}>{squareFriends.map(friendRow)}</Card>
+              ) : (
+                <Card style={{ gap: 10, paddingVertical: 16 }}>
+                  <T v="muted">Add friends with your link, then send each other requests in the app instead of texting.</T>
+                  <Button title="Add a friend" kind="secondary" icon={<AddPersonIcon size={18} color={HT.color.brand} />} onPress={inviteFriend} />
+                </Card>
+              )}
+              {settledOthers.length > 0 ? (
+                <>
+                  <T v="small" style={{ marginTop: 6 }}>Settled one-on-ones</T>
+                  <Card style={{ paddingVertical: 4 }}>{settledOthers.map((g, i) => renderRow(g, i, settledOthers, true))}</Card>
+                </>
+              ) : null}
+            </View>
+              {groups.length > 0 ? (
+              <View style={{ gap: 8 }}>
+                <SectionHead title="Groups" />
+                <Card style={{ paddingVertical: 4 }}>{groups.map((g, i) => renderRow(g, i, groups, false))}</Card>
+              </View>
+            ) : null}
+            </>
+          )) : null}
         </View>
       </ScrollView>
     </SafeAreaView>

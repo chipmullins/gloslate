@@ -61,7 +61,7 @@ export default function Code() {
           <T v="muted">We sent a 6-digit code to {channel === 'phone' ? 'your phone' : 'your email'}, {destination}.</T>
         </View>
 
-        <Pressable onPress={() => input.current?.focus()} accessibilityLabel="Code entry" style={{ flexDirection: 'row', gap: 8 }}>
+        <Pressable onPress={() => input.current?.focus()} accessibilityRole="button" accessibilityLabel={`Code entry, ${code.length} of ${LENGTH} digits entered`} style={{ flexDirection: 'row', gap: 8 }}>
           {Array.from({ length: LENGTH }, (_, i) => {
             const active = i === code.length;
             return (

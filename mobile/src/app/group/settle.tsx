@@ -9,11 +9,12 @@ import { BackIcon, CheckIcon, CopyIcon, SendIcon } from '@/components/icons';
 import { Avatar, Button, Card, ErrorNote, Field, IconButton, Money, Screen, T } from '@/components/ui';
 import { HT } from '@/constants/theme';
 import { useHousehold } from '@/hooks/use-household';
-import { api, ApiError, type PayInfo, type Payment } from '@/lib/api';
+import { api, ApiError, type Balance, type PayInfo, type Payment } from '@/lib/api';
 import { centsFirst, formatCents, parseCents } from '@/lib/money';
 import { celebrateIfSettled } from '@/lib/celebrate';
 import { toast } from '@/lib/toast';
 import { sendRequest } from '@/app/(tabs)/home';
+import { TonePicker, type ToneKey } from '@/components/tone-picker';
 import { goBack } from '@/lib/nav';
 
 const METHODS = [
@@ -26,6 +27,7 @@ export default function GroupSettle() {
   const { hid, from, to } = useLocalSearchParams<{ hid: string; from: string; to: string }>();
   const { home: group, reload, error: loadError } = useHousehold(hid);
   const [pay, setPay] = useState<PayInfo | null>(null);
+  const [tone, setTone] = useState<ToneKey | undefined>();
   const [pending, setPending] = useState<Payment[]>([]);
   const [amount, setAmount] = useState<string | null>(null); // null: what's left
   const [method, setMethod] = useState('venmo');
@@ -76,13 +78,13 @@ export default function GroupSettle() {
     setBusy(true);
     setError(null);
     try {
-      const res = await api<{ balance?: { net_cents: number } }>(`/v1/households/${hid}/payments`, {
+      const res = await api<{ data?: { id: string }; balance?: Balance }>(`/v1/households/${hid}/payments`, {
         body: receiverRecorded
           ? { from_member_id: from, to_member_id: to, amount_cents: cents, method }
           : { to_member_id: to, amount_cents: cents, method },
       });
-      if (receiverRecorded && res.balance?.net_cents === 0) celebrateIfSettled(0, oneOnOne ? otherName : undefined);
-      else toast.show({ text: receiverRecorded ? `Recorded ${formatCents(cents)} from ${otherName}` : `Marked as paid. ${otherName} will confirm.` });
+      const played = receiverRecorded && celebrateIfSettled({ balance: res.balance, otherId: from, otherName, amountCents: cents, key: res.data?.id });
+      if (!played) toast.show({ text: receiverRecorded ? `Recorded ${formatCents(cents)} from ${otherName}` : `Marked as paid. ${otherName} will confirm.` });
       await reload();
       goBack(`/group/${hid}` as Href);
     } catch (e) {
@@ -171,8 +173,9 @@ export default function GroupSettle() {
 
         {left > 0 && !youPay ? (
           <Card style={{ gap: 12 }}>
+            <TonePicker value={tone} onChange={setTone} preview="share" />
             <Button title={`Request ${formatCents(left)}`} icon={<SendIcon size={18} color="#FFFFFF" />}
-              onPress={() => sendRequest(hid, from).catch((e) => setError(e instanceof ApiError ? e.message : "Couldn't send it."))} />
+              onPress={() => sendRequest(hid, from, undefined, tone).catch((e) => setError(e instanceof ApiError ? e.message : "Couldn't send it."))} />
             <T v="small">Sends {otherName} a link with the amount and how to pay you. They don't need the app.</T>
             <View style={{ height: 1, backgroundColor: HT.color.hairline }} />
             <T v="strong">{otherName} already paid you?</T>
