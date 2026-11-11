@@ -43,7 +43,7 @@ module V1
     # How people pay you and your reminder settings live on each tab you're
     # in; { member: {...} } sets them everywhere at once (for people with no
     # home, only one-on-ones and groups). Logged in each tab like any change.
-    MEMBER_SETTINGS = %i[venmo_handle cashtag zelle_contact auto_remind remind_threshold_cents remind_after_days].freeze
+    MEMBER_SETTINGS = %i[venmo_handle cashtag zelle_contact auto_remind remind_threshold_cents remind_after_days reminder_tone].freeze
 
     def update_memberships!
       return unless params[:member].is_a?(ActionController::Parameters)

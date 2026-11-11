@@ -2,7 +2,8 @@ module Requests
   module Create
     module_function
 
-    def call(household:, requester:, recipient:)
+    def call(household:, requester:, recipient:, tone: nil)
+      Tone.validate!(tone)
       raise Hometab::Error, "Sending requests is paused for a little while. Try again soon." unless Hometab::Switches.feature?("requests")
       raise Hometab::Error, "Pick someone else" if requester.id == recipient.id
 
@@ -27,11 +28,11 @@ module Requests
       end
 
       req = PaymentRequest.create!(household:, requester:, recipient:, amount_cents: amount, breakdown: grouped,
-                                   pay_methods: requester.handles)
+                                   pay_methods: requester.handles, tone: tone || requester.reminder_tone)
       LedgerEvent.record!(household:, kind: "request.sent", subject: req, actor: requester, data: { to: recipient.id, amount_cents: amount })
       Notifications::Notify.call(member: recipient, kind: "request_received",
-                                 title: "#{requester.first_name} is requesting #{Hometab::Money.format(amount)}",
-                                 body: "Tap to see the breakdown and pay.", route: "/settle/#{requester.id}?hid=#{household.id}")
+                                 **Tone.request_push(req.tone, from: requester.first_name, amount: Hometab::Money.format(amount)),
+                                 route: "/settle/#{requester.id}?hid=#{household.id}")
       AnalyticsEvent.track("request_sent", user: requester.user, household:)
       req
     end

@@ -71,6 +71,7 @@ Rails.application.routes.draw do
     post "auth/codes", to: "auth#request_code"
     post "auth/codes/verify", to: "auth#verify_code"
     get "auth/providers", to: "auth#providers"
+    get "reminder_tones", to: "requests#tones"
     post "auth/glofly/start", to: "auth#glofly_start"
     post "auth/glofly/finish", to: "auth#glofly_finish"
     post "auth/:provider", to: "auth#provider", constraints: { provider: /apple|google/ }

@@ -15,6 +15,7 @@ import { centsFirst, formatCents, parseCents } from '@/lib/money';
 import { celebrateIfSettled } from '@/lib/celebrate';
 import { toast } from '@/lib/toast';
 import { sendRequest } from '@/app/(tabs)/home';
+import { TonePicker, type ToneKey } from '@/components/tone-picker';
 import { goBack } from '@/lib/nav';
 
 const METHODS = [
@@ -36,6 +37,7 @@ export default function Settle() {
   const { home, error: loadError } = useHousehold(hid);
   const { wide } = useLayout();
   const [b, setB] = useState<Breakdown | null>(null);
+  const [tone, setTone] = useState<ToneKey | undefined>();
   const [pay, setPay] = useState<PayInfo | null>(null);
   const [picked, setPicked] = useState<string[]>([]);
   const [amount, setAmount] = useState('');
@@ -181,8 +183,9 @@ export default function Settle() {
 
   const actions = theyOwe ? (
     <Card style={{ gap: 12 }}>
+      <TonePicker value={tone} onChange={setTone} preview="share" />
       <Button title={`Request ${formatCents(net)}`} icon={<SendIcon size={18} color="#fff" />}
-        onPress={() => sendRequest(home.id, other.id).catch((e) => setError(e instanceof ApiError ? e.message : "Couldn't send it."))} />
+        onPress={() => sendRequest(home.id, other.id, undefined, tone).catch((e) => setError(e instanceof ApiError ? e.message : "Couldn't send it."))} />
       {recording ? (
         <View style={{ gap: 12 }}>
           <Field label={`How much did ${other.first_name} pay you?`} value={amount} onChangeText={(t) => setAmount(centsFirst(t))} keyboardType="number-pad" />

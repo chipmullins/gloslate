@@ -25,8 +25,9 @@ function names(members: Member[]) {
   return `You, ${others.slice(0, -1).join(', ')} & ${others.at(-1)}`;
 }
 
-export async function sendRequest(householdId: string, memberId: string, name?: string) {
-  const res = await api<{ data: { url: string; message: string; in_app?: boolean; amount_cents: number } }>(`/v1/households/${householdId}/requests`, { body: { member_id: memberId } });
+/** Sends a request in `tone` (Gentle · Plain · Cheeky); without one, the server uses your saved Reminders tone. */
+export async function sendRequest(householdId: string, memberId: string, name?: string, tone?: string) {
+  const res = await api<{ data: { url: string; message: string; in_app?: boolean; amount_cents: number } }>(`/v1/households/${householdId}/requests`, { body: { member_id: memberId, ...(tone ? { tone } : {}) } });
   if (res.data.in_app) {
     // They have Gloslate: it already reached them as a notification.
     toast.show({ text: `Sent ${formatCents(res.data.amount_cents)} request${name ? ` to ${name}` : ''} in Gloslate.`, ms: 5000,
