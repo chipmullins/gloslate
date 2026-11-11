@@ -136,6 +136,8 @@ export type User = {
   notification_prefs: Record<string, 'on' | 'off' | 'daily'>;
   /** Set once onboarding is done (any path, including friends-only). Older servers don't send it. */
   onboarded_at?: string | null;
+  /** Clean slate moment: full screen (default), a card at the top, or a bottom sheet. */
+  celebration_style?: 'full' | 'card' | 'sheet';
   identities: { id: string; provider: string; email?: string | null; label?: string | null; added_at?: string; last_used_at?: string | null }[];
 };
 

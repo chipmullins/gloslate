@@ -4,10 +4,11 @@ import { useCallback, useEffect, useState, type ReactNode } from 'react';
 import { Alert, Platform, Pressable, ScrollView, Switch, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-import { ChevronIcon, DownloadIcon } from '@/components/icons';
+import { CheckIcon, ChevronIcon, DownloadIcon } from '@/components/icons';
 import { ordinal, Stepper } from '@/components/stepper';
 import { Avatar, Button, Card, ErrorNote, Field, T } from '@/components/ui';
 import { SetUpHomeCard } from '@/components/no-home';
+import { celebrate } from '@/lib/celebrate';
 import { loadTones, TonePicker } from '@/components/tone-picker';
 import { HT } from '@/constants/theme';
 import { useLayout } from '@/hooks/use-layout';
@@ -46,6 +47,12 @@ function Toggle({ label, hint, value, onChange }: { label: string; hint?: string
     </View>
   );
 }
+
+const CLEAN_SLATE_STYLES = [
+  { key: 'full', label: 'Full screen', hint: 'The whole screen turns to night sky (default)' },
+  { key: 'card', label: 'Card', hint: 'A card at the top; the screen stays put' },
+  { key: 'sheet', label: 'Bottom sheet', hint: 'Slides up from the bottom' },
+] as const;
 
 export default function You() {
   const { user, households, refresh, signOut } = useSession();
@@ -195,6 +202,28 @@ export default function You() {
           <View style={{ flex: 1 }}><Stepper label="Until" value={user.quiet_end_hour} min={0} max={23} onChange={(v) => patchMe({ quiet_end_hour: v })} format={hour} /></View>
         </View>
         <T v="small">Requests, payments marked, and bill amounts needed always come through, just not during quiet hours.</T>
+      </Section>
+
+      <Section title="Clean slate moment">
+        <T v="small">What you see when a payment you confirm leaves you square with someone.</T>
+        <View accessibilityRole="radiogroup" style={{ gap: 8 }}>
+          {CLEAN_SLATE_STYLES.map((o) => {
+            const on = (user.celebration_style ?? 'full') === o.key;
+            return (
+              <Pressable key={o.key} accessibilityRole="radio" accessibilityState={{ checked: on }} accessibilityLabel={`${o.label}. ${o.hint}`}
+                onPress={() => { if (!on) patchMe({ celebration_style: o.key }, 'Saved'); }}
+                style={{ flexDirection: 'row', alignItems: 'center', gap: 12, minHeight: 56, paddingHorizontal: 14, borderRadius: HT.radius.tile,
+                  borderWidth: on ? 1.5 : 1, borderColor: on ? HT.color.brand : HT.color.chipBorder, backgroundColor: on ? HT.color.brandTint : HT.color.surface }}>
+                <View style={{ flex: 1 }}>
+                  <T v="strong" style={{ color: on ? HT.color.brand : HT.color.ink }}>{o.label}</T>
+                  <T v="small">{o.hint}</T>
+                </View>
+                {on ? <CheckIcon size={18} color={HT.color.brand} /> : null}
+              </Pressable>
+            );
+          })}
+        </View>
+        <Button title="Preview" kind="secondary" onPress={() => celebrate.show({ title: 'Clean slate with Alex.', body: "Alex's $24.50 is confirmed. Nothing owed either way.", amountCents: 2450, style: user.celebration_style ?? 'full' })} />
       </Section>
 
       {biometrics ? (

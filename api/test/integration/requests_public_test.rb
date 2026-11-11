@@ -73,4 +73,17 @@ class RequestsPublicTest < ActionDispatch::IntegrationTest
     post "/v1/households/#{@h}/requests", params: { member_id: @chip_id }, headers: auth(@chip), as: :json
     assert_response :unprocessable_content
   end
+
+  test "once Chip confirms the payment, the page shows the clean slate" do
+    data = make_request
+    post "/r/#{data['token']}/paid", params: { amount: "889.77", method: "venmo" }
+    get "/r/#{data['token']}"
+    refute_includes response.body, "Clean slate with Chip"
+    post "/v1/payments/#{Payment.last.id}/confirm", headers: auth(@chip), as: :json
+    assert_response :success
+    get "/r/#{data['token']}"
+    assert_includes response.body, "Clean slate with Chip."
+    refute_includes response.body, "I paid. Let Chip know"
+  end
+
 end

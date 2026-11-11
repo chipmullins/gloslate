@@ -1,5 +1,13 @@
 # Gloslate decisions
 
+## Settled Nov 11, 2026: clean slate moment
+
+- **All three styles ship; A is the default.** You → Clean slate moment: **Full screen** (A, default), **Card** at the top of the screen (B), **Bottom sheet** (C), with a Preview button. Stored account-wide on `users.celebration_style` (`full|card|sheet`, `PATCH /v1/me`). Canvas: https://claude.ai/artifact/QMbXs2hZNLvnmJKLWCCJwo
+- B is a card at the top of whatever screen is open, not drawn inside the balance card itself: payments get confirmed from several screens (payment details, group settle, banners) that have no balance card.
+- Plays only right after *you* confirm a payment (or record one as received) and it leaves you square with that person or the whole tab; once per payment; never on app open; never for deleted expenses. Replaces the old "All settled!" pop-up (`SettledHost`, `celebrateIfSettled`).
+- Scene (`mobile/src/components/clean-slate.tsx`): the loader bunny hops in with legs on two real arcs, tucks its legs away as it sits on the slate (the logo pose), the amount is wiped off, the check is drawn and the glow star flares; success haptic lands with the check. Reduce Motion: the finished picture, faded in. Same code on the web app.
+- Request page: once the requester confirms a payment that brings it to $0, it shows a small "Clean slate with Chip." version (CSS, honors prefers-reduced-motion).
+
 ## Settled Nov 11, 2026: reminder tone
 
 - **Gentle · Plain · Cheeky**, default Plain. Every string in the requester's voice lives in `api/app/services/requests/tone.rb`: the request push, auto-reminder push, share text, request page headline/og tags and the share image. The app's picker previews them from `GET /v1/reminder_tones` (`{ data, default }`), so the app holds no copy of its own.

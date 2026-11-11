@@ -9,7 +9,7 @@ import { BackIcon, CheckIcon, CopyIcon, SendIcon } from '@/components/icons';
 import { Avatar, Button, Card, ErrorNote, Field, IconButton, Money, Screen, T } from '@/components/ui';
 import { HT } from '@/constants/theme';
 import { useHousehold } from '@/hooks/use-household';
-import { api, ApiError, type PayInfo, type Payment } from '@/lib/api';
+import { api, ApiError, type Balance, type PayInfo, type Payment } from '@/lib/api';
 import { centsFirst, formatCents, parseCents } from '@/lib/money';
 import { celebrateIfSettled } from '@/lib/celebrate';
 import { toast } from '@/lib/toast';
@@ -78,13 +78,13 @@ export default function GroupSettle() {
     setBusy(true);
     setError(null);
     try {
-      const res = await api<{ balance?: { net_cents: number } }>(`/v1/households/${hid}/payments`, {
+      const res = await api<{ data?: { id: string }; balance?: Balance }>(`/v1/households/${hid}/payments`, {
         body: receiverRecorded
           ? { from_member_id: from, to_member_id: to, amount_cents: cents, method }
           : { to_member_id: to, amount_cents: cents, method },
       });
-      if (receiverRecorded && res.balance?.net_cents === 0) celebrateIfSettled(0, oneOnOne ? otherName : undefined);
-      else toast.show({ text: receiverRecorded ? `Recorded ${formatCents(cents)} from ${otherName}` : `Marked as paid. ${otherName} will confirm.` });
+      const played = receiverRecorded && celebrateIfSettled({ balance: res.balance, otherId: from, otherName, amountCents: cents, key: res.data?.id });
+      if (!played) toast.show({ text: receiverRecorded ? `Recorded ${formatCents(cents)} from ${otherName}` : `Marked as paid. ${otherName} will confirm.` });
       await reload();
       goBack(`/group/${hid}` as Href);
     } catch (e) {

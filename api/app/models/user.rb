@@ -7,6 +7,9 @@ class User < ApplicationRecord
   has_many :households, through: :members
   has_many :notifications, dependent: :delete_all
 
+  CELEBRATION_STYLES = %w[full card sheet].freeze
+  validates :celebration_style, inclusion: { in: CELEBRATION_STYLES, message: "should be full, card or sheet" }
+
   scope :active, -> { where(deleted_at: nil) }
 
   # How people pay you, carried into each new tab you start or join so you
@@ -42,7 +45,7 @@ class User < ApplicationRecord
 
   def as_api_json
     { id:, first_name:, last_name:, email:, phone:, time_zone:, quiet_start_hour:, quiet_end_hour:, face_id_lock:,
-      notification_prefs:, onboarded_at:,
+      notification_prefs:, onboarded_at:, celebration_style:,
       identities: identities.order(:created_at).map { |i|
         { id: i.id, provider: i.provider, email: i.email,
           # What to show for it: the address or number (Apple may hide the email).
