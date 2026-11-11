@@ -1,5 +1,12 @@
 # Gloslate decisions
 
+## Settled Nov 11, 2026: friends-only start, Friends tab split
+
+- **Onboarding asks "I live with people" or "Just with friends".** Either choice sets `users.onboarded_at` (`PATCH /v1/me { onboarded: true }`, set once, never cleared), so it holds across devices. The launch gate only shows onboarding to someone with no tabs **and** no `onboarded_at`; the migration backfills everyone who already has a tab or a friend. No home → land on Friends.
+- **Home later:** a "Set up your home" card (runs `/setup`) on the Home tab, Bills tab and You tab when there's no home. Without a home, Home shows a "With friends" total (owed to you / you owe across one-on-ones and groups, taps to Friends) above that card; Bills explains that bills belong to a home.
+- **Friends tab = Balances · Friends · Groups.** Balances: one-on-ones with money owed either way or a payment waiting to confirm (waiting first, then largest). Friends: every friend you're square with (settled tab, hidden tab or no tab), A–Z; friends never swipe away. Settled one-on-ones with non-friends sit under "Settled one-on-ones" and keep swipe-to-hide. Wide screens: Balances + Groups left, Friends right. No server change beyond the onboarding flag.
+- Ship order: deploy the API (migration) before the OTA update. An older server ignores `onboarded`, so the worst case is onboarding showing again.
+
 ## Settled Nov 7, 2026: Sign in with Glofly
 
 - **Code + PKCE (S256), run by Gloslate's server.** `POST /v1/auth/glofly/start` makes the verifier, state and nonce and seals them in an encrypted 10-minute `flow`; the app opens Glofly's authorize URL and posts `{ code, flow, state, iss }` to `/v1/auth/glofly/finish`, which swaps the code (Gloslate is a public client: no secret) and verifies the ID token with a **required** nonce. The verifier never leaves the server, and the app needs no crypto, so no new native module and no OTA fingerprint change. (This replaces "swap the code on the phone with expo-auth-session" from the Glofly handoff: that needs `expo-crypto`, a native module.)

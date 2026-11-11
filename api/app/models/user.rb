@@ -42,7 +42,7 @@ class User < ApplicationRecord
 
   def as_api_json
     { id:, first_name:, last_name:, email:, phone:, time_zone:, quiet_start_hour:, quiet_end_hour:, face_id_lock:,
-      notification_prefs:,
+      notification_prefs:, onboarded_at:,
       identities: identities.order(:created_at).map { |i|
         { id: i.id, provider: i.provider, email: i.email,
           # What to show for it: the address or number (Apple may hide the email).

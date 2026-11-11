@@ -5,6 +5,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { shortDate } from '@/components/expense-row';
 import { ChevronIcon, PlusIcon } from '@/components/icons';
+import { SetUpHomeCard } from '@/components/no-home';
 import { ordinal } from '@/components/stepper';
 import { Button, Card, T } from '@/components/ui';
 import { HT } from '@/constants/theme';
@@ -99,6 +100,20 @@ export default function Bills() {
       <Button title="Add a bill" kind="secondary" icon={<PlusIcon size={16} />} onPress={() => router.push('/bill-edit' as Href)} />
     </View>
   );
+
+  if (!id) {
+    // Bills belong to a home (rent, utilities that repeat monthly).
+    return (
+      <SafeAreaView style={{ flex: 1, backgroundColor: HT.color.ground }} edges={['top', 'left', 'right']}>
+        <ScrollView contentContainerStyle={{ paddingBottom: 32 }}>
+          <View style={{ width: '100%', maxWidth: HT.maxWidth.form, alignSelf: 'center', paddingHorizontal: gutter, paddingTop: 16, gap: 18 }}>
+            <T v="display" accessibilityRole="header">Bills</T>
+            <SetUpHomeCard title="Bills are for a home" body="Rent and utilities you split every month live here. Set up your home and each bill posts itself when it's due. For a one-off with a friend, use Friends." />
+          </View>
+        </ScrollView>
+      </SafeAreaView>
+    );
+  }
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: HT.color.ground }} edges={['top', 'left', 'right']}>

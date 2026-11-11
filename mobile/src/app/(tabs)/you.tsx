@@ -7,6 +7,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { ChevronIcon, DownloadIcon } from '@/components/icons';
 import { ordinal, Stepper } from '@/components/stepper';
 import { Avatar, Button, Card, ErrorNote, Field, T } from '@/components/ui';
+import { SetUpHomeCard } from '@/components/no-home';
 import { HT } from '@/constants/theme';
 import { useLayout } from '@/hooks/use-layout';
 import { api, ApiError, type Household, type Member } from '@/lib/api';
@@ -223,6 +224,8 @@ export default function You() {
           <T v="small">Any change here is logged and shown to everyone.</T>
         </View>
       </Section> : null}
+
+      {!homeId ? <SetUpHomeCard /> : null}
 
       <Section title="Account">
         <Button title="Export my data" kind="secondary" icon={<DownloadIcon size={18} />}
