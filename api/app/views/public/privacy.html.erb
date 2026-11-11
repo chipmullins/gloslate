@@ -8,28 +8,30 @@
   <% if ENV["LEGAL_DRAFT"] != "false" %><div class="draft">Draft for review. This policy hasn't been finalized yet.</div><% end %>
   <div class="eyebrow">Legal</div>
   <h1>Privacy policy</h1>
-  <p class="updated">Last updated November 4, 2026</p>
+  <p class="updated">Last updated November 11, 2026</p>
 
   <div class="card">
     <h2>The short version</h2>
     <ul>
-      <li>Gloslate keeps a shared tab for your home. It never holds or moves money, and it never asks for bank or card details.</li>
-      <li>The people in your home see the expenses, bills and payments you share with them. Nobody else does.</li>
+      <li>Gloslate keeps a running tab of shared costs: with the people you live with, with friends, and with groups. It never holds or moves money, and it never asks for bank or card details.</li>
+      <li>The people in a home, one-on-one tab or group see what's shared in it. Nobody else does.</li>
       <li>We don't show ads, and we don't sell or rent your information.</li>
       <li>Receipt scanning happens on your phone.</li>
       <li>You can export your data or delete your account from Settings at any time.</li>
     </ul>
   </div>
 
-  <p>This policy explains how HarborWorks ("we", "us"), the maker of Gloslate, handles information when you use the Gloslate apps and gloslate.app (together, "Gloslate").</p>
+  <p>This policy explains how <%= legal_owner %> ("we", "us"), the maker of Gloslate, handles information when you use the Gloslate apps, the web app at app.gloslate.app, and gloslate.app (together, "Gloslate").</p>
 
   <h2>What we collect</h2>
   <ul>
-    <li><b>Account details:</b> your first name, and the phone number or email address you sign in with. If you use Sign in with Apple, Google or Glofly, we receive an account ID from them, and your name and email if you share them. (Glofly also sends your username and photo; we don't keep them.)</li>
-    <li><b>What you add:</b> the names of your home and groups, the people you add, expenses, bills, splits, payments you mark or confirm, notes, and any receipt photos you choose to attach.</li>
+    <li><b>Account details:</b> your name, and the phone number or email address you sign in with. If you use Sign in with Apple, Google or Glofly, we receive an account ID from them, and your name and email if you choose to share them. Glofly also sends your username and photo; we don't keep them. An email that comes from Glofly is kept with that sign-in method only, and never becomes your Gloslate email.</li>
+    <li><b>What you add:</b> the names of your home, tabs and groups, the people you add, expenses, bills, splits, payments you mark or confirm, requests you send, notes, and any receipt photos you choose to attach.</li>
+    <li><b>Friends:</b> who you've added as a friend in Gloslate, and your personal "add me" link (you can reset it to stop old links working).</li>
     <li><b>Payment usernames:</b> the Venmo, Cash App or Zelle details you enter, so the Pay buttons work for people paying you. We never receive or store bank, card or payment-app passwords.</li>
-    <li><b>Device information:</b> a notification token if you allow notifications, the device name and platform you sign in on, and your notification settings.</li>
-    <li><b>Usage:</b> basic events about how Gloslate is used, such as "expense added" or "request page viewed", to keep it working and improve it. These stay with us. We don't use third-party advertising or tracking tools.</li>
+    <li><b>Settings:</b> your time zone, quiet hours, notification choices, reminder settings and tone, and display choices like your clean slate style.</li>
+    <li><b>Device and sign-in information:</b> for each device you sign in on, its name, platform, app version, the IP address it last connected from, and a notification token if you allow notifications. On the web app, your sign-in is kept in your browser's storage on that device.</li>
+    <li><b>Usage:</b> basic events about how Gloslate is used, such as "expense added" or "request page viewed", to keep it working and improve it. These stay with us. We don't use third-party advertising, analytics or tracking tools.</li>
   </ul>
 
   <h2>What we don't collect</h2>
@@ -37,29 +39,32 @@
 
   <h2>How we use it</h2>
   <ul>
-    <li>To run Gloslate: work out shares and balances, post recurring bills, make statements, and show your home's activity.</li>
-    <li>To sign you in, by sending a one-time code by text or email.</li>
-    <li>To send notifications and reminders you've allowed, respecting quiet hours and your settings.</li>
+    <li>To run Gloslate: work out shares and balances, post recurring bills, make statements, and show activity in your homes, tabs and groups.</li>
+    <li>To sign you in, by sending a one-time code by text or email, or through the sign-in service you choose.</li>
+    <li>To send notifications, requests and reminders you've allowed, respecting quiet hours and your settings. When you send a request to a friend who uses Gloslate, it reaches them as a notification.</li>
     <li>To keep Gloslate secure, prevent abuse, and fix problems.</li>
   </ul>
 
   <h2>Who can see it</h2>
   <ul>
-    <li><b>People in your home</b> see what's shared in that home: names, expenses, bills, payments, statements and payment usernames.</li>
-    <li><b>Anyone with a request link</b> sees the requester's and recipient's first names, the amount and its breakdown. Links are long and random, and show nothing else.</li>
+    <li><b>People in a home, one-on-one tab or group</b> see what's shared in it: names, expenses, bills, payments, requests, statements and payment usernames.</li>
+    <li><b>Your Gloslate friends</b> see your first name and last initial, and can start a one-on-one tab with you. Removing a friend keeps any tabs you already share.</li>
+    <li><b>Anyone with a request link</b> sees the requester's and recipient's first names, the amount and its breakdown, and whether it's been settled. Links are long and random, and show nothing else.</li>
+    <li><b>Anyone with your invite or "add me" link</b> sees your first name and the name of what they're joining.</li>
     <li><b>Our service providers</b> process data for us to run Gloslate: Amazon Web Services (hosting, storage, email and text messages, in the United States), Expo (delivering notifications to Apple and Google), Apple and Google (sign-in, if you use it), and Glofly (sign-in, if you use it). They may use it only to provide their service to us.</li>
-    <li><b>Support staff</b> at HarborWorks can look up an account to help you, for example to restore access. Every staff action is logged.</li>
+    <li><b>Support</b> can look up an account to help you, for example to restore access. Every support action is logged.</li>
     <li><b>If required by law</b>, we may disclose information to comply with a valid legal request.</li>
   </ul>
 
   <h2>How long we keep it</h2>
-  <p>We keep your information while your account is open. When you delete your account, we remove your name, phone number, email, payment usernames and sign-in methods. Shared expenses and payments stay in your former home's history so the other members' balances still add up, labeled "Former member". Database backups are kept for up to 35 days before they're erased.</p>
+  <p>We keep your information while your account is open. When you delete your account, we remove your name, phone number, email, payment usernames, sign-in methods, signed-in devices, friends and notifications, and usage events are no longer linked to you. Shared expenses and payments stay in the history of the homes, tabs and groups you were in so the other members' balances still add up, labeled "Former member". Database backups are kept for up to 35 days before they're erased.</p>
 
   <h2>Your choices</h2>
   <ul>
-    <li><b>Export:</b> in Settings, download everything Gloslate holds about you, or your home's year as a spreadsheet.</li>
+    <li><b>Export:</b> in Settings, download everything Gloslate holds about you, or a home's year as a spreadsheet.</li>
     <li><b>Delete:</b> in Settings, choose Delete my account.</li>
-    <li><b>Notifications:</b> choose which ones you get, and set quiet hours, in Settings.</li>
+    <li><b>Notifications and reminders:</b> choose which ones you get, set quiet hours, and turn off automatic nudges, in Settings.</li>
+    <li><b>Friends:</b> remove a friend, or reset your "add me" link, at any time.</li>
     <li><b>Questions or requests</b> about your data: email <a href="mailto:<%= support %>"><%= support %></a>.</li>
   </ul>
 
@@ -67,13 +72,13 @@
   <p>Data is encrypted in transit and at rest. Sign-in codes expire after 10 minutes and are never stored in readable form. You can lock the app with Face ID or your passcode. No system is perfectly secure, so please tell us right away if you think your account has been misused.</p>
 
   <h2>Children</h2>
-  <p>Gloslate is for adults managing a shared home. It isn't meant for anyone under 18, and we don't knowingly collect information from children.</p>
+  <p>Gloslate is for adults. It isn't meant for anyone under 18, and we don't knowingly collect information from children.</p>
 
   <h2>Changes</h2>
   <p>If we change this policy in a meaningful way, we'll tell you in the app before the change takes effect.</p>
 
   <h2>Contact</h2>
-  <p>HarborWorks · <a href="mailto:<%= support %>"><%= support %></a></p>
+  <p><%= legal_owner %> · <a href="mailto:<%= support %>"><%= support %></a></p>
 </article>
 </main>
 <%= render "public/site_footer" %>
