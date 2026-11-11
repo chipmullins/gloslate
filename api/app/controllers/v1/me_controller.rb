@@ -17,7 +17,7 @@ module V1
 
     # Names, time zone, quiet hours, Face ID lock, notification choices, onboarding done.
     def update
-      attrs = params.permit(:first_name, :last_name, :time_zone, :quiet_start_hour, :quiet_end_hour, :face_id_lock)
+      attrs = params.permit(:first_name, :last_name, :time_zone, :quiet_start_hour, :quiet_end_hour, :face_id_lock, :celebration_style)
       if attrs[:time_zone] && !ActiveSupport::TimeZone[attrs[:time_zone]]
         raise Hometab::Error, "Unknown time zone"
       end

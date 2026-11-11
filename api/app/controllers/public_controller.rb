@@ -30,6 +30,9 @@ class PublicController < ActionController::Base
     end
     @current = @req.current_cents
     @pay_amount = [@current, 0].max
+    # Settled by a payment the requester confirmed (not by expenses being deleted): the clean slate moment.
+    @settled = @current.zero? && @req.household.payments.where(from_member: @req.recipient, to_member: @req.requester, status: "confirmed")
+                                                        .where(marked_at: @req.created_at..).exists?
     @links = @pay_amount.positive? ? Payments::PayLinks.call(to: @req.requester, amount_cents: @pay_amount, memo: "Gloslate · #{@req.household.name}")[:links] : {}
     @marked = params[:marked].present?
     response.headers["Cache-Control"] = "no-store"

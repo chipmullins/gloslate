@@ -617,7 +617,8 @@ CREATE TABLE public.users (
     notification_prefs jsonb DEFAULT '{}'::jsonb NOT NULL,
     face_id_lock boolean DEFAULT false NOT NULL,
     friend_token character varying,
-    onboarded_at timestamp(6) without time zone
+    onboarded_at timestamp(6) without time zone,
+    celebration_style character varying DEFAULT 'full'::character varying NOT NULL
 );
 
 
@@ -1624,6 +1625,7 @@ ALTER TABLE ONLY public.expenses
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
+('20261111200000'),
 ('20261111190000'),
 ('20261111180000'),
 ('20261107060000'),
