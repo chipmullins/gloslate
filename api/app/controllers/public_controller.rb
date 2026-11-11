@@ -2,7 +2,7 @@
 class PublicController < ActionController::Base
   layout "public"
   skip_forgery_protection # no sessions in this app; the "I paid" form only creates a pending payment the requester must confirm
-  helper_method :money
+  helper_method :money, :legal_owner
 
   PUBLIC_METHODS = %w[venmo cashapp zelle cash other].freeze
   rate_limit to: 5, within: 10.minutes, only: :mark_paid, name: "mark-paid", by: -> { "#{request.remote_ip}:#{params[:token]}" },
@@ -10,6 +10,10 @@ class PublicController < ActionController::Base
   rate_limit to: 60, within: 1.minute, only: %i[request_page request_image invite], name: "pages"
 
   def money(cents) = Hometab::Money.format(cents)
+
+  # Who stands behind Gloslate on the legal pages, footer and stores. Chip Mullins
+  # personally until his LLC exists (decisions, Nov 11 2026); set LEGAL_OWNER to switch.
+  def legal_owner = ENV.fetch("LEGAL_OWNER", "Chip Mullins")
 
   # Marketing site pages (gloslate.app). Static, so they can be cached briefly.
   def privacy = render_site

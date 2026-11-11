@@ -1,5 +1,14 @@
 # Gloslate decisions
 
+## Settled Nov 11, 2026: legal pages and website
+
+- **Legal owner on every page comes from `LEGAL_OWNER`** (default "Chip Mullins"); privacy, terms and the site footer use it. Switching to the LLC = set the env var (and the store seller), no code change. `LEGAL_DRAFT=true` keeps the "Draft for review" banner until the attorney signs off.
+- Privacy policy (Nov 11) now covers friends and the "add me" link, one-on-ones and groups, Glofly email handling, settings, IP address/app version per signed-in device, browser storage on the web app, and what deletion removes. Terms cover friends/groups, requests and reminders sent on your behalf (tone), third-party sign-in terms, and no spam.
+- Store privacy answers for App Store Connect and Play Data safety: `docs/store-privacy.md` (no tracking, no third-party SDKs; checked against the code).
+- Landing page: new Friends and clean slate sections with real screenshots from the current app (`app-friends-v1`, `app-cleanslate-v1`), web app link in the hero and footer, tiles for the browser, Sign in with Glofly and reminder tone, FAQ for friends-only and computers/Glofly. The request screenshot and share image no longer show tabitat.app (`app-request-v3`, `og-v3`).
+- Checked live (Nov 11): tabitat.app and www.tabitat.app redirect to the same path on gloslate.app, request links included; favicon is the current mark.
+- Still Chip's: verify the gloslate.app SES identity and flip `MAIL_FROM`; attorney review of privacy, terms and trademark; the app's own `favicon.png` (one-ear drawing) waits for the next native build.
+
 ## Settled Nov 11, 2026: polish pass
 
 - Walked Home, Friends, Bills, Activity, You and onboarding (plus friends-only and brand-new accounts) on the web build at 390, 360, ~884 and iPad, with fake API data.

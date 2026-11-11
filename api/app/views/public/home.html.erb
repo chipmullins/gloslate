@@ -4,13 +4,13 @@
 %>
 <% content_for :title, "Gloslate · Split rent, bills and groceries without the math" %>
 <% content_for :head do %>
-  <meta name="description" content="Gloslate keeps a running tab with the people you live with, travel with, or just grab lunch with, then tells each person exactly what to send. Free. Gloslate never touches your money.">
+  <meta name="description" content="Gloslate keeps a running tab with the people you live with, travel with, or just grab lunch with, then tells each person exactly what to send. On iPhone, Android and the web. Free. Gloslate never touches your money.">
   <link rel="canonical" href="<%= ENV.fetch('PUBLIC_URL', 'https://gloslate.app') %>/">
   <meta property="og:type" content="website">
   <meta property="og:site_name" content="Gloslate">
   <meta property="og:title" content="Gloslate · Stop texting “you owe me.”">
   <meta property="og:description" content="A running tab for your home, your trips and your friends. One number, already netted. Pay in the app you already use.">
-  <meta property="og:image" content="<%= ENV.fetch('PUBLIC_URL', 'https://gloslate.app') %>/site/og-v2.png">
+  <meta property="og:image" content="<%= ENV.fetch('PUBLIC_URL', 'https://gloslate.app') %>/site/og-v3.png">
   <meta name="twitter:card" content="summary_large_image">
 <% end %>
 <% content_for :styles do %><style><%= raw File.read(Rails.root.join("app/assets/stylesheets/site.css")) %></style><% end %>
@@ -30,6 +30,7 @@
         <a class="store" href="<%= ios || '#get' %>"><%= render "public/ico", name: :phone, color: "var(--on-glow)", size: 20 %><%= ios ? "Get it on iPhone" : "Coming soon to iPhone" %></a>
         <a class="store alt" href="<%= android || '#get' %>"><%= render "public/ico", name: :phone, color: "var(--on-dark)", size: 20 %><%= android ? "Get it on Android" : "Coming soon to Android" %></a>
       </div>
+      <p class="web-link">Or use it in your browser: <a href="https://app.gloslate.app">open the web app</a></p>
       <div class="small-print">
         <span><%= render "public/ico", name: :check, color: "var(--on-dark-owed)", size: 16, weight: 2.6 %>Free</span>
         <span><%= render "public/ico", name: :check, color: "var(--on-dark-owed)", size: 16, weight: 2.6 %>No ads</span>
@@ -37,7 +38,7 @@
       </div>
     </div>
     <div class="hero-art">
-      <div class="device back"><img src="/site/app-request-v2.webp" width="390" height="844" alt="A Gloslate payment request page showing the total, the breakdown, and a Pay button"></div>
+      <div class="device back"><img src="/site/app-request-v3.webp" width="390" height="844" alt="A Gloslate payment request page showing the total, the breakdown, and a Pay button"></div>
       <div class="device front"><img src="/site/app-home-v2.webp" width="390" height="844" alt="The Gloslate home screen showing one balance, Alex owes you $909.15, with a Request button"></div>
       <div class="bubble one" aria-hidden="true"><%= render "public/ico", name: :check, color: "var(--owed)", size: 18, weight: 2.6 %>Alex paid $909.15</div>
       <div class="bubble two" aria-hidden="true"><%= render "public/ico", name: :calendar, size: 18 %>Rent posted · your half $900</div>
@@ -76,6 +77,26 @@
     </div>
 
     <div class="show flip">
+      <div class="show-art"><div class="device"><img src="/site/app-friends-v1.webp" width="390" height="844" alt="The Friends tab: Balances with Jordan and Taylor at the top, then friends who are all square, then groups"></div></div>
+      <div>
+        <div class="eyebrow">Friends</div>
+        <h2 class="h2">Who owes, and who's just a friend.</h2>
+        <p class="lede">You don't need a shared home to use Gloslate. Add friends once with your link, then settle up one-on-one or start a group for a trip. Anyone you owe, or who owes you, sits at the top; everyone else is right below.</p>
+        <ul class="ticks">
+          <li><%= render "public/ico", name: :check, color: "var(--owed)", weight: 2.6 %><div><b>Requests that just arrive.</b> <span>Friends on Gloslate get your request as a notification, no link to text.</span></div></li>
+          <li><%= render "public/ico", name: :check, color: "var(--owed)", weight: 2.6 %><div><b>Your tone, your call.</b> <span>Requests and reminders go out Gentle, Plain or Cheeky. Always kind, never pushy.</span></div></li>
+        </ul>
+      </div>
+    </div>
+    <div class="show">
+      <div class="show-art"><div class="device"><img src="/site/app-cleanslate-v1.webp" width="390" height="844" alt="The clean slate moment: the Gloslate bunny sits on a slate with a check and a glowing star. Clean slate with Alex."></div></div>
+      <div>
+        <div class="eyebrow">The clean slate</div>
+        <h2 class="h2">Settled feels like something.</h2>
+        <p class="lede">When you confirm the payment that squares you up, the bunny hops onto the slate, wipes it clean and the star lights up. Clean slate with Alex. Pick full screen, a card or a bottom sheet in Settings.</p>
+      </div>
+    </div>
+    <div class="show flip">
       <div class="show-art"><div class="device"><img src="/site/app-bills-v2.webp" width="390" height="844" alt="Bills screen listing rent, electric and water, with the electric amount waiting to be entered"></div></div>
       <div>
         <div class="eyebrow">Recurring bills</div>
@@ -89,7 +110,7 @@
     </div>
 
     <div class="show">
-      <div class="show-art"><div class="device"><img src="/site/app-request-v2.webp" width="390" height="844" alt="A payment request page with Venmo and Cash App buttons"></div></div>
+      <div class="show-art"><div class="device"><img src="/site/app-request-v3.webp" width="390" height="844" alt="A payment request page with Venmo and Cash App buttons"></div></div>
       <div>
         <div class="eyebrow">Payment requests</div>
         <h2 class="h2">A link instead of a lecture.</h2>
@@ -124,6 +145,9 @@
       <div class="tile"><div class="ico"><%= render "public/ico", name: :bell %></div><h3>Quiet hours</h3><p>Notifications wait until morning, and you choose which ones you get.</p></div>
       <div class="tile"><div class="ico"><%= render "public/ico", name: :download %></div><h3>Your data, anytime</h3><p>Export a year as a spreadsheet, or everything about you as a file.</p></div>
       <div class="tile"><div class="ico"><%= render "public/ico", name: :link %></div><h3>Invite with a link</h3><p>Add people before they join. When they do, everything is already there.</p></div>
+      <div class="tile"><div class="ico"><%= render "public/ico", name: :browser %></div><h3>Works in your browser</h3><p>Use Gloslate on any computer at app.gloslate.app, with the same account as your phone.</p></div>
+      <div class="tile"><div class="ico"><%= render "public/ico", name: :chat %></div><h3>Sign in with Glofly</h3><p>Already on Glofly? Sign in with one tap, alongside Apple, Google, email or your phone number.</p></div>
+      <div class="tile"><div class="ico"><%= render "public/ico", name: :sparkle %></div><h3>Reminders in your tone</h3><p>Gentle, Plain or Cheeky. Gloslate does the nudging so you don't have to.</p></div>
     </div>
   </section>
 
@@ -165,12 +189,14 @@
       <details><summary>Does Gloslate move my money?</summary><p>No. Gloslate keeps the tab and opens Venmo or Cash App with the amount filled in, or shows the Zelle details to use. Your money never passes through Gloslate, and Gloslate never asks for your bank or card details.</p></details>
       <details><summary>Does everyone need the app?</summary><p>Not to pay you. Requests open as a web page on any phone. You can add people before they join, and everything you've logged shows up for them when they do.</p></details>
       <details><summary>Can I use it for a trip or just one friend?</summary><p>Yes. Start a group for a trip or anything a few people share: everyone adds what they paid, even when two people paid for the same thing, and Gloslate works out the fewest payments to settle everyone. For one person, tap Settle up with someone, enter the amount, and send them a request.</p></details>
+      <details><summary>Do I need to live with someone to use it?</summary><p>No. Pick "Just with friends" when you start: add friends, settle up one-on-one, or start a group. You can set up a home any time later.</p></details>
       <details><summary>What if we don't split everything 50/50?</summary><p>Split evenly, by percentage, by exact amounts or by shares, and choose who's in on each expense. For a dinner bill, tap who had each item and Gloslate splits tax and tip in proportion.</p></details>
       <details><summary>How do bills that change every month work?</summary><p>Fixed bills like rent post themselves on the day they're due. For bills that change, like electric, Gloslate asks whoever pays it to type the amount when it arrives, then splits it for everyone.</p></details>
       <details><summary>What if someone says they paid but didn't?</summary><p>A payment only counts once the person who received it confirms it. If something looks wrong, either of you can question a payment for 30 days.</p></details>
       <details><summary>What happens when someone moves out?</summary><p>Bills split by the days each person lived there. Settle up before they go, and the history stays on everyone's statements.</p></details>
-      <details><summary>Is my information private?</summary><p>Only the people in your home or group see your shared expenses. Request links show first names and amounts only. We don't show ads or sell your data. <a href="/privacy">Read the privacy policy.</a></p></details>
-      <details><summary>Does it work on iPad and Android?</summary><p>Yes: iPhone, iPad, and Android phones, tablets and foldables.</p></details>
+      <details><summary>Is my information private?</summary><p>Only the people in your home, tab or group see your shared expenses. Request links show first names and amounts only. We don't show ads or sell your data. <a href="/privacy">Read the privacy policy.</a></p></details>
+      <details><summary>Does it work on iPad, Android and computers?</summary><p>Yes: iPhone, iPad, Android phones, tablets and foldables, and any computer's browser at <a href="https://app.gloslate.app">app.gloslate.app</a>.</p></details>
+      <details><summary>Can I sign in with Glofly?</summary><p>Yes. Sign in with Glofly, Apple, Google, your email or your phone number, and add more ways later in Settings. Gloslate only receives what you approve on Glofly's screen.</p></details>
     </div>
   </section>
 

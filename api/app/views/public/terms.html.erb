@@ -8,22 +8,25 @@
   <% if ENV["LEGAL_DRAFT"] != "false" %><div class="draft">Draft for review. These terms haven't been finalized yet.</div><% end %>
   <div class="eyebrow">Legal</div>
   <h1>Terms of use</h1>
-  <p class="updated">Last updated November 4, 2026</p>
+  <p class="updated">Last updated November 11, 2026</p>
 
-  <p>These terms are an agreement between you and HarborWorks ("we", "us") about using the Gloslate apps and gloslate.app ("Gloslate"). By using Gloslate, you agree to them.</p>
+  <p>These terms are an agreement between you and <%= legal_owner %> ("we", "us") about using the Gloslate apps, the web app at app.gloslate.app, and gloslate.app ("Gloslate"). By using Gloslate, you agree to them.</p>
 
   <h2>What Gloslate is, and isn't</h2>
-  <p>Gloslate helps people who share a home keep track of shared costs and work out who owes whom. <b>Gloslate never holds, sends or receives money.</b> It isn't a bank, payment processor or money transmitter. Pay buttons open third-party apps like Venmo or Cash App, and any payment you make there is between you, the person you pay, and that app, under that app's terms. A payment shows as paid in Gloslate only because a person marked or confirmed it; Gloslate doesn't verify payments.</p>
+  <p>Gloslate helps people keep track of shared costs, with the people they live with, with friends and in groups, and work out who owes whom. <b>Gloslate never holds, sends or receives money.</b> It isn't a bank, payment processor or money transmitter. Pay buttons open third-party apps like Venmo or Cash App, and any payment you make there is between you, the person you pay, and that app, under that app's terms. A payment shows as paid in Gloslate only because a person marked or confirmed it; Gloslate doesn't verify payments.</p>
 
   <h2>Who can use it</h2>
-  <p>You must be 18 or older and able to agree to these terms. Keep your sign-in methods secure; you're responsible for what happens in your account.</p>
+  <p>You must be 18 or older and able to agree to these terms. Keep your sign-in methods secure; you're responsible for what happens in your account. If you sign in with Apple, Google or Glofly, that service's own terms also apply to your account there.</p>
 
   <h2>Your entries</h2>
   <p>Balances are only as accurate as what you and the people you share with enter. Please check amounts before you pay or request. Gloslate keeps a history of every change, but we can't settle disagreements between members, and we aren't responsible for amounts entered incorrectly.</p>
-  <p>You own what you add. You give us permission to store, process and display it as needed to run Gloslate for you and the people in your home.</p>
+  <p>You own what you add. You give us permission to store, process and display it as needed to run Gloslate for you and the people you share it with.</p>
+
+  <h2>Requests and reminders</h2>
+  <p>When you send a request, or turn on automatic reminders, Gloslate contacts the other person on your behalf, in the tone you choose. Only ask for money you're genuinely owed, and only add people who expect to hear from you. Gloslate never threatens, charges fees or reports anyone to anyone; reminders stop as soon as a payment is marked.</p>
 
   <h2>Using Gloslate fairly</h2>
-  <p>Don't use Gloslate to harass anyone, to request money you aren't owed, for anything illegal, or to try to break, overload or get around its security. We may suspend or close accounts that do.</p>
+  <p>Don't use Gloslate to harass anyone, to request money you aren't owed, to send spam, for anything illegal, or to try to break, overload or get around its security. We may suspend or close accounts that do.</p>
 
   <h2>Changes and availability</h2>
   <p>Gloslate is free today. We may change or add features over time, and we'll give you notice in the app before any change that affects what you pay or how your data is used. We work to keep Gloslate available, but it may sometimes be down for maintenance or problems outside our control.</p>
@@ -35,7 +38,7 @@
   <p>Gloslate is provided "as is". To the extent the law allows, we disclaim warranties of any kind, including fitness for a particular purpose. Gloslate doesn't give financial, legal or tax advice.</p>
 
   <h2>Limitation of liability</h2>
-  <p>To the extent the law allows, HarborWorks isn't liable for indirect or consequential losses, or for payments you make or receive through other apps. Our total liability for any claim about Gloslate is limited to $50.</p>
+  <p>To the extent the law allows, <%= legal_owner %> isn't liable for indirect or consequential losses, or for payments you make or receive through other apps. Our total liability for any claim about Gloslate is limited to $50.</p>
 
   <h2>Governing law</h2>
   <p>These terms are governed by the laws of the Commonwealth of Kentucky, United States.</p>
@@ -44,7 +47,7 @@
   <p>If we update these terms in a meaningful way, we'll tell you in the app before they take effect. Continuing to use Gloslate after that means you accept the new terms.</p>
 
   <h2>Contact</h2>
-  <p>HarborWorks · <a href="mailto:<%= support %>"><%= support %></a></p>
+  <p><%= legal_owner %> · <a href="mailto:<%= support %>"><%= support %></a></p>
 </article>
 </main>
 <%= render "public/site_footer" %>
