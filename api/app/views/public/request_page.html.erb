@@ -1,10 +1,10 @@
-<% content_for :title, "#{@req.requester.first_name} is requesting #{money(@req.amount_cents)} · Gloslate" %>
+<% content_for :title, "#{@req.headline} #{money(@req.amount_cents)} · Gloslate" %>
 <% content_for :theme, "#2A1A33" %>
 <% content_for :body_class, "on-night" %>
 <% content_for :head do %>
   <meta name="robots" content="noindex">
-  <meta property="og:title" content="<%= @req.requester.first_name %> is requesting <%= money(@req.amount_cents) %>">
-  <meta property="og:description" content="Tap to see the breakdown & pay. Gloslate never holds your money.">
+  <meta property="og:title" content="<%= @req.headline %> <%= money(@req.amount_cents) %>">
+  <meta property="og:description" content="<%= Requests::Tone.page_description(@req.tone) %>">
   <meta property="og:image" content="<%= @req.image_url %>">
   <meta property="og:image:width" content="1080"><meta property="og:image:height" content="1350">
   <meta name="twitter:card" content="summary_large_image">
@@ -55,6 +55,18 @@
   .promo { background: var(--glass); border: 1px solid var(--glass-border); border-radius: 16px; padding: 14px 16px; display: flex; align-items: center; gap: 12px; color: var(--on-dark); }
   .promo div { flex: 1; } .promo b { display: block; font-size: 13.5px; } .promo span { font-size: 12px; color: var(--on-dark-muted); }
   .promo a { min-height: 44px; padding: 0 14px; border-radius: 12px; background: var(--on-dark); color: var(--night-edge); font-weight: 700; font-size: 13px; text-decoration: none; display: flex; align-items: center; }
+  .slate { background: #fff; color: var(--ink); border-radius: 22px; padding: 22px 20px 20px; display: flex; flex-direction: column; align-items: center; gap: 8px; text-align: center; }
+  .slate h2 { margin: 0; font-family: var(--display); font-weight: 700; font-size: 26px; letter-spacing: -0.02em; }
+  .slate p { margin: 0; color: var(--muted); font-size: 14.5px; line-height: 1.45; max-width: 300px; }
+  @keyframes cs-hop { 0% { transform: translateY(0) } 30% { transform: translateY(-14px) rotate(-6deg) } 55% { transform: translateY(0) scale(1.08,.9) } 75% { transform: translateY(-4px) } 100% { transform: none } }
+  @keyframes cs-flare { 0% { transform: scale(0) rotate(-40deg); opacity: 0 } 55% { transform: scale(1.5) rotate(10deg); opacity: 1 } 100% { transform: scale(1); opacity: 1 } }
+  @keyframes cs-draw { to { stroke-dashoffset: 0 } }
+  @keyframes cs-up { from { opacity: 0; transform: translateY(8px) } to { opacity: 1; transform: none } }
+  .slate .bun { transform-box: fill-box; transform-origin: 50% 100%; animation: cs-hop .7s ease-out .2s both; }
+  .slate .star { transform-box: fill-box; transform-origin: center; animation: cs-flare .55s cubic-bezier(.3,1.4,.5,1) .7s both; }
+  .slate .chk { stroke-dasharray: 60; stroke-dashoffset: 60; animation: cs-draw .35s ease-out .45s both; }
+  .slate h2, .slate p { animation: cs-up .4s ease-out .8s both; }
+  @media (prefers-reduced-motion: reduce) { .slate .bun, .slate .star, .slate .chk, .slate h2, .slate p { animation: none; stroke-dashoffset: 0; } }
   .fine { font-size: 11.5px; color: var(--on-dark-muted); text-align: center; margin: 0; }
 </style>
 <% end %>
@@ -68,7 +80,7 @@
     <section class="ticket" aria-labelledby="ask">
       <div class="who">
         <span class="avatar" aria-hidden="true"><%= @req.requester.first_name[0] %></span>
-        <span><b id="ask"><%= @req.requester.first_name %> is requesting</b><span>from <%= @req.recipient.first_name %> · <%= @req.created_at.strftime("%b %-d, %Y") %></span></span>
+        <span><b id="ask"><%= @req.headline %></b><span>from <%= @req.recipient.first_name %> · <%= @req.created_at.strftime("%b %-d, %Y") %></span></span>
       </div>
       <div class="amount"><%= money(@req.amount_cents) %></div>
       <div class="lines">
@@ -91,7 +103,22 @@
     <svg class="zig" aria-hidden="true" viewBox="0 0 350 12" preserveAspectRatio="none"><path d="M0 0H350V2<% 35.times do |i| %>L<%= 340 - (i * 10) %> <%= i.even? ? 12 : 2 %><% end %>L0 12Z" fill="#fff"/></svg>
   </div>
 
-  <% if @marked %>
+  <% if @settled %>
+    <section class="slate" role="status" aria-labelledby="clean">
+      <svg viewBox="0 0 200 130" width="200" height="130" aria-hidden="true">
+        <rect x="30" y="58" width="140" height="66" rx="14" fill="#140C18" stroke="#241A23" stroke-width="3"/>
+        <path class="chk" d="M80 92 L94 106 L120 80" fill="none" stroke="#F3EEF5" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/>
+        <g class="bun" transform="translate(4,4)">
+          <ellipse cx="84" cy="46" rx="18" ry="13" fill="#E9E0E6"/><circle cx="100" cy="32" r="11" fill="#E9E0E6"/>
+          <ellipse cx="95" cy="12" rx="4.6" ry="13" transform="rotate(-8 95 12)" fill="#E9E0E6"/><ellipse cx="106" cy="13" rx="4.6" ry="12.5" transform="rotate(14 106 13)" fill="#E9E0E6"/>
+          <circle cx="104" cy="31" r="2.6" fill="#241A23"/>
+        </g>
+        <path class="star" d="M156 22 Q157.4 35 170 36 Q157.4 37.4 156 50 Q154.6 37.4 142 36 Q154.6 35 156 22 Z" fill="#FFB547"/>
+      </svg>
+      <h2 id="clean">Clean slate with <%= @req.requester.first_name %>.</h2>
+      <p><%= @req.requester.first_name %> confirmed your payment. Nothing owed either way.</p>
+    </section>
+  <% elsif @marked %>
     <div class="done" role="status">Thanks! <%= @req.requester.first_name %> will confirm they got it.</div>
   <% elsif @pay_amount.positive? %>
     <div class="pay">

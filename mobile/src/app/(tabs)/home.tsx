@@ -7,6 +7,7 @@ import { ConfirmPayments, NotificationBell } from '@/components/confirm-payments
 import { ExpenseRow, shortDate } from '@/components/expense-row';
 import { ChevronIcon, HouseMark, PlusIcon, SendIcon, ShareIcon, SparkleIcon } from '@/components/icons';
 import { FullScreenLoader } from '@/components/bunny-loader';
+import { FriendsSummaryCard, SetUpHomeCard } from '@/components/no-home';
 import { Avatar, Button, Card, Money, T } from '@/components/ui';
 import { HT } from '@/constants/theme';
 import { useLayout } from '@/hooks/use-layout';
@@ -24,8 +25,9 @@ function names(members: Member[]) {
   return `You, ${others.slice(0, -1).join(', ')} & ${others.at(-1)}`;
 }
 
-export async function sendRequest(householdId: string, memberId: string, name?: string) {
-  const res = await api<{ data: { url: string; message: string; in_app?: boolean; amount_cents: number } }>(`/v1/households/${householdId}/requests`, { body: { member_id: memberId } });
+/** Sends a request in `tone` (Gentle · Plain · Cheeky); without one, the server uses your saved Reminders tone. */
+export async function sendRequest(householdId: string, memberId: string, name?: string, tone?: string) {
+  const res = await api<{ data: { url: string; message: string; in_app?: boolean; amount_cents: number } }>(`/v1/households/${householdId}/requests`, { body: { member_id: memberId, ...(tone ? { tone } : {}) } });
   if (res.data.in_app) {
     // They have Gloslate: it already reached them as a notification.
     toast.show({ text: `Sent ${formatCents(res.data.amount_cents)} request${name ? ` to ${name}` : ''} in Gloslate.`, ms: 5000,
@@ -92,12 +94,19 @@ export default function Home() {
 
 
   if (!home && !id) {
-    // In a group but not a home: offer to set one up.
+    // Friends-only (or just groups): where you stand with friends, and a way to set up a home later.
     return (
-      <SafeAreaView style={{ flex: 1, backgroundColor: HT.color.ground, padding: 24, justifyContent: 'center', gap: 14 }}>
-        <T v="display" accessibilityRole="header">No home yet</T>
-        <T v="muted">Live with people? Set up your home to split rent, bills and groceries every month.</T>
-        <Button title="Set up your home" onPress={() => router.push('/setup' as Href)} />
+      <SafeAreaView style={{ flex: 1, backgroundColor: HT.color.ground }} edges={['top', 'left', 'right']}>
+        <ScrollView contentContainerStyle={{ paddingBottom: 32 }}>
+          <View style={{ width: '100%', maxWidth: HT.maxWidth.form + (wide ? 160 : 0), alignSelf: 'center', paddingHorizontal: gutter, paddingTop: 12, gap: 18 }}>
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10, minHeight: 48 }}>
+              <HouseMark size={34} />
+              <T v="title" style={{ fontSize: 19, lineHeight: 23 }} accessibilityRole="header" accessibilityLabel="Gloslate by Glofly"><T style={{ color: HT.color.glowDeep }}>glo</T>slate<T v="small" style={{ fontSize: 12, fontFamily: HT.font.medium, color: HT.color.muted }}>  by Glofly</T></T>
+            </View>
+            <FriendsSummaryCard />
+            <SetUpHomeCard />
+          </View>
+        </ScrollView>
       </SafeAreaView>
     );
   }

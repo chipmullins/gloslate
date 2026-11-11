@@ -30,4 +30,23 @@ class SiteTest < ActionDispatch::IntegrationTest
     robots = File.read(Rails.root.join("public/robots.txt"))
     assert_includes robots, "Disallow: /r/"
   end
+
+  test "legal pages and footer name the legal owner, with no old owner left" do
+    %w[/privacy /terms /].each do |path|
+      get path
+      assert_response :success
+      assert_includes response.body, "Chip Mullins"
+      refute_includes response.body, "HarborWorks"
+    end
+  end
+
+  test "the landing page covers friends, the web app, Glofly and the clean slate" do
+    get "/"
+    body = response.body
+    ["Who owes, and who's just a friend.", "app.gloslate.app", "Sign in with Glofly", "Settled feels like something.", "/site/og-v3.png"].each do |s|
+      assert_includes body, s
+    end
+    refute_includes body, "app-request-v2"
+  end
+
 end

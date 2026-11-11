@@ -1,5 +1,47 @@
 # Gloslate decisions
 
+## Settled Nov 11, 2026: legal pages and website
+
+- **Legal owner on every page comes from `LEGAL_OWNER`** (default "Chip Mullins"); privacy, terms and the site footer use it. Switching to the LLC = set the env var (and the store seller), no code change. `LEGAL_DRAFT=true` keeps the "Draft for review" banner until the attorney signs off.
+- Privacy policy (Nov 11) now covers friends and the "add me" link, one-on-ones and groups, Glofly email handling, settings, IP address/app version per signed-in device, browser storage on the web app, and what deletion removes. Terms cover friends/groups, requests and reminders sent on your behalf (tone), third-party sign-in terms, and no spam.
+- Store privacy answers for App Store Connect and Play Data safety: `docs/store-privacy.md` (no tracking, no third-party SDKs; checked against the code).
+- Landing page: new Friends and clean slate sections with real screenshots from the current app (`app-friends-v1`, `app-cleanslate-v1`), web app link in the hero and footer, tiles for the browser, Sign in with Glofly and reminder tone, FAQ for friends-only and computers/Glofly. The request screenshot and share image no longer show tabitat.app (`app-request-v3`, `og-v3`).
+- Checked live (Nov 11): tabitat.app and www.tabitat.app redirect to the same path on gloslate.app, request links included; favicon is the current mark.
+- Still Chip's: verify the gloslate.app SES identity and flip `MAIL_FROM`; attorney review of privacy, terms and trademark; the app's own `favicon.png` (one-ear drawing) waits for the next native build.
+
+## Settled Nov 11, 2026: polish pass
+
+- Walked Home, Friends, Bills, Activity, You and onboarding (plus friends-only and brand-new accounts) on the web build at 390, 360, ~884 and iPad, with fake API data.
+- Friends shortcuts are now one row of three compact tiles (Settle up · New group · Add friend), so Balances sits near the top on phones; full descriptions stay in the screen-reader labels.
+- Wide screens: the Friends to-confirm count shows as a pill after the label (the icon badge sat on the word when labels are beside icons).
+- Placeholder color `faint` darkened to `#776975` (4.6:1 on ground, was 3.5:1).
+- Clean slate card and sheet keep their size while the text fades in (no jump). Bottom sheet: the backdrop is its own button so VoiceOver reaches "Nice".
+- Settle screen "Pending" pill: button role and 44pt target. Code entry announces how many digits are in.
+- Data export downloads as `gloslate-my-data.json` (was `tabitat-…`). No other user-visible HomeTab/Tabitat copy found; the "glo" wordmark in `glowDeep` is a logo and exempt from contrast rules.
+- Not covered here (needs a device): Dynamic Type at 1.4× (text caps at 1.6×), haptics, VoiceOver on iOS, Android TalkBack.
+
+## Settled Nov 11, 2026: clean slate moment
+
+- **All three styles ship; A is the default.** You → Clean slate moment: **Full screen** (A, default), **Card** at the top of the screen (B), **Bottom sheet** (C), with a Preview button. Stored account-wide on `users.celebration_style` (`full|card|sheet`, `PATCH /v1/me`). Canvas: https://claude.ai/artifact/QMbXs2hZNLvnmJKLWCCJwo
+- B is a card at the top of whatever screen is open, not drawn inside the balance card itself: payments get confirmed from several screens (payment details, group settle, banners) that have no balance card.
+- Plays only right after *you* confirm a payment (or record one as received) and it leaves you square with that person or the whole tab; once per payment; never on app open; never for deleted expenses. Replaces the old "All settled!" pop-up (`SettledHost`, `celebrateIfSettled`).
+- Scene (`mobile/src/components/clean-slate.tsx`): the loader bunny hops in with legs on two real arcs, tucks its legs away as it sits on the slate (the logo pose), the amount is wiped off, the check is drawn and the glow star flares; success haptic lands with the check. Reduce Motion: the finished picture, faded in. Same code on the web app.
+- Request page: once the requester confirms a payment that brings it to $0, it shows a small "Clean slate with Chip." version (CSS, honors prefers-reduced-motion).
+
+## Settled Nov 11, 2026: reminder tone
+
+- **Gentle · Plain · Cheeky**, default Plain. Every string in the requester's voice lives in `api/app/services/requests/tone.rb`: the request push, auto-reminder push, share text, request page headline/og tags and the share image. The app's picker previews them from `GET /v1/reminder_tones` (`{ data, default }`), so the app holds no copy of its own.
+- Stored on `members.reminder_tone` (saved to every tab via `PATCH /v1/me { member: { reminder_tone } }`, like the other reminder settings) and frozen onto `payment_requests.tone` when sent, so a page keeps the voice it went out with. `POST …/requests { tone }` overrides it for one request; the picker sits above every Request button and in You → Reminders.
+- Plain reads exactly as before. Rules for all variants (tested): kind, no "debt/overdue/late", never claims Gloslate verified or moved money. The "did it arrive?" nudge to the receiver is Gloslate's own voice and stays Plain.
+
+## Settled Nov 11, 2026: friends-only start, Friends tab split
+
+- **Onboarding asks "I live with people" or "Just with friends".** Either choice sets `users.onboarded_at` (`PATCH /v1/me { onboarded: true }`, set once, never cleared), so it holds across devices. The launch gate only shows onboarding to someone with no tabs **and** no `onboarded_at`; the migration backfills everyone who already has a tab or a friend. No home → land on Friends.
+- **Home later:** a "Set up your home" card (runs `/setup`) on the Home tab, Bills tab and You tab when there's no home. Without a home, Home shows a "With friends" total (owed to you / you owe across one-on-ones and groups, taps to Friends) above that card; Bills explains that bills belong to a home.
+- **Friends tab = Balances · Friends · Groups.** Balances: one-on-ones with money owed either way or a payment waiting to confirm (waiting first, then largest). Friends: every friend you're square with (settled tab, hidden tab or no tab), A–Z; friends never swipe away. Settled one-on-ones with non-friends sit under "Settled one-on-ones" and keep swipe-to-hide. Wide screens: Balances + Groups left, Friends right. No server change beyond the onboarding flag.
+- **Legal owner: Chip Mullins personally** until his LLC exists (replaces HarborWorks). Use it on Terms, Privacy, the site footer and the App Store / Play seller; switch everything to the LLC once it's registered.
+- Ship order: deploy the API (migration) before the OTA update. An older server ignores `onboarded`, so the worst case is onboarding showing again.
+
 ## Settled Nov 7, 2026: Sign in with Glofly
 
 - **Code + PKCE (S256), run by Gloslate's server.** `POST /v1/auth/glofly/start` makes the verifier, state and nonce and seals them in an encrypted 10-minute `flow`; the app opens Glofly's authorize URL and posts `{ code, flow, state, iss }` to `/v1/auth/glofly/finish`, which swaps the code (Gloslate is a public client: no secret) and verifies the ID token with a **required** nonce. The verifier never leaves the server, and the app needs no crypto, so no new native module and no OTA fingerprint change. (This replaces "swap the code on the phone with expo-auth-session" from the Glofly handoff: that needs `expo-crypto`, a native module.)
