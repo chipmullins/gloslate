@@ -39,7 +39,7 @@ module Requests
         next unless over_amount || over_days || soon
 
         Notifications::Notify.call(member: debtor, kind: "reminder",
-                                   title: "Quick nudge from Gloslate", body: "You owe #{creditor.first_name} #{Hometab::Money.format(d.cents)}. Settle up anytime.",
+                                   **Tone.reminder_push(creditor.reminder_tone, to: creditor.first_name, amount: Hometab::Money.format(d.cents)),
                                    route: "/settle/#{creditor.id}?hid=#{h.id}").tap do |n|
           n&.update!(data: n.data.merge("creditor_member_id" => creditor.id))
         end

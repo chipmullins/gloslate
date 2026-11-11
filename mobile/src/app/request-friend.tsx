@@ -11,6 +11,7 @@ import { api, ApiError, type Friend, type Household, type Member } from '@/lib/a
 import { centsFirst, formatCents, parseCents } from '@/lib/money';
 import { newClientId } from '@/lib/split';
 import { useSession } from '@/lib/session';
+import { TonePicker, type ToneKey } from '@/components/tone-picker';
 import { sendRequest } from '@/app/(tabs)/home';
 
 type Tab = { group: Household; other: Member };
@@ -28,6 +29,7 @@ export default function SettleWithSomeone() {
   const [amount, setAmount] = useState('');
   const [what, setWhat] = useState('');
   const [theyOwe, setTheyOwe] = useState(true); // who owes whom
+  const [tone, setTone] = useState<ToneKey | undefined>();
   const [all, setAll] = useState(true); // all of it, or half
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -90,7 +92,7 @@ export default function SettleWithSomeone() {
       });
       await refresh();
       if (theyOwe) {
-        await sendRequest(group.id, other.id, other.first_name);
+        await sendRequest(group.id, other.id, other.first_name, tone);
         router.replace(`/group/${group.id}` as Href);
       } else {
         router.replace(`/group/settle?hid=${group.id}&from=${me}&to=${other.id}` as Href);
@@ -156,6 +158,7 @@ export default function SettleWithSomeone() {
                 {theyOwe ? `${first} will owe you ${formatCents(owedPart)}. ${picked ? 'They get it as a notification in Gloslate.' : "You'll pick how to send the link next."}` : `You'll owe ${first} ${formatCents(owedPart)}. Next you'll see how to pay them.`}
               </T>
             ) : null}
+            {theyOwe ? <TonePicker value={tone} onChange={setTone} preview="share" /> : null}
           </ScrollView>
           <View style={{ gap: 6, paddingBottom: 8 }}>
             <ErrorNote message={error} />

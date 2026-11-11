@@ -1,5 +1,11 @@
 # Gloslate decisions
 
+## Settled Nov 11, 2026: reminder tone
+
+- **Gentle · Plain · Cheeky**, default Plain. Every string in the requester's voice lives in `api/app/services/requests/tone.rb`: the request push, auto-reminder push, share text, request page headline/og tags and the share image. The app's picker previews them from `GET /v1/reminder_tones` (`{ data, default }`), so the app holds no copy of its own.
+- Stored on `members.reminder_tone` (saved to every tab via `PATCH /v1/me { member: { reminder_tone } }`, like the other reminder settings) and frozen onto `payment_requests.tone` when sent, so a page keeps the voice it went out with. `POST …/requests { tone }` overrides it for one request; the picker sits above every Request button and in You → Reminders.
+- Plain reads exactly as before. Rules for all variants (tested): kind, no "debt/overdue/late", never claims Gloslate verified or moved money. The "did it arrive?" nudge to the receiver is Gloslate's own voice and stays Plain.
+
 ## Settled Nov 11, 2026: friends-only start, Friends tab split
 
 - **Onboarding asks "I live with people" or "Just with friends".** Either choice sets `users.onboarded_at` (`PATCH /v1/me { onboarded: true }`, set once, never cleared), so it holds across devices. The launch gate only shows onboarding to someone with no tabs **and** no `onboarded_at`; the migration backfills everyone who already has a tab or a friend. No home → land on Friends.

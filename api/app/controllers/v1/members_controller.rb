@@ -18,7 +18,7 @@ module V1
       # roommate does, and everyone sees it). Payment handles: only your own.
       allowed = %i[display_name]
       allowed += %i[moved_in_on moved_out_on] if m.id != @me.id
-      allowed += %i[venmo_handle cashtag zelle_contact auto_remind remind_threshold_cents remind_after_days] if m.id == @me.id
+      allowed += %i[venmo_handle cashtag zelle_contact auto_remind remind_threshold_cents remind_after_days reminder_tone] if m.id == @me.id
       if (params.keys & %w[moved_in_on moved_out_on]).any? && m.id == @me.id
         raise Hometab::Forbidden, "Ask a roommate to set your move dates"
       end

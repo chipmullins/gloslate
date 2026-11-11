@@ -92,6 +92,7 @@ export type Member = {
   auto_remind?: boolean;
   remind_threshold_cents?: number;
   remind_after_days?: number;
+  reminder_tone?: 'gentle' | 'plain' | 'cheeky';
   first_name: string;
   placeholder: boolean;
   former: boolean;

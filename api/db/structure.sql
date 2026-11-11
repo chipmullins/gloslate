@@ -370,6 +370,7 @@ CREATE TABLE public.members (
     remind_threshold_cents bigint DEFAULT 4000 NOT NULL,
     remind_after_days integer DEFAULT 7 NOT NULL,
     hidden_at timestamp(6) without time zone,
+    reminder_tone character varying DEFAULT 'plain'::character varying NOT NULL,
     CONSTRAINT move_dates_order CHECK (((moved_out_on IS NULL) OR (moved_in_on IS NULL) OR (moved_out_on >= moved_in_on)))
 );
 
@@ -431,6 +432,7 @@ CREATE TABLE public.payment_requests (
     paid_marked_at timestamp(6) without time zone,
     created_at timestamp(6) without time zone NOT NULL,
     updated_at timestamp(6) without time zone NOT NULL,
+    tone character varying DEFAULT 'plain'::character varying NOT NULL,
     CONSTRAINT request_positive CHECK ((amount_cents > 0))
 );
 
@@ -1622,6 +1624,7 @@ ALTER TABLE ONLY public.expenses
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
+('20261111190000'),
 ('20261111180000'),
 ('20261107060000'),
 ('20261107050000'),

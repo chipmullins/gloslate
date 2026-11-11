@@ -8,6 +8,7 @@ import { ChevronIcon, DownloadIcon } from '@/components/icons';
 import { ordinal, Stepper } from '@/components/stepper';
 import { Avatar, Button, Card, ErrorNote, Field, T } from '@/components/ui';
 import { SetUpHomeCard } from '@/components/no-home';
+import { loadTones, TonePicker } from '@/components/tone-picker';
 import { HT } from '@/constants/theme';
 import { useLayout } from '@/hooks/use-layout';
 import { api, ApiError, type Household, type Member } from '@/lib/api';
@@ -162,6 +163,9 @@ export default function You() {
             <T v="small">At most one nudge every 3 days, never during quiet hours, and it stops the moment a payment is marked.</T>
           </>
         ) : null}
+        <TonePicker value={me.reminder_tone ?? 'plain'} preview="reminder" label="How Gloslate asks for you"
+          onChange={(t) => { if (t !== (me.reminder_tone ?? 'plain')) patchMine({ reminder_tone: t }, 'Saved. New requests and nudges use it.'); loadTones(true).catch(() => {}); }} />
+        <T v="small">Used for nudges, requests and the text you share. You can pick another for a single request.</T>
       </Section> : null}
     </>
   );
