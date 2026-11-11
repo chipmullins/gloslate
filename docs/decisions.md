@@ -1,5 +1,16 @@
 # Gloslate decisions
 
+## Settled Nov 11, 2026: polish pass
+
+- Walked Home, Friends, Bills, Activity, You and onboarding (plus friends-only and brand-new accounts) on the web build at 390, 360, ~884 and iPad, with fake API data.
+- Friends shortcuts are now one row of three compact tiles (Settle up · New group · Add friend), so Balances sits near the top on phones; full descriptions stay in the screen-reader labels.
+- Wide screens: the Friends to-confirm count shows as a pill after the label (the icon badge sat on the word when labels are beside icons).
+- Placeholder color `faint` darkened to `#776975` (4.6:1 on ground, was 3.5:1).
+- Clean slate card and sheet keep their size while the text fades in (no jump). Bottom sheet: the backdrop is its own button so VoiceOver reaches "Nice".
+- Settle screen "Pending" pill: button role and 44pt target. Code entry announces how many digits are in.
+- Data export downloads as `gloslate-my-data.json` (was `tabitat-…`). No other user-visible HomeTab/Tabitat copy found; the "glo" wordmark in `glowDeep` is a logo and exempt from contrast rules.
+- Not covered here (needs a device): Dynamic Type at 1.4× (text caps at 1.6×), haptics, VoiceOver on iOS, Android TalkBack.
+
 ## Settled Nov 11, 2026: clean slate moment
 
 - **All three styles ship; A is the default.** You → Clean slate moment: **Full screen** (A, default), **Card** at the top of the screen (B), **Bottom sheet** (C), with a Preview button. Stored account-wide on `users.celebration_style` (`full|card|sheet`, `PATCH /v1/me`). Canvas: https://claude.ai/artifact/QMbXs2hZNLvnmJKLWCCJwo

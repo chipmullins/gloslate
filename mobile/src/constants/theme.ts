@@ -10,7 +10,7 @@ export const HT = {
     surface: '#FFFFFF',
     ink: '#241A23',
     muted: '#685A66',
-    faint: '#8C7E8A',
+    faint: '#776975', // placeholders: 4.6:1 on ground, 5.2:1 on white
     brand: '#6B3A63',
     brandDeep: '#552D4F',
     brandTint: '#EFE3EC',

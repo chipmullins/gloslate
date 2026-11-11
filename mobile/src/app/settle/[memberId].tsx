@@ -162,7 +162,8 @@ export default function Settle() {
       {b.credit_cents.theirs > 0 ? <T v="small" style={{ color: HT.color.onDarkOwed }}>{other.first_name} has {formatCents(b.credit_cents.theirs)} credit from overpaying</T> : null}
       {b.credit_cents.mine > 0 ? <T v="small" style={{ color: HT.color.onDarkOwed }}>You have {formatCents(b.credit_cents.mine)} credit</T> : null}
       {pendingPay ? (
-        <Pressable onPress={() => router.push(`/payments/${pendingPay.id}` as Href)} style={{ marginTop: 6, backgroundColor: HT.color.onDarkButton, borderRadius: 12, paddingHorizontal: 12, paddingVertical: 8 }}>
+        <Pressable accessibilityRole="button" accessibilityHint="Opens the payment" onPress={() => router.push(`/payments/${pendingPay.id}` as Href)}
+          style={{ marginTop: 6, minHeight: 44, justifyContent: 'center', backgroundColor: HT.color.onDarkButton, borderRadius: 12, paddingHorizontal: 12, paddingVertical: 8 }}>
           <T v="small" style={{ color: HT.color.onDarkText }}>Pending · {formatCents(pendingPay.amount_cents)} waiting on {pendingPay.you_sent ? other.first_name : 'you'} to confirm</T>
         </Pressable>
       ) : null}
