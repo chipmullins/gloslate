@@ -5,6 +5,7 @@
 - **Onboarding asks "I live with people" or "Just with friends".** Either choice sets `users.onboarded_at` (`PATCH /v1/me { onboarded: true }`, set once, never cleared), so it holds across devices. The launch gate only shows onboarding to someone with no tabs **and** no `onboarded_at`; the migration backfills everyone who already has a tab or a friend. No home → land on Friends.
 - **Home later:** a "Set up your home" card (runs `/setup`) on the Home tab, Bills tab and You tab when there's no home. Without a home, Home shows a "With friends" total (owed to you / you owe across one-on-ones and groups, taps to Friends) above that card; Bills explains that bills belong to a home.
 - **Friends tab = Balances · Friends · Groups.** Balances: one-on-ones with money owed either way or a payment waiting to confirm (waiting first, then largest). Friends: every friend you're square with (settled tab, hidden tab or no tab), A–Z; friends never swipe away. Settled one-on-ones with non-friends sit under "Settled one-on-ones" and keep swipe-to-hide. Wide screens: Balances + Groups left, Friends right. No server change beyond the onboarding flag.
+- **Legal owner: Chip Mullins personally** until his LLC exists (replaces HarborWorks). Use it on Terms, Privacy, the site footer and the App Store / Play seller; switch everything to the LLC once it's registered.
 - Ship order: deploy the API (migration) before the OTA update. An older server ignores `onboarded`, so the worst case is onboarding showing again.
 
 ## Settled Nov 7, 2026: Sign in with Glofly
