@@ -15,7 +15,7 @@ module V1
       head :no_content
     end
 
-    # Names, time zone, quiet hours, Face ID lock, notification choices.
+    # Names, time zone, quiet hours, Face ID lock, notification choices, onboarding done.
     def update
       attrs = params.permit(:first_name, :last_name, :time_zone, :quiet_start_hour, :quiet_end_hour, :face_id_lock)
       if attrs[:time_zone] && !ActiveSupport::TimeZone[attrs[:time_zone]]
@@ -31,6 +31,8 @@ module V1
         raise Hometab::Error, "Choices are on, off or daily" if bad.any?
         attrs[:notification_prefs] = current_user.notification_prefs.merge(prefs)
       end
+      # Finished onboarding (any path, including "just friends"). Set once, never cleared.
+      attrs[:onboarded_at] = Time.current if ActiveModel::Type::Boolean.new.cast(params[:onboarded]) && current_user.onboarded_at.nil?
       current_user.update!(attrs)
       update_memberships!
       render json: current_user.as_api_json

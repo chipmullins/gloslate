@@ -614,7 +614,8 @@ CREATE TABLE public.users (
     quiet_end_hour integer DEFAULT 8 NOT NULL,
     notification_prefs jsonb DEFAULT '{}'::jsonb NOT NULL,
     face_id_lock boolean DEFAULT false NOT NULL,
-    friend_token character varying
+    friend_token character varying,
+    onboarded_at timestamp(6) without time zone
 );
 
 
@@ -1621,6 +1622,7 @@ ALTER TABLE ONLY public.expenses
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
+('20261111180000'),
 ('20261107060000'),
 ('20261107050000'),
 ('20261107040000'),
