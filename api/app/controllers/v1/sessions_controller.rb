@@ -8,7 +8,10 @@ module V1
 
     # PATCH /v1/session { push_token } — register this device for push
     def update
-      current_session.update!(params.permit(:push_token, :app_version))
+      # push_status: what the phone saw when registering (granted, denied, unsupported, error…).
+      attrs = params.permit(:push_token, :app_version, :push_status, :push_error)
+      attrs[:push_error] = attrs[:push_error].to_s.first(300) if attrs.key?(:push_error)
+      current_session.update!(attrs)
       head :no_content
     end
   end
