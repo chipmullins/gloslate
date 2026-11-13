@@ -5,9 +5,9 @@ require "test_helper"
 class NettingTest < ActionDispatch::IntegrationTest
   setup do
     @chip_t = sign_in_by_phone("8595550101")["token"]
-    @chip_user = User.last
+    @chip_user = User.order(:created_at).last
     @alex_t = sign_in_by_phone("8595550202")["token"]
-    @alex_user = User.last
+    @alex_user = User.order(:created_at).last
 
     @home = tab(kind: nil, name: nil)
     @trip = tab(kind: "group", name: "Beach trip")
