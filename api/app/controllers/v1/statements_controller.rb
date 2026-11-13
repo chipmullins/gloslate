@@ -29,10 +29,18 @@ module V1
         m = Date.strptime(params[:month], "%Y-%m")
         scope = scope.where(spent_on: m..m.end_of_month)
       end
+      if params[:year].present?
+        y = Integer(params[:year], exception: false) or raise Hometab::Error, "That year doesn't look right"
+        scope = scope.where(spent_on: Date.new(y, 1, 1)..Date.new(y, 12, 31))
+      end
+      # Totals over everything that matches (not just this page), for the card above the list.
+      matching = scope.unscope(:order, :includes)
+      totals = { count: matching.count, total_cents: matching.sum(:amount_cents),
+                 my_share_cents: ExpenseShare.where(expense_id: matching.select(:id), member_id: @me.id).sum(:share_cents) }
       scope = scope.where(spent_on: ...Date.iso8601(params[:before])) if params[:before].present?
       rows = scope.limit(51).to_a
       render json: { data: rows.first(50).map { |e| Expenses::Serializer.call(e, me: @me) },
-                     meta: { next_before: rows.size > 50 ? rows[49].spent_on.iso8601 : nil } }
+                     meta: { next_before: rows.size > 50 ? rows[49].spent_on.iso8601 : nil, totals: } }
     rescue Date::Error
       raise Hometab::Error, "That month doesn't look right"
     end

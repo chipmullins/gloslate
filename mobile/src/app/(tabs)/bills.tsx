@@ -43,7 +43,7 @@ export default function Bills() {
       <T v="heading">Waiting for an amount</T>
       {needs.map((c) => (
         <Pressable key={c.id} accessibilityRole="button" onPress={() => router.push(`/bill-cycle/${c.id}` as Href)}
-          style={({ pressed }) => ({ flexDirection: 'row', alignItems: 'center', gap: 12, backgroundColor: c.missing ? '#FBEBDD' : HT.color.brandTint,
+          style={({ pressed }) => ({ flexDirection: 'row', alignItems: 'center', gap: 12, backgroundColor: c.missing ? HT.color.warnTint : HT.color.brandTint,
             borderRadius: HT.radius.tile, padding: 14, opacity: pressed ? 0.75 : 1 })}>
           <View style={{ flex: 1 }}>
             <T v="strong" style={{ color: c.missing ? HT.color.youOwe : HT.color.brand }}>{c.name} {c.missing ? 'amount missing' : 'bill in?'}</T>

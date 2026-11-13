@@ -26,7 +26,10 @@ module Auth
       raise Hometab::Forbidden, "This sign-in was started for a different account" unless result[:purpose] == "link" && result[:user_id] == user.id
 
       claims = result[:claims]
-      attach!(user, "glofly", claims["sub"], email: claims["email"], email_verified: [true, "true"].include?(claims["email_verified"]))
+      identity = attach!(user, "glofly", claims["sub"], email: claims["email"], email_verified: [true, "true"].include?(claims["email_verified"]))
+      pic = claims["picture"].to_s
+      identity.update!(picture_url: pic.start_with?("https://") ? pic.first(500) : nil)
+      identity
     end
 
     def from_code(user:, destination:, code:)

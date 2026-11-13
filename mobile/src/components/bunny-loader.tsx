@@ -50,11 +50,12 @@ const TEASE_ROT = [0, 0, 70, 85, 90];
 const HALO_AT = [0, 0.46, 1];
 const HALO_OP = [0.65, 1, 0.65];
 
-const TONES = {
+// A function so the light tone follows dark mode.
+const tones = () => ({
   night: { fur: HT.color.onDarkText, farFur: '#D9CEDF', innerEar: '#E2C6D9', eye: HT.color.night.edge, shadow: '#000000', shadowOpacity: 1 },
   // Plum shadow, peaking around 35%.
   light: { fur: HT.color.brand, farFur: '#55304F', innerEar: null, eye: HT.color.ground, shadow: HT.color.brand, shadowOpacity: 0.7 },
-} as const;
+} as const);
 
 /**
  * The hopping bunny loader: the logo bunny crouches, pushes off with its back legs,
@@ -70,7 +71,7 @@ export function BunnyLoader({ size = 130, tone = 'light', label = 'Loading' }: {
   const hop = useLoop(HOP_MS, reduce);
   const drift = useLoop(DRIFT_MS, reduce);
   const haloId = `bunnyHalo${useId().replace(/[^a-zA-Z0-9]/g, '')}`;
-  const c = TONES[tone];
+  const c = tones()[tone];
   const b = BUNNY;
 
   const k = size / VB.w; // px per viewBox unit
