@@ -1,5 +1,6 @@
 import * as Haptics from 'expo-haptics';
-import { forwardRef, type ReactNode } from 'react';
+import { Image } from 'expo-image';
+import { forwardRef, useState, type ReactNode } from 'react';
 import {
   KeyboardAvoidingView,
   Platform,
@@ -40,7 +41,9 @@ const variants = StyleSheet.create({
 type Variant = keyof typeof variants;
 
 export function T({ v = 'body', style, ...rest }: TextProps & { v?: Variant }) {
-  return <Text maxFontSizeMultiplier={1.6} {...rest} style={[variants[v], style]} />;
+  // Colors are read at render (not frozen in the StyleSheet) so dark mode applies.
+  const color = v === 'muted' || v === 'small' || v === 'label' ? HT.color.muted : HT.color.ink;
+  return <Text maxFontSizeMultiplier={1.6} {...rest} style={[variants[v], { color }, style]} />;
 }
 
 /** All money renders in DM Sans with tabular numbers, so digits line up. */
@@ -143,7 +146,7 @@ export function Button({ title, onPress, kind = 'primary', loading, disabled, ic
   icon?: ReactNode; style?: StyleProp<ViewStyle>; accessibilityLabel?: string;
 }) {
   const palette = {
-    primary: { bg: HT.color.brand, fg: '#FFFFFF', border: 'transparent' },
+    primary: { bg: HT.color.brand, fg: HT.color.onBrand, border: 'transparent' },
     secondary: { bg: HT.color.surface, fg: HT.color.ink, border: HT.color.chipBorder },
     onDark: { bg: HT.color.glow, fg: HT.color.onGlow, border: 'transparent' },
     glass: { bg: HT.color.onDarkButton, fg: HT.color.onDarkText, border: HT.color.onDarkBorder },
@@ -231,14 +234,22 @@ export const Field = forwardRef<TextInputInstance, TextInputProps & { label: str
 export function ErrorNote({ message }: { message: string | null }) {
   if (!message) return null;
   return (
-    <View accessibilityRole="alert" style={{ backgroundColor: '#FDECEA', borderRadius: 12, padding: 12 }}>
+    <View accessibilityRole="alert" style={{ backgroundColor: HT.color.dangerTint, borderRadius: 12, padding: 12 }}>
       <T v="strong" style={{ color: HT.color.danger, fontSize: 14 }}>{message}</T>
     </View>
   );
 }
 
-export function Avatar({ name, index = 0, size = 44 }: { name: string; index?: number; size?: number }) {
+/** A person: their profile photo if they added one, otherwise their initial on a color. */
+export function Avatar({ name, index = 0, size = 44, photo }: { name: string; index?: number; size?: number; photo?: string | null }) {
   const c = HT.color.avatar[index % HT.color.avatar.length];
+  const [broken, setBroken] = useState(false);
+  if (photo && !broken) {
+    return (
+      <Image source={{ uri: photo }} onError={() => setBroken(true)} accessibilityElementsHidden importantForAccessibility="no" contentFit="cover" transition={150}
+        style={{ width: size, height: size, borderRadius: size / 2, backgroundColor: c.bg }} />
+    );
+  }
   return (
     <View
       accessibilityElementsHidden
@@ -249,14 +260,14 @@ export function Avatar({ name, index = 0, size = 44 }: { name: string; index?: n
   );
 }
 
-export function IconButton({ label, onPress, children }: { label: string; onPress: () => void; children: ReactNode }) {
+export function IconButton({ label, onPress, children, night }: { label: string; onPress: () => void; children: ReactNode; night?: boolean }) {
   return (
     <Pressable
       accessibilityRole="button"
       accessibilityLabel={label}
       onPress={onPress}
       hitSlop={6}
-      style={({ pressed }) => ({ width: 44, height: 44, borderRadius: 12, backgroundColor: HT.color.surface,
+      style={({ pressed }) => ({ width: 44, height: 44, borderRadius: 12, backgroundColor: night ? HT.color.onDarkButton : HT.color.surface,
         alignItems: 'center', justifyContent: 'center', opacity: pressed ? 0.7 : 1 })}>
       {children}
     </Pressable>

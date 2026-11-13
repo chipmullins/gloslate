@@ -27,7 +27,7 @@ As an individual seller, your legal name is shown publicly on the store listing.
 | Contact Info | Email Address | App Functionality (sign-in, codes) |
 | Contact Info | Phone Number | App Functionality (sign-in, codes) |
 | Financial Info | Other Financial Info (amounts owed, expenses, payments marked) | App Functionality |
-| User Content | Photos or Videos (receipt photos, only if attached) | App Functionality |
+| User Content | Photos or Videos (receipt photos and a profile photo, only if added) | App Functionality |
 | User Content | Other User Content (expenses, notes, home and group names) | App Functionality |
 | Identifiers | User ID | App Functionality |
 | Identifiers | Device ID (push token) | App Functionality |
@@ -49,7 +49,7 @@ Not collected: Health, Location, Contacts, Browsing/Search History, Purchases, P
 | Personal info | Phone number | Optional (email works instead) | Account management |
 | Personal info | User IDs | Required | App functionality, Account management |
 | Financial info | Other financial info (amounts owed, payments marked) | Required | App functionality |
-| Photos and videos | Photos (receipts) | Optional | App functionality |
+| Photos and videos | Photos (receipts, profile photo) | Optional | App functionality |
 | App activity | App interactions | Required | Analytics, App functionality |
 | App activity | Other user-generated content (expenses, notes) | Required | App functionality |
 | Device or other IDs | Device or other IDs (push token) | Optional | App functionality |

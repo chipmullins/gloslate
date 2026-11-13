@@ -16,6 +16,11 @@ class HistoryTest < ActionDispatch::IntegrationTest
     assert_equal ["Costco run"], json["data"].map { _1["description"] }
     get "/v1/households/#{h}/history", params: { month: Date.current.strftime("%Y-%m") }, headers: auth(t)
     assert_equal 2, json["data"].size
+    # Totals cover everything that matches, with your share.
+    get "/v1/households/#{h}/history", params: { year: Date.current.year }, headers: auth(t)
+    assert_equal({ "count" => 2, "total_cents" => 12000, "my_share_cents" => 1000 + 4500 }, json["meta"]["totals"])
+    get "/v1/households/#{h}/history", params: { year: Date.current.year - 1 }, headers: auth(t)
+    assert_equal 0, json["meta"]["totals"]["count"]
 
     get "/v1/households/#{h}/export", params: { year: Date.current.year }, headers: auth(t)
     assert_equal "text/csv", response.media_type

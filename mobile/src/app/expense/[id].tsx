@@ -81,7 +81,7 @@ export default function ExpenseDetail() {
           : `${nameOf(e.payer_id)} paid`} · {SPLIT_LABEL[e.split_kind]}
       </T>
       {e.effect_for_me_cents !== 0 ? (
-        <View style={{ marginTop: 8, backgroundColor: e.effect_for_me_cents > 0 ? HT.color.owedTint : '#FBEBDD', borderRadius: 12, paddingHorizontal: 12, paddingVertical: 6 }}>
+        <View style={{ marginTop: 8, backgroundColor: e.effect_for_me_cents > 0 ? HT.color.owedTint : HT.color.warnTint, borderRadius: 12, paddingHorizontal: 12, paddingVertical: 6 }}>
           <T v="strong" style={{ color: e.effect_for_me_cents > 0 ? HT.color.owedToYou : HT.color.youOwe, fontSize: 14 }}>
             {e.effect_for_me_cents > 0 ? `You're owed ${formatCents(e.effect_for_me_cents)} for this` : `Your share: ${formatCents(-e.effect_for_me_cents)}`}
           </T>

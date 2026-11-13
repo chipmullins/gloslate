@@ -22,7 +22,7 @@ export default function TabsLayout() {
       <Text style={{ fontFamily: focused ? HT.font.extrabold : HT.font.semibold, fontSize: 11.5, color: focused ? HT.color.brand : HT.color.muted }}>{title}</Text>
       {wide && badge ? (
         <View style={{ minWidth: 18, height: 18, borderRadius: 9, paddingHorizontal: 5, backgroundColor: HT.color.youOwe, alignItems: 'center', justifyContent: 'center' }}>
-          <Text style={{ fontFamily: HT.font.bold, fontSize: 11, color: '#FFFFFF' }}>{badge}</Text>
+          <Text style={{ fontFamily: HT.font.bold, fontSize: 11, color: HT.color.onBrand }}>{badge}</Text>
         </View>
       ) : null}
     </View>
@@ -40,7 +40,7 @@ export default function TabsLayout() {
       }}>
       <Tabs.Screen name="home" options={{ title: 'Home', tabBarLabel: label('Home'), tabBarIcon: ({ color }) => <HouseIcon color={String(color)} size={22} /> }} />
       <Tabs.Screen name="groups" options={{ title: 'Friends', tabBarLabel: label('Friends', toConfirm), tabBarIcon: ({ color }) => <GroupIcon color={String(color)} size={22} />,
-        tabBarBadge: (!wide && toConfirm) || undefined, tabBarAccessibilityLabel: toConfirm ? `Friends, ${toConfirm} to confirm` : 'Friends', tabBarBadgeStyle: { backgroundColor: HT.color.youOwe, fontFamily: HT.font.bold, fontSize: 11 } }} />
+        tabBarBadge: (!wide && toConfirm) || undefined, tabBarAccessibilityLabel: toConfirm ? `Friends, ${toConfirm} to confirm` : 'Friends', tabBarBadgeStyle: { backgroundColor: HT.color.youOwe, color: HT.color.onBrand, fontFamily: HT.font.bold, fontSize: 11 } }} />
       <Tabs.Screen name="activity" options={{ title: 'Activity', tabBarLabel: label('Activity'), tabBarIcon: ({ color }) => <ActivityIcon color={String(color)} size={22} /> }} />
       <Tabs.Screen name="bills" options={{ title: 'Bills', tabBarLabel: label('Bills'), tabBarIcon: ({ color }) => <CalendarIcon color={String(color)} size={22} /> }} />
       <Tabs.Screen name="you" options={{ title: 'You', tabBarLabel: label('You'), tabBarIcon: ({ color }) => <PersonIcon color={String(color)} size={22} /> }} />

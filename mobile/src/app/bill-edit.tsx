@@ -126,7 +126,7 @@ export default function BillEdit() {
             {members.map((m, i) => (
               <Pressable key={m.id} accessibilityRole="radio" accessibilityLabel={m.you ? 'You' : m.first_name} accessibilityState={{ checked: payer === m.id }} onPress={() => setPayerId(m.id)} style={{ alignItems: 'center', gap: 4, minWidth: 52 }}>
                 <View style={{ borderRadius: 26, padding: 2, borderWidth: 2, borderColor: payer === m.id ? HT.color.brand : 'transparent' }}>
-                  <Avatar name={m.first_name} index={i} size={42} />
+                  <Avatar photo={m.photo_url} name={m.first_name} index={i} size={42} />
                 </View>
                 <T v="small" style={{ color: payer === m.id ? HT.color.brand : HT.color.muted }}>{m.you ? 'You' : m.first_name}</T>
               </Pressable>
