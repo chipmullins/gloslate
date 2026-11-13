@@ -8,9 +8,11 @@ import { ExpenseRow, shortDate } from '@/components/expense-row';
 import { ChevronIcon, HouseMark, PlusIcon, SendIcon, ShareIcon, SparkleIcon } from '@/components/icons';
 import { FullScreenLoader } from '@/components/bunny-loader';
 import { FriendsSummaryCard, SetUpHomeCard } from '@/components/no-home';
+import { OutboxBanner } from '@/components/outbox-banner';
 import { Avatar, Button, Card, Money, T } from '@/components/ui';
 import { HT } from '@/constants/theme';
 import { useLayout } from '@/hooks/use-layout';
+import { useLive } from '@/lib/live';
 import { api, ApiError, type BillCycle, type Expense, type Household, type Member, type Payment } from '@/lib/api';
 import { formatCents } from '@/lib/money';
 import { useSession } from '@/lib/session';
@@ -80,6 +82,8 @@ export default function Home() {
   }, [id]);
 
   useFocusEffect(useCallback(() => { load(); }, [load]));
+  // Someone confirms, pays or adds something: show it without pull-to-refresh.
+  useLive(({ unread: n }) => { setUnread(n); load(); });
   useEffect(() => toast.subscribe((t) => { if (t && !t.action) setTimeout(load, 300); }), [load]);
 
   async function invite(member?: Member) {
@@ -125,6 +129,7 @@ export default function Home() {
     : couple && partner ? (net > 0 ? `${partner.first_name} owes you` : `You owe ${partner.first_name}`)
       : net > 0 ? "You're owed" : 'You owe';
 
+  const outboxBanner = home ? <OutboxBanner householdId={home.id} /> : null;
   const pendingBanner = <ConfirmPayments payments={pending} nameOf={(mid) => byId.get(mid)?.first_name ?? 'Someone'} oneOnOne={couple} onDone={() => { load(); }} />;
 
   const balanceCard = (
@@ -251,6 +256,7 @@ export default function Home() {
           </View>
 
           {error ? <T v="small" style={{ color: HT.color.danger }}>{error}</T> : null}
+          {outboxBanner}
           {pendingBanner}
 
           {wide ? (

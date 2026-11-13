@@ -10,6 +10,7 @@ import { AddPersonIcon, CheckIcon, ChevronIcon, SendIcon } from '@/components/ic
 import { Avatar, Button, Card, Money, T } from '@/components/ui';
 import { HT } from '@/constants/theme';
 import { useLayout } from '@/hooks/use-layout';
+import { useLive } from '@/lib/live';
 import { api, ApiError, type Friend, type HouseholdSummary } from '@/lib/api';
 import { shareLink } from '@/lib/share';
 import { formatCents } from '@/lib/money';
@@ -64,6 +65,7 @@ export default function Friends() {
     loadFriends();
     api<{ unread: number }>('/v1/notifications').then((r) => setUnread(r.unread)).catch(() => {});
   }, [refresh, loadFriends]));
+  useLive(({ unread: n }) => { setUnread(n); refresh().catch(() => {}); loadFriends(); });
 
   const friendTabs = new Set(friends.map((f) => f.tab_id).filter(Boolean) as string[]);
   const tabIds = new Set(people.map((p) => p.id));
@@ -131,9 +133,9 @@ export default function Friends() {
     return (
       <ReanimatedSwipeable key={g.id} friction={2} rightThreshold={40} overshootRight={false}
         renderRightActions={() => (
-          <Pressable accessibilityRole="button" accessibilityLabel={`Remove ${title} from your list`} onPress={() => hide(g, title)}
+          <Pressable accessibilityRole="button" accessibilityLabel={`Clear ${title} from your list`} onPress={() => hide(g, title)}
             style={{ width: 96, alignItems: 'center', justifyContent: 'center', backgroundColor: HT.color.brand, borderRadius: HT.radius.tile, marginVertical: 6, marginLeft: 8 }}>
-            <T v="strong" style={{ color: '#FFFFFF', fontSize: 13 }}>Remove</T>
+            <T v="strong" style={{ color: '#FFFFFF', fontSize: 13 }}>Clear</T>
           </Pressable>
         )}>
         <View style={{ backgroundColor: HT.color.surface }}>{row}</View>
@@ -165,10 +167,10 @@ export default function Friends() {
     try {
       await api(`/v1/households/${g.id}/hide`, { body: {} });
       await refresh();
-      toast.show({ text: `Removed ${title}. It comes back if anything new is added.`, ms: 5000,
+      toast.show({ text: `Cleared ${title}. It comes back if anything new is added.`, ms: 5000,
         action: { label: 'Undo', run: () => { api(`/v1/households/${g.id}/hide`, { method: 'DELETE' }).then(() => refresh()).catch(() => {}); } } });
     } catch (e) {
-      toast.show({ text: e instanceof ApiError ? e.message : "Couldn't remove it." });
+      toast.show({ text: e instanceof ApiError ? e.message : "Couldn't clear it." });
     }
   }
 

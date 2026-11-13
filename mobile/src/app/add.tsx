@@ -11,6 +11,7 @@ import { HT } from '@/constants/theme';
 import { useHousehold } from '@/hooks/use-household';
 import { useLayout } from '@/hooks/use-layout';
 import { api, ApiError, CATEGORIES, uploadReceipt, type Expense, type Member } from '@/lib/api';
+import { isOffline, outbox } from '@/lib/outbox';
 import { receiptDraft } from '@/lib/draft';
 import { scanReceipt } from '@/lib/receipt-scan';
 import { centsFirst, formatCents, parseCents } from '@/lib/money';
@@ -216,7 +217,16 @@ export default function Add() {
         });
       }
     } catch (e) {
-      setError(e instanceof ApiError ? e.message : 'Something went wrong.');
+      if (!editing && isOffline(e)) {
+        // No connection: keep it on this phone and send it when Gloslate is reachable.
+        const what = description.trim() || CATEGORIES.find((c) => c.key === category)?.label || 'Expense';
+        outbox.add({ clientId: clientId.current, householdId: home.id, label: what, amountCents: cents, body, photoUri });
+        receiptDraft.set(null);
+        goBack((hid ? `/group/${hid}` : '/home') as Href);
+        toast.show({ text: `Saved ${what} on this phone. It'll be added when you're back online.`, ms: 5000 });
+      } else {
+        setError(e instanceof ApiError ? e.message : 'Something went wrong.');
+      }
     } finally {
       setBusy(false);
     }

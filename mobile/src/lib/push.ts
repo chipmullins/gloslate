@@ -15,15 +15,19 @@ export async function registerDevice() {
   const tz = Localization.getCalendars()[0]?.timeZone;
   if (tz) api('/v1/me', { method: 'PATCH', body: { time_zone: tz } }).catch(() => {});
   if (Platform.OS === 'web') return;
+  // Tell the server what happened either way, so "Send a test notification" can explain a silent phone.
+  const report = (push_status: string, push_error?: string) =>
+    api('/v1/session', { method: 'PATCH', body: { push_status, push_error: push_error ?? '', app_version: Constants.expoConfig?.version } }).catch(() => {});
   try {
     const { status } = await Notifications.requestPermissionsAsync();
-    if (status !== 'granted') return;
+    if (status !== 'granted') { await report('denied'); return; }
     const projectId = (Constants.expoConfig?.extra as { eas?: { projectId?: string } } | undefined)?.eas?.projectId;
-    if (!projectId) return; // set by `eas init`; push needs a development or store build
+    if (!projectId) { await report('unsupported', 'This build has no push project ID'); return; }
     const { data } = await Notifications.getExpoPushTokenAsync({ projectId });
-    await api('/v1/session', { method: 'PATCH', body: { push_token: data, app_version: Constants.expoConfig?.version } });
-  } catch {
-    // Expo Go / simulators without push support.
+    await api('/v1/session', { method: 'PATCH', body: { push_token: data, push_status: 'granted', push_error: '', app_version: Constants.expoConfig?.version } });
+  } catch (e) {
+    // Android builds without Firebase set up land here, as do simulators and Expo Go.
+    await report('error', e instanceof Error ? e.message : String(e));
   }
 }
 

@@ -8,6 +8,7 @@ import { CheckIcon, ChevronIcon, DownloadIcon } from '@/components/icons';
 import { ordinal, Stepper } from '@/components/stepper';
 import { Avatar, Button, Card, ErrorNote, Field, T } from '@/components/ui';
 import { SetUpHomeCard } from '@/components/no-home';
+import { TestPush } from '@/components/test-push';
 import { celebrate } from '@/lib/celebrate';
 import { loadTones, TonePicker } from '@/components/tone-picker';
 import { HT } from '@/constants/theme';
@@ -202,6 +203,7 @@ export default function You() {
           <View style={{ flex: 1 }}><Stepper label="Until" value={user.quiet_end_hour} min={0} max={23} onChange={(v) => patchMe({ quiet_end_hour: v })} format={hour} /></View>
         </View>
         <T v="small">Requests, payments marked, and bill amounts needed always come through, just not during quiet hours.</T>
+        <TestPush />
       </Section>
 
       <Section title="Clean slate moment">
