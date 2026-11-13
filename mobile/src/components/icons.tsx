@@ -145,3 +145,4 @@ export const CameraIcon = (p: IconProps) => <Stroke {...p} strokeWidth={p.stroke
 export const CopyIcon = (p: IconProps) => <Stroke {...p} strokeWidth={p.strokeWidth ?? 2} d="M9 9h11v11H9zM5 15H4V4h11v1" />;
 export const SearchIcon = (p: IconProps) => <Stroke {...p} strokeWidth={p.strokeWidth ?? 2} d="M11 18a7 7 0 100-14 7 7 0 000 14zM21 21l-5-5" />;
 export const DownloadIcon = (p: IconProps) => <Stroke {...p} strokeWidth={p.strokeWidth ?? 2} d="M12 4v12M7 11l5 5 5-5M5 20h14" />;
+export const ClockIcon = (p: IconProps) => <Stroke {...p} d="M12 21a9 9 0 100-18 9 9 0 000 18zM12 7v5l3 2" />;

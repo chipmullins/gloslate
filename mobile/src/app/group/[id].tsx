@@ -4,6 +4,7 @@ import { Pressable, ScrollView, TextInput, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { FullScreenLoader } from '@/components/bunny-loader';
+import { OutboxBanner } from '@/components/outbox-banner';
 import { ConfirmPayments } from '@/components/confirm-payments';
 import { ExpenseRow } from '@/components/expense-row';
 import { ArrowIcon } from '@/components/group-icons';
@@ -12,6 +13,7 @@ import { Avatar, Button, Card, ErrorNote, IconButton, Money, T } from '@/compone
 import { HT } from '@/constants/theme';
 import { useHousehold } from '@/hooks/use-household';
 import { useLayout } from '@/hooks/use-layout';
+import { useLive } from '@/lib/live';
 import { api, ApiError, type Expense, type Payment, type Transfer } from '@/lib/api';
 import { formatCents } from '@/lib/money';
 import { shareLink } from '@/lib/share';
@@ -34,10 +36,11 @@ export default function GroupScreen() {
   const loadPending = useCallback(() => {
     api<{ data: Payment[] }>(`/v1/households/${id}/payments?status=pending`).then((r) => setPending(r.data)).catch(() => {});
   }, [id]);
-  useFocusEffect(useCallback(() => {
-    api<{ data: Expense[] }>(`/v1/households/${id}/expenses?limit=100`).then((r) => setItems(r.data)).catch(() => setItems([]));
-    loadPending();
-  }, [id, loadPending]));
+  const loadItems = useCallback(() => {
+    api<{ data: Expense[] }>(`/v1/households/${id}/expenses?limit=100`).then((r) => setItems(r.data)).catch(() => setItems((cur) => cur ?? []));
+  }, [id]);
+  useFocusEffect(useCallback(() => { loadItems(); loadPending(); }, [loadItems, loadPending]));
+  useLive(() => { reload(); loadItems(); loadPending(); });
 
   if (!group) {
     if (!loadError) return <FullScreenLoader label="Opening the group" />;
@@ -121,6 +124,7 @@ export default function GroupScreen() {
 
   const settle = (
     <View style={{ gap: 8 }}>
+      <OutboxBanner householdId={group.id} />
       <View style={{ marginBottom: pending.some((p) => p.can_confirm) ? 8 : 0 }}><ConfirmPayments payments={pending} nameOf={(mid) => byId.get(mid)?.first_name ?? 'Someone'} oneOnOne={group.members.filter((m) => !m.former).length === 2} onDone={() => { reload(); loadPending(); }} /></View>
       <T v="heading">Settle up</T>
       <Card style={{ paddingVertical: 4 }}>

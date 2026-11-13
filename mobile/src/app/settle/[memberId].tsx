@@ -10,6 +10,7 @@ import { Avatar, Button, Card, ErrorNote, Field, IconButton, Money, Screen, T } 
 import { HT } from '@/constants/theme';
 import { useHousehold } from '@/hooks/use-household';
 import { useLayout } from '@/hooks/use-layout';
+import { useLive } from '@/lib/live';
 import { api, ApiError, type Balance, type Breakdown, type PayInfo } from '@/lib/api';
 import { centsFirst, formatCents, parseCents } from '@/lib/money';
 import { celebrateIfSettled } from '@/lib/celebrate';
@@ -71,6 +72,7 @@ export default function Settle() {
     }
   }, [home, memberId]);
   useFocusEffect(useCallback(() => { load(); }, [load]));
+  useLive(() => { load(); });
 
   const owedByMe = useMemo(() => (b?.items ?? []).filter((i) => i.cents < 0 && i.status !== 'paid'), [b]);
 
