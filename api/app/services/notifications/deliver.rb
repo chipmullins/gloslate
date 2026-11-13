@@ -64,7 +64,7 @@ module Notifications
     def push(messages)
       if Rails.env.test? || ENV["PUSH_DISABLED"] == "1"
         sent.concat(messages)
-        return messages.map { |m| normalize(m[:to], fake_tickets ? fake_tickets.call(m) : { "status" => "ok" }) }
+        return messages.map { |m| normalize(m[:to], fake_tickets ? fake_tickets.call(m) : { "status" => "ok" }) }.tap { |r| forget_dead(r) }
       end
       messages.each_slice(100).flat_map do |batch|
         res = post(EXPO_URL, batch)
