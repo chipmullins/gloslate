@@ -395,7 +395,8 @@ CREATE TABLE public.notifications (
     read_at timestamp(6) without time zone,
     skipped_reason character varying,
     created_at timestamp(6) without time zone NOT NULL,
-    updated_at timestamp(6) without time zone NOT NULL
+    updated_at timestamp(6) without time zone NOT NULL,
+    push_error character varying
 );
 
 
@@ -503,7 +504,9 @@ CREATE TABLE public.sessions (
     revoked_at timestamp(6) without time zone,
     revoked_reason character varying,
     created_at timestamp(6) without time zone NOT NULL,
-    updated_at timestamp(6) without time zone NOT NULL
+    updated_at timestamp(6) without time zone NOT NULL,
+    push_status character varying,
+    push_error character varying
 );
 
 
@@ -1625,6 +1628,7 @@ ALTER TABLE ONLY public.expenses
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
+('20261113040000'),
 ('20261111200000'),
 ('20261111190000'),
 ('20261111180000'),

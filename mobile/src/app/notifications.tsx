@@ -5,18 +5,21 @@ import { Pressable, View } from 'react-native';
 import { BackIcon } from '@/components/icons';
 import { Card, IconButton, Screen, T } from '@/components/ui';
 import { HT } from '@/constants/theme';
+import { useLive } from '@/lib/live';
 import { api, type NotificationItem } from '@/lib/api';
 import { goBack } from '@/lib/nav';
 
 export default function Notifications() {
   const [items, setItems] = useState<NotificationItem[] | null>(null);
 
-  useFocusEffect(useCallback(() => {
+  const load = useCallback(() => {
     api<{ data: NotificationItem[] }>('/v1/notifications').then((r) => {
       setItems(r.data);
       if (r.data.some((n) => !n.read)) api('/v1/notifications/read', { body: {} }).catch(() => {});
-    }).catch(() => setItems([]));
-  }, []));
+    }).catch(() => setItems((cur) => cur ?? []));
+  }, []);
+  useFocusEffect(load);
+  useLive(load);
 
   return (
     <Screen maxWidth={HT.maxWidth.form}>

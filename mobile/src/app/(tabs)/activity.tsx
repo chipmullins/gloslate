@@ -129,7 +129,7 @@ export default function Activity() {
         <View style={{ width: '100%', maxWidth: HT.maxWidth.content, alignSelf: 'center', paddingHorizontal: gutter, paddingTop: 16, gap: 18 }}>
           <T v="display" accessibilityRole="header">Activity</T>
           {id && hasGroups ? (
-            <View accessibilityRole="radiogroup" style={{ flexDirection: 'row', backgroundColor: HT.color.segment, borderRadius: HT.radius.tile, padding: 4, gap: 4, maxWidth: 360 }}>
+            <View accessibilityRole="radiogroup" style={{ flexDirection: 'row', backgroundColor: HT.color.segment, borderRadius: HT.radius.tile, padding: 4, gap: 4, width: '100%', maxWidth: 360, alignSelf: 'center' }}>
               {(['home', 'all'] as const).map((k) => (
                 <Pressable key={k} accessibilityRole="radio" accessibilityState={{ checked: scope === k }} onPress={() => setScope(k)}
                   style={{ flex: 1, minHeight: 40, borderRadius: 10, alignItems: 'center', justifyContent: 'center', backgroundColor: scope === k ? HT.color.surface : 'transparent' }}>

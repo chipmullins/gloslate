@@ -92,7 +92,9 @@ Rails.application.routes.draw do
 
     resources :notifications, only: :index do
       post :read, on: :collection
+      post :test, on: :collection
     end
+    get "pulse", to: "pulse#show"
 
     resources :households, only: %i[index show create update] do
       member do
