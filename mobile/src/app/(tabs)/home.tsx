@@ -3,17 +3,18 @@ import { useCallback, useEffect, useState } from 'react';
 import { Pressable, RefreshControl, ScrollView, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-import { ConfirmPayments, NotificationBell } from '@/components/confirm-payments';
+import { ConfirmPayments, LatestNotice, NotificationBell } from '@/components/confirm-payments';
 import { ExpenseRow, shortDate } from '@/components/expense-row';
 import { ChevronIcon, HouseMark, PlusIcon, SendIcon, ShareIcon, SparkleIcon } from '@/components/icons';
 import { FullScreenLoader } from '@/components/bunny-loader';
 import { FriendsSummaryCard, SetUpHomeCard } from '@/components/no-home';
 import { OutboxBanner } from '@/components/outbox-banner';
+import { RecapBanner } from '@/components/recap-banner';
 import { Avatar, Button, Card, Money, T } from '@/components/ui';
 import { HT } from '@/constants/theme';
 import { useLayout } from '@/hooks/use-layout';
 import { useLive } from '@/lib/live';
-import { api, ApiError, type BillCycle, type Expense, type Household, type Member, type Payment } from '@/lib/api';
+import { api, ApiError, type BillCycle, type Expense, type Household, type Member, type NotificationItem, type Payment } from '@/lib/api';
 import { formatCents } from '@/lib/money';
 import { useSession } from '@/lib/session';
 import { toast } from '@/lib/toast';
@@ -53,6 +54,7 @@ export default function Home() {
   const [coming, setComing] = useState<BillCycle[]>(snap.coming);
   const [pending, setPending] = useState<Payment[]>(snap.pending);
   const [unread, setUnread] = useState(snap.unread);
+  const [latest, setLatest] = useState<NotificationItem | null>(null);
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const id = households.find((h) => h.kind !== 'group')?.id;
@@ -65,7 +67,7 @@ export default function Home() {
         api<{ data: Expense[] }>(`/v1/households/${id}/expenses?limit=8`),
         api<{ coming_up: BillCycle[] }>(`/v1/households/${id}/bills`),
         api<{ data: Payment[] }>(`/v1/households/${id}/payments?status=pending`),
-        api<{ unread: number }>('/v1/notifications'),
+        api<{ data: NotificationItem[]; unread: number }>('/v1/notifications'),
       ]);
       const mine = pays.data.filter((p) => p.can_confirm);
       homeCache.set(id, { home: h.data, recent: items.data, coming: bills.coming_up, pending: mine, unread: inbox.unread });
@@ -74,6 +76,7 @@ export default function Home() {
       setComing(bills.coming_up);
       setPending(mine);
       setUnread(inbox.unread);
+      setLatest(inbox.data.find((n) => !n.read) ?? null);
       setError(null);
       updateBalanceWidget(h.data);
     } catch (e) {
@@ -136,7 +139,7 @@ export default function Home() {
     <Card dark fireflies style={{ alignItems: 'center', gap: 8, paddingTop: 24, paddingBottom: 20 }}>
       <Pressable accessibilityRole="button" accessibilityLabel={`${headline} ${formatCents(Math.abs(net))}. See the details.`}
         disabled={!couple || !partner} onPress={() => partner && router.push(`/settle/${partner.id}` as Href)} style={{ alignItems: 'center', gap: 8 }}>
-        {couple && partner ? <Avatar name={partner.first_name} index={byId.get(partner.id)?.index ?? 1} /> : null}
+        {couple && partner ? <Avatar photo={partner.photo_url} name={partner.first_name} index={byId.get(partner.id)?.index ?? 1} /> : null}
         <T v="strong" style={{ color: HT.color.darkCardMuted, fontSize: 14 }}>{headline}</T>
         <Money cents={Math.abs(net)} size={wide ? 56 : 48} color={net > 0 ? HT.color.onDarkOwed : net < 0 ? HT.color.onDarkOwe : HT.color.onDarkText} />
         <T v="small" style={{ color: HT.color.darkCardMuted, textAlign: 'center' }}>
@@ -159,7 +162,7 @@ export default function Home() {
             return (
               <Pressable key={w.member_id} accessibilityRole="button" onPress={() => router.push(`/settle/${m.id}` as Href)}
                 style={({ pressed }) => ({ flexDirection: 'row', alignItems: 'center', gap: 10, minHeight: 52, opacity: pressed ? 0.7 : 1 })}>
-                <Avatar name={m.first_name} index={m.index} size={32} />
+                <Avatar photo={m.photo_url} name={m.first_name} index={m.index} size={32} />
                 <T v="strong" style={{ color: HT.color.onDarkText, flex: 1 }}>{w.cents > 0 ? `${m.first_name} owes you` : `You owe ${m.first_name}`}</T>
                 <Money cents={Math.abs(w.cents)} color={w.cents > 0 ? HT.color.onDarkOwed : HT.color.onDarkOwe} />
                 <ChevronIcon size={16} color={HT.color.darkCardMuted} />
@@ -177,7 +180,7 @@ export default function Home() {
       <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 8 }}>
         {coming.slice(0, 6).map((c) => (
           <Pressable key={c.id} accessibilityRole="button" onPress={() => router.push(`/bill-cycle/${c.id}` as Href)}
-            style={({ pressed }) => ({ backgroundColor: c.missing ? '#FBEBDD' : HT.color.surface, borderRadius: HT.radius.tile, paddingVertical: 10,
+            style={({ pressed }) => ({ backgroundColor: c.missing ? HT.color.warnTint : HT.color.surface, borderRadius: HT.radius.tile, paddingVertical: 10,
               paddingHorizontal: 14, minWidth: 116, opacity: pressed ? 0.75 : 1 })}>
             <T v="strong" style={{ fontSize: 13.5 }}>{c.name}</T>
             <T v="small" style={{ color: c.missing ? HT.color.youOwe : HT.color.muted }}>
@@ -200,7 +203,7 @@ export default function Home() {
         <Pressable key={m.id} accessibilityRole="button" accessibilityLabel={`Send ${m.first_name} an invite link`} onPress={() => invite(m)}
           style={({ pressed }) => ({ flexDirection: 'row', alignItems: 'center', gap: 12, minHeight: 52, borderRadius: HT.radius.tile,
             backgroundColor: HT.color.brandTint, paddingHorizontal: 12, opacity: pressed ? 0.75 : 1 })}>
-          <Avatar name={m.first_name} index={byId.get(m.id)?.index ?? 1} size={34} />
+          <Avatar photo={m.photo_url} name={m.first_name} index={byId.get(m.id)?.index ?? 1} size={34} />
           <T v="strong" style={{ flex: 1, color: HT.color.brand }}>Send {m.first_name} a link</T>
           <ShareIcon size={18} color={HT.color.brand} />
         </Pressable>
@@ -256,6 +259,8 @@ export default function Home() {
           </View>
 
           {error ? <T v="small" style={{ color: HT.color.danger }}>{error}</T> : null}
+          <LatestNotice item={latest} />
+          <RecapBanner />
           {outboxBanner}
           {pendingBanner}
 
@@ -280,7 +285,7 @@ export default function Home() {
             flexDirection: 'row', alignItems: 'center', gap: 10, transform: [{ scale: pressed ? 0.97 : 1 }],
             shadowColor: HT.color.brand, shadowOpacity: 0.3, shadowRadius: 18, shadowOffset: { width: 0, height: 6 }, elevation: 6 })}>
           <SparkleIcon size={20} />
-          <T v="strong" style={{ color: '#FFFFFF', fontSize: 16, fontFamily: HT.font.extrabold }}>Add</T>
+          <T v="strong" style={{ color: HT.color.onBrand, fontSize: 16, fontFamily: HT.font.extrabold }}>Add</T>
         </Pressable>
       </View>
     </SafeAreaView>

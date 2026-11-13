@@ -1,5 +1,19 @@
 # Gloslate decisions
 
+## Settled Nov 12, 2026: round 2 (one push, one OTA)
+
+- **Live updates:** `GET /v1/pulse` is a cheap fingerprint; open screens poll it every 10s and on foreground/notification, and reload only when it changes. **Offline add:** expenses saved while offline wait in an on-device outbox and send with `client_id` (idempotent).
+- **Push diagnostics:** Send a test notification (Notifications settings) shows Apple/Google's answer; dead tokens are cleared. iPhone push needs the APNs key (LUYZW3H7PW, team 4XK3F69URN) assigned to `app.tabitat` in Expo. The project had no bundle identifier there yet, so it's done after the next iOS build. Android push needs Firebase (next native build).
+- **One number per person (netting):** `GET /v1/people`, `/v1/people/:id`, `POST …/settle` (marks one payment per tab that owes, note "Settled up across N tabs") and `POST …/request`. Friends shows "across N tabs" rows; the person screen shows how it nets out. Each tab's ledger stays separate; netting only marks payments.
+- **Activity search:** a totals card (count, total, your share) over every match, plus this year / last year chips (`history?year=`).
+- **Add expense:** "What was it?" is its own field right under Scan receipt, with quick picks (Groceries, Dinner, Takeout, Household supplies) that set the category too.
+- **Bell:** tinted with a count badge and a shake when it rises; the newest unread shows as a card on Home.
+- **Settings overhaul:** You is a profile card plus pages: Payments, Notifications, Reminders, Appearance, Home, Privacy & security, Your data, Help & legal, then Sign out / Delete account.
+- **Profile photo:** take, choose, use your Glofly photo, or remove (`POST/DELETE /v1/me/photo`, Active Storage, 12h signed links). Shown to people you share a tab with and friends; never on request pages. Privacy policy and store answers updated.
+- **Dark mode:** Light / Dark in Appearance, saved per device. `HT.color` is swapped in place (`applyScheme`) and the root remounts on change. Text on brand-filled buttons uses `onBrand`. **Match phone** appears once a native build sets `userInterfaceStyle: "automatic"` (it's hidden until then, because the current build always reports light).
+- **Year recap:** `GET /v1/recap?year=` and a share card `GET /v1/recap/image.png`. It shows places shared, things split (top category), payments settled and busiest month. It never shows who paid more or who owes. Opens from You, and from a Home banner Dec 1 to Jan 15. ("Clean slates" from the canvas became "payments settled", because a true clean-slate count isn't stored.)
+- **Native batch (next build):** Siri & Shortcuts, `userInterfaceStyle: "automatic"`, Android Firebase push, favicon, Android `/f/` intent filters.
+
 ## Settled Nov 11, 2026: legal pages and website
 
 - **Legal owner on every page comes from `LEGAL_OWNER`** (default "Chip Mullins"); privacy, terms and the site footer use it. Switching to the LLC = set the env var (and the store seller), no code change. `LEGAL_DRAFT=true` keeps the "Draft for review" banner until the attorney signs off.

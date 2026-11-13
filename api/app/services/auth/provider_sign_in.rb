@@ -29,12 +29,22 @@ module Auth
         return { status: "link_offer", link_token: token, existing_methods: owner.identities.pluck(:provider).uniq }
       end
 
-      SignIn.complete(provider: @provider, uid: claims["sub"], email:, email_verified: verified,
-                      first_name: @first_name, last_name: @last_name, device: @device, match_existing: false,
-                      account_email: ACCOUNT_EMAIL_PROVIDERS.include?(@provider))
+      result = SignIn.complete(provider: @provider, uid: claims["sub"], email:, email_verified: verified,
+                               first_name: @first_name, last_name: @last_name, device: @device, match_existing: false,
+                               account_email: ACCOUNT_EMAIL_PROVIDERS.include?(@provider))
+      remember_picture(claims)
+      result
     rescue Hometab::Oidc::Invalid => e
       Rails.logger.info("[auth] #{@provider} token rejected: #{e.message}")
       raise Hometab::Error, "Couldn't sign in with #{@provider.capitalize}. Try again."
+    end
+
+    # Glofly's photo link, kept on the Glofly sign-in only, for "Use my Glofly photo".
+    def remember_picture(claims)
+      return unless @provider == "glofly"
+
+      url = claims["picture"].to_s
+      Identity.where(provider: "glofly", provider_uid: claims["sub"]).update_all(picture_url: url.start_with?("https://") ? url.first(500) : nil)
     end
 
     def self.link_verifier = Rails.application.message_verifier(:link_identity)

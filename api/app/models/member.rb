@@ -32,7 +32,7 @@ class Member < ApplicationRecord
 
   def as_api_json(viewer: nil)
     base = { id:, display_name:, first_name:, placeholder: placeholder?, former: former?, you: viewer&.id == id,
-             moved_in_on:, moved_out_on:, handles: }
+             moved_in_on:, moved_out_on:, handles:, photo_url: user&.photo_url }
     viewer&.id == id ? base.merge(auto_remind:, remind_threshold_cents:, remind_after_days:, reminder_tone:) : base
   end
 

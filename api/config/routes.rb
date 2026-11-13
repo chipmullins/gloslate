@@ -79,6 +79,8 @@ Rails.application.routes.draw do
     resource :session, only: %i[update destroy]
     resource :me, controller: "me", only: %i[show update destroy] do
       get :export
+      post :photo, action: :upload_photo
+      delete :photo, action: :remove_photo
     end
     post "identities/glofly/start", to: "identities#glofly_start"
     resources :identities, only: %i[create destroy]
@@ -95,6 +97,14 @@ Rails.application.routes.draw do
       post :test, on: :collection
     end
     get "pulse", to: "pulse#show"
+    get "recap", to: "recap#show"
+    get "recap/image.png", to: "recap#image", as: :recap_image
+    resources :people, only: %i[index show] do
+      member do
+        post :settle
+        post :request, action: :request_net
+      end
+    end
 
     resources :households, only: %i[index show create update] do
       member do

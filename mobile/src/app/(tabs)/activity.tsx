@@ -5,7 +5,8 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { ExpenseRow } from '@/components/expense-row';
 import { ChevronIcon, SearchIcon } from '@/components/icons';
-import { Button, Card, T } from '@/components/ui';
+import { Button, Card, Money, T } from '@/components/ui';
+import { formatCents } from '@/lib/money';
 import { HT } from '@/constants/theme';
 import { useLayout } from '@/hooks/use-layout';
 import { api, CATEGORIES, type Expense, type Household, type StatementSummary } from '@/lib/api';
@@ -20,6 +21,8 @@ export default function Activity() {
   const [q, setQ] = useState('');
   const [category, setCategory] = useState<string | null>(null);
   const [person, setPerson] = useState<string | null>(null);
+  const [year, setYear] = useState<number | null>(null);
+  const [totals, setTotals] = useState<{ count: number; total_cents: number; my_share_cents: number } | null>(null);
   const [items, setItems] = useState<Expense[]>([]);
   const [next, setNext] = useState<string | null>(null);
   const [statements, setStatements] = useState<StatementSummary[]>([]);
@@ -45,11 +48,13 @@ export default function Activity() {
     if (q.trim()) params.set('q', q.trim());
     if (category) params.set('category', category);
     if (person) params.set('member_id', person);
+    if (year) params.set('year', String(year));
     if (before) params.set('before', before);
-    const r = await api<{ data: Expense[]; meta: { next_before: string | null } }>(`/v1/households/${id}/history?${params}`);
+    const r = await api<{ data: Expense[]; meta: { next_before: string | null; totals?: { count: number; total_cents: number; my_share_cents: number } } }>(`/v1/households/${id}/history?${params}`);
     setItems((cur) => (before ? [...cur, ...r.data] : r.data));
     setNext(r.meta.next_before);
-  }, [id, q, category, person]);
+    if (!before) setTotals(r.meta.totals ?? null);
+  }, [id, q, category, person, year]);
 
   useFocusEffect(useCallback(() => {
     if (!id) return;
@@ -61,6 +66,12 @@ export default function Activity() {
     return () => clearTimeout(t);
   }, [scope, search, searchAll]);
 
+  const thisYear = new Date().getFullYear();
+  const totalsLabel = [
+    q.trim() ? `"${q.trim()}"` : CATEGORIES.find((c) => c.key === category)?.label ?? (person ? null : 'Everything'),
+    person ? `with ${home?.members.find((m) => m.id === person)?.first_name ?? 'them'}` : null,
+    year ? `in ${year}` : null,
+  ].filter(Boolean).join(' ');
   const chip = (on: boolean) => ({ minHeight: 36, paddingHorizontal: 12, borderRadius: 18, justifyContent: 'center' as const, borderWidth: on ? 1.5 : 1,
     borderColor: on ? HT.color.brand : HT.color.chipBorder, backgroundColor: on ? HT.color.brandTint : HT.color.surface });
 
@@ -91,6 +102,12 @@ export default function Activity() {
           style={{ flex: 1, height: 48, paddingVertical: 0, fontFamily: HT.font.semibold, fontSize: 15.5, color: HT.color.ink }} />
       </View>
       <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 8 }}>
+        {scope === 'home' ? [thisYear, thisYear - 1].map((y) => (
+          <Pressable key={y} accessibilityRole="button" accessibilityState={{ selected: year === y }} onPress={() => setYear(year === y ? null : y)} style={chip(year === y)}>
+            <T v="strong" style={{ fontSize: 13, color: year === y ? HT.color.brand : HT.color.ink }}>{y}</T>
+          </Pressable>
+        )) : null}
+        {scope === 'home' ? <View style={{ width: 1, backgroundColor: HT.color.hairline, marginHorizontal: 4 }} /> : null}
         {(scope === 'home' ? home?.members ?? [] : []).filter((m) => !m.former).map((m) => (
           <Pressable key={m.id} accessibilityRole="button" accessibilityState={{ selected: person === m.id }} onPress={() => setPerson(person === m.id ? null : m.id)} style={chip(person === m.id)}>
             <T v="strong" style={{ fontSize: 13, color: person === m.id ? HT.color.brand : HT.color.ink }}>{m.you ? 'You' : m.first_name}</T>
@@ -103,6 +120,18 @@ export default function Activity() {
           </Pressable>
         ))}
       </ScrollView>
+      {scope === 'home' && totals && totals.count > 0 && (q.trim() || category || person || year) ? (
+        <Card dark style={{ flexDirection: 'row', alignItems: 'flex-end', gap: 12, paddingVertical: 18 }}>
+          <View style={{ flex: 1, gap: 2 }}>
+            <T v="small" style={{ color: HT.color.darkCardMuted, fontFamily: HT.font.bold }}>{totalsLabel}</T>
+            <Money cents={totals.total_cents} size={30} color={HT.color.onDarkText} />
+          </View>
+          <View style={{ alignItems: 'flex-end' }}>
+            <T v="small" style={{ color: HT.color.darkCardMuted }}>{totals.count === 1 ? '1 expense' : `${totals.count} expenses`}</T>
+            <T v="small" style={{ color: HT.color.darkCardMuted }}>Your share {formatCents(totals.my_share_cents)}</T>
+          </View>
+        </Card>
+      ) : null}
       {scope === 'all' ? (
         <Card style={{ paddingVertical: 4 }}>
           {all?.length === 0 ? <T v="muted" style={{ paddingVertical: 16, textAlign: 'center' }}>{q || category ? 'Nothing matches' : 'Nothing logged yet'}</T> : null}

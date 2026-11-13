@@ -14,6 +14,7 @@ module Accounts
         user.identities.destroy_all
         Friendship.where(user:).or(Friendship.where(friend: user)).delete_all
         user.update_columns(friend_token: nil)
+        user.photo.purge_later if user.photo.attached?
         user.sessions.destroy_all
         user.notifications.delete_all
         user.update_columns(first_name: "", last_name: nil, email: nil, phone: nil, deleted_at: Time.current,

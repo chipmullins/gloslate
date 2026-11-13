@@ -87,6 +87,8 @@ export type Handles = { venmo?: string; cashapp?: string; zelle?: string };
 export type Member = {
   id: string;
   display_name: string;
+  /** Their profile photo (short-lived link), if they set one. */
+  photo_url?: string | null;
   moved_in_on?: string | null;
   moved_out_on?: string | null;
   auto_remind?: boolean;
@@ -138,11 +140,20 @@ export type User = {
   onboarded_at?: string | null;
   /** Clean slate moment: full screen (default), a card at the top, or a bottom sheet. */
   celebration_style?: 'full' | 'card' | 'sheet';
+  /** Short-lived link to your profile photo (null: initial). */
+  photo_url?: string | null;
+  /** You signed in with Glofly and it has a photo you can use. */
+  glofly_photo?: boolean;
   identities: { id: string; provider: string; email?: string | null; label?: string | null; added_at?: string; last_used_at?: string | null }[];
 };
 
 /** Someone you've added: charge or pay them in the app, no links. */
-export type Friend = { user_id: string; first_name: string; last_initial?: string; tab_id: string | null; net_cents: number };
+/** Where you stand with one person across every tab you share (positive: they owe you). */
+export type PersonNet = {
+  user_id: string; first_name: string; last_initial?: string | null; photo_url?: string | null; net_cents: number; tab_count: number;
+  tabs: { household_id: string; name: string; kind: string; member_id: string; cents: number }[];
+};
+export type Friend = { user_id: string; first_name: string; last_initial?: string; photo_url?: string | null; tab_id: string | null; net_cents: number };
 
 export type SignInResult =
   | { status: 'signed_in'; token: string; new_user: boolean; user: User }
@@ -237,6 +248,20 @@ export type NotificationItem = { id: string; kind: string; title: string; body: 
 export const API_BASE = BASE;
 
 /** Attaches a receipt photo to an expense (multipart upload). */
+/** Sets your profile photo from a picked or taken image (multipart, like receipts). */
+export async function uploadPhoto(uri: string, mime?: string | null): Promise<User> {
+  const token = await tokenStore.get();
+  const form = new FormData();
+  const type = mime && /^image\/(jpeg|png|webp|hei[cf])$/.test(mime) ? mime : uri.toLowerCase().endsWith('.png') ? 'image/png' : 'image/jpeg';
+  const name = `photo.${type.split('/')[1]}`;
+  if (Platform.OS === 'web') form.append('file', await (await fetch(uri)).blob(), name);
+  else form.append('file', { uri, name, type } as unknown as Blob);
+  const res = await fetch(`${API_BASE}/v1/me/photo`, { method: 'POST', headers: { Authorization: `Bearer ${token}` }, body: form });
+  const body = await res.json().catch(() => ({}));
+  if (!res.ok) throw new ApiError(res.status, body.error ?? "Couldn't save the photo.");
+  return body as User;
+}
+
 export async function uploadReceipt(expenseId: string, uri: string) {
   const token = await tokenStore.get();
   const form = new FormData();

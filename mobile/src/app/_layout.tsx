@@ -8,10 +8,11 @@ import {
 import { IBMPlexMono_500Medium, useFonts as usePlexFonts } from '@expo-google-fonts/ibm-plex-mono';
 import { Outfit_600SemiBold, Outfit_700Bold, Outfit_800ExtraBold, useFonts as useOutfitFonts } from '@expo-google-fonts/outfit';
 import { useFonts } from 'expo-font';
-import { Stack } from 'expo-router';
+import { router, Stack, usePathname, type Href } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { StatusBar } from 'expo-status-bar';
-import { useEffect } from 'react';
+import * as SystemUI from 'expo-system-ui';
+import { Fragment, useEffect, useRef } from 'react';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 
@@ -24,6 +25,7 @@ import { HT } from '@/constants/theme';
 import { LockGate } from '@/components/lock-gate';
 import { listenForTaps, registerDevice } from '@/lib/push';
 import { SessionProvider, useSession } from '@/lib/session';
+import { useScheme } from '@/lib/theme';
 
 SplashScreen.preventAutoHideAsync().catch(() => {});
 
@@ -39,6 +41,22 @@ function Root() {
   });
   const { ready, user } = useSession();
   const fonts = dmSans && outfit && plex && tabular;
+
+  // Dark mode: screens read HT.color while rendering, so a scheme change remounts the
+  // tree (key below) and then reopens the screen you were on.
+  const scheme = useScheme();
+  const path = usePathname();
+  const last = useRef({ scheme, path });
+  useEffect(() => {
+    SystemUI.setBackgroundColorAsync(HT.color.ground).catch(() => {});
+  }, [scheme]);
+  useEffect(() => {
+    if (last.current.scheme === scheme) { last.current = { scheme, path }; return; }
+    const back = last.current.path;
+    last.current = { scheme, path: back };
+    const t = setTimeout(() => { if (back && back !== '/' && back !== '/home') router.push(back as Href); }, 60);
+    return () => clearTimeout(t);
+  }, [scheme, path]);
 
   // The splash only waits for fonts; while the session restores, the hopping bunny shows.
   useEffect(() => {
@@ -62,8 +80,9 @@ function Root() {
   }
   return (
     <>
-      <StatusBar style="dark" />
+      <StatusBar style={scheme === 'dark' ? 'light' : 'dark'} />
       <LockGate enabled={!!user?.face_id_lock}>
+        <Fragment key={scheme}>
         {/* Pop-up screens are declared here, before they open: iOS can't switch a screen
             to modal after it has started presenting (doing it inside the screen crashed). */}
         <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: HT.color.ground }, animation: 'slide_from_right' }}>
@@ -78,6 +97,7 @@ function Root() {
         <SettledHost />
         <OutboxSync />
         <PausedScreen />
+        </Fragment>
       </LockGate>
     </>
   );

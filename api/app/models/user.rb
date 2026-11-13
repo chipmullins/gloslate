@@ -7,6 +7,21 @@ class User < ApplicationRecord
   has_many :households, through: :members
   has_many :notifications, dependent: :delete_all
 
+  has_one_attached :photo
+  PHOTO_TYPES = %w[image/jpeg image/png image/webp image/heic image/heif].freeze
+  PHOTO_MAX = 8.megabytes
+
+  # A short-lived link to the profile photo (never a permanent public URL). Only ever
+  # put in responses for people who share a tab with them or are their friends.
+  def photo_url
+    photo.attached? && !deleted? ? photo.url(expires_in: 12.hours) : nil
+  rescue StandardError
+    nil
+  end
+
+  # Glofly's photo link, kept so the person can choose "Use my Glofly photo".
+  def glofly_picture_url = identities.where(provider: "glofly").where.not(picture_url: nil).pick(:picture_url)
+
   CELEBRATION_STYLES = %w[full card sheet].freeze
   validates :celebration_style, inclusion: { in: CELEBRATION_STYLES, message: "should be full, card or sheet" }
 
@@ -45,7 +60,7 @@ class User < ApplicationRecord
 
   def as_api_json
     { id:, first_name:, last_name:, email:, phone:, time_zone:, quiet_start_hour:, quiet_end_hour:, face_id_lock:,
-      notification_prefs:, onboarded_at:, celebration_style:,
+      notification_prefs:, onboarded_at:, celebration_style:, photo_url:, glofly_photo: glofly_picture_url.present?,
       identities: identities.order(:created_at).map { |i|
         { id: i.id, provider: i.provider, email: i.email,
           # What to show for it: the address or number (Apple may hide the email).
