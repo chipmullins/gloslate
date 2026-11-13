@@ -4,7 +4,7 @@ import { Pressable, ScrollView, Text, TextInput, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { FullScreenLoader } from '@/components/bunny-loader';
-import { CameraIcon, CheckIcon, CloseIcon } from '@/components/icons';
+import { CameraIcon, CheckIcon, CloseIcon, PencilIcon } from '@/components/icons';
 import { applyKey, Keypad } from '@/components/keypad';
 import { Avatar, Button, ErrorNote, IconButton, T } from '@/components/ui';
 import { HT } from '@/constants/theme';
@@ -34,6 +34,14 @@ function weightOf(kind: Kind, raw: string): number | null {
   if (kind === 'shares') return /^\d{1,3}$/.test(raw) ? Number(raw) : null;
   return parseCents(raw);
 }
+
+/** One tap names it (and sets its category). */
+const QUICK_PICKS = [
+  { label: 'Groceries', category: 'groceries' },
+  { label: 'Dinner', category: 'food' },
+  { label: 'Takeout', category: 'food' },
+  { label: 'Household supplies', category: 'household' },
+];
 
 export default function Add() {
   const { id, hid } = useLocalSearchParams<{ id?: string; hid?: string }>();
@@ -257,28 +265,48 @@ export default function Add() {
           ? ids.length === members.length ? `Split equally${cents ? ` · ${formatCents(perHead)} each` : ''}` : `Split between ${ids.length}${cents ? ` · ${formatCents(perHead)} each` : ''}`
           : `Split by ${kind === 'percent' ? 'percentage' : kind === 'exact' ? 'exact amounts' : 'shares'}`}
       </T>
-      <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, flexWrap: 'wrap', marginTop: 4 }}>
-      <TextInput value={description} onChangeText={setDescription} placeholder="What was it? (optional)" placeholderTextColor={HT.color.faint}
-        accessibilityLabel="What was it" maxLength={60} returnKeyType="done"
-        style={{ height: 44, paddingVertical: 0, minWidth: 180, flexShrink: 1, textAlign: 'center', fontFamily: HT.font.semibold, fontSize: 15, color: HT.color.ink }} />
-      {!editing ? (
-        <View style={{ flexDirection: 'row', gap: 8, flexWrap: 'wrap', justifyContent: 'center' }}>
-          <Pressable accessibilityRole="button" accessibilityLabel={photoUri ? 'Retake receipt photo' : 'Scan a receipt'} onPress={() => scan('camera')}
-            onLongPress={() => scan('library')} accessibilityHint="Hold to pick a photo instead"
-            style={({ pressed }) => ({ minHeight: 36, paddingHorizontal: 12, borderRadius: 18, flexDirection: 'row', alignItems: 'center', gap: 6,
-              backgroundColor: photoUri ? HT.color.brandTint : HT.color.surface, borderWidth: 1, borderColor: photoUri ? HT.color.brand : HT.color.chipBorder, opacity: pressed ? 0.7 : 1 })}>
-            {photoUri ? <CheckIcon size={15} color={HT.color.brand} /> : <CameraIcon size={16} />}
-            <T v="strong" style={{ fontSize: 13, color: photoUri ? HT.color.brand : HT.color.ink }}>{photoUri ? 'Receipt attached' : 'Scan receipt'}</T>
-          </Pressable>
-          {photoUri && (scanItems > 1 || members.length > 2) ? (
-            <Pressable accessibilityRole="button" onPress={() => router.push(`/itemize?payerId=${payer}${hid ? `&hid=${hid}` : ''}` as Href)}
-              style={({ pressed }) => ({ minHeight: 36, paddingHorizontal: 12, borderRadius: 18, justifyContent: 'center', backgroundColor: HT.color.surface,
-                borderWidth: 1, borderColor: HT.color.chipBorder, opacity: pressed ? 0.7 : 1 })}>
-              <T v="strong" style={{ fontSize: 13 }}>{itemization ? 'Edit items' : 'Who had what'}</T>
+      <View style={{ alignItems: 'center', marginTop: 6 }}>
+        {!editing ? (
+          <View style={{ flexDirection: 'row', gap: 8, flexWrap: 'wrap', justifyContent: 'center' }}>
+            <Pressable accessibilityRole="button" accessibilityLabel={photoUri ? 'Retake receipt photo' : 'Scan a receipt'} onPress={() => scan('camera')}
+              onLongPress={() => scan('library')} accessibilityHint="Hold to pick a photo instead"
+              style={({ pressed }) => ({ minHeight: 36, paddingHorizontal: 12, borderRadius: 18, flexDirection: 'row', alignItems: 'center', gap: 6,
+                backgroundColor: photoUri ? HT.color.brandTint : HT.color.surface, borderWidth: 1, borderColor: photoUri ? HT.color.brand : HT.color.chipBorder, opacity: pressed ? 0.7 : 1 })}>
+              {photoUri ? <CheckIcon size={15} color={HT.color.brand} /> : <CameraIcon size={16} />}
+              <T v="strong" style={{ fontSize: 13, color: photoUri ? HT.color.brand : HT.color.ink }}>{photoUri ? 'Receipt attached' : 'Scan receipt'}</T>
             </Pressable>
-          ) : null}
+            {photoUri && (scanItems > 1 || members.length > 2) ? (
+              <Pressable accessibilityRole="button" onPress={() => router.push(`/itemize?payerId=${payer}${hid ? `&hid=${hid}` : ''}` as Href)}
+                style={({ pressed }) => ({ minHeight: 36, paddingHorizontal: 12, borderRadius: 18, justifyContent: 'center', backgroundColor: HT.color.surface,
+                  borderWidth: 1, borderColor: HT.color.chipBorder, opacity: pressed ? 0.7 : 1 })}>
+                <T v="strong" style={{ fontSize: 13 }}>{itemization ? 'Edit items' : 'Who had what'}</T>
+              </Pressable>
+            ) : null}
+          </View>
+        ) : null}
+      </View>
+      {/* What was it: its own labeled field right under Scan receipt, with quick picks. */}
+      <View style={{ alignSelf: 'stretch', marginTop: 14, gap: 8 }}>
+        <T v="label" nativeID="whatLabel">What was it?</T>
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10, minHeight: 52, paddingHorizontal: 14, borderRadius: HT.radius.tile,
+          backgroundColor: HT.color.surface, borderWidth: 1.5, borderColor: description ? HT.color.brand : HT.color.chipBorder }}>
+          <PencilIcon size={18} color={HT.color.muted} />
+          <TextInput value={description} onChangeText={setDescription} placeholder="Add a name, like Costco run" placeholderTextColor={HT.color.faint}
+            accessibilityLabel="What was it" accessibilityLabelledBy="whatLabel" maxLength={60} returnKeyType="done"
+            style={{ flex: 1, height: 50, paddingVertical: 0, fontFamily: HT.font.medium, fontSize: 16, color: HT.color.ink }} />
         </View>
-      ) : null}
+        {!description ? (
+          <View style={{ flexDirection: 'row', gap: 8, flexWrap: 'wrap' }}>
+            {QUICK_PICKS.map((p) => (
+              <Pressable key={p.label} accessibilityRole="button" accessibilityLabel={`Call it ${p.label}`}
+                onPress={() => { setDescription(p.label); if (!editing) setCategory(p.category); }}
+                style={({ pressed }) => ({ minHeight: 36, paddingHorizontal: 12, borderRadius: 18, justifyContent: 'center', backgroundColor: HT.color.surface,
+                  borderWidth: 1, borderColor: HT.color.chipBorder, opacity: pressed ? 0.7 : 1 })}>
+                <T style={{ fontSize: 13.5 }}>{p.label}</T>
+              </Pressable>
+            ))}
+          </View>
+        ) : null}
       </View>
     </View>
   );
@@ -288,7 +316,7 @@ export default function Add() {
       <T v="muted">Put in what each person paid. It has to add up to {cents ? formatCents(cents) : 'the total'}.</T>
       {members.map((m) => (
         <View key={m.id} style={{ flexDirection: 'row', alignItems: 'center', gap: 10, minHeight: 48 }}>
-          <Avatar name={m.first_name} index={m.index} size={32} />
+          <Avatar photo={m.photo_url} name={m.first_name} index={m.index} size={32} />
           <T v="strong" style={{ flex: 1 }}>{m.you ? 'You' : m.first_name}</T>
           <T v="muted">$</T>
           <TextInput value={paid[m.id] ?? ''} onChangeText={(t) => setPaid((cur) => ({ ...cur, [m.id]: centsFirst(t) }))}
@@ -336,7 +364,7 @@ export default function Add() {
               <Pressable key={m.id} accessibilityRole="radio" accessibilityLabel={m.you ? 'You' : m.first_name} accessibilityState={{ checked: on }}
                 onPress={() => setPayerId(m.id)} style={{ alignItems: 'center', gap: 4, minWidth: 52 }}>
                 <View style={{ borderRadius: 26, padding: 2, borderWidth: 2, borderColor: on ? HT.color.brand : 'transparent' }}>
-                  <Avatar name={m.first_name} index={m.index} size={42} />
+                  <Avatar photo={m.photo_url} name={m.first_name} index={m.index} size={42} />
                 </View>
                 <T v="small" style={{ color: on ? HT.color.brand : HT.color.muted }}>{m.you ? 'You' : m.first_name}</T>
               </Pressable>
@@ -391,7 +419,7 @@ export default function Add() {
                 backgroundColor: on ? HT.color.brand : 'transparent', alignItems: 'center', justifyContent: 'center' }}>
                 {on ? <CheckIcon size={15} color="#FFFFFF" /> : null}
               </View>
-              <Avatar name={m.first_name} index={m.index} size={32} />
+              <Avatar photo={m.photo_url} name={m.first_name} index={m.index} size={32} />
               <T v="strong">{m.you ? 'You' : m.first_name}</T>
             </Pressable>
             {kind !== 'equal' && on ? (

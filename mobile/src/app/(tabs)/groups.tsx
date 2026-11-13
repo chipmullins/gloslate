@@ -11,7 +11,7 @@ import { Avatar, Button, Card, Money, T } from '@/components/ui';
 import { HT } from '@/constants/theme';
 import { useLayout } from '@/hooks/use-layout';
 import { useLive } from '@/lib/live';
-import { api, ApiError, type Friend, type HouseholdSummary } from '@/lib/api';
+import { api, ApiError, type Friend, type PersonNet, type HouseholdSummary } from '@/lib/api';
 import { shareLink } from '@/lib/share';
 import { formatCents } from '@/lib/money';
 import { toast } from '@/lib/toast';
@@ -57,8 +57,10 @@ export default function Friends() {
   const [unread, setUnread] = useState(0);
   const [friends, setFriends] = useState<Friend[]>([]);
   const [link, setLink] = useState<string | null>(null);
+  const [netted, setNetted] = useState<PersonNet[]>([]);
   const loadFriends = useCallback(() => {
     api<{ data: Friend[]; link: string }>('/v1/friends').then((r) => { setFriends(r.data); setLink(r.link); }).catch(() => {});
+    api<{ data: PersonNet[] }>('/v1/people').then((r) => setNetted(r.data)).catch(() => {});
   }, []);
   useFocusEffect(useCallback(() => {
     refresh().catch(() => {});
@@ -70,12 +72,17 @@ export default function Friends() {
   const friendTabs = new Set(friends.map((f) => f.tab_id).filter(Boolean) as string[]);
   const tabIds = new Set(people.map((p) => p.id));
   const owing = (g: HouseholdSummary) => g.balance.net_cents !== 0 || (g.to_confirm_cents ?? 0) > 0;
+  // People you share more than one tab with get one netted row (their one-on-one folds into it,
+  // unless a payment there is waiting for you to confirm).
+  const crossTab = netted.filter((p) => p.tab_count > 1 && p.net_cents !== 0);
+  const foldedTabs = new Set(crossTab.flatMap((p) => p.tabs.map((t) => t.household_id)));
   // Balances: one-on-ones where money is owed either way or a payment waits for you; waiting first, then biggest.
-  const balances = people.filter(owing).sort((a, b) =>
+  const balances = people.filter((g) => owing(g) && (!foldedTabs.has(g.id) || (g.to_confirm_cents ?? 0) > 0)).sort((a, b) =>
     Number(!!b.to_confirm_cents) - Number(!!a.to_confirm_cents) || Math.abs(b.balance.net_cents) - Math.abs(a.balance.net_cents));
   const owingTabs = new Set(balances.map((g) => g.id));
   // Friends: everyone you're friends with and square with (settled tab, hidden tab or no tab yet), A–Z.
-  const squareFriends = friends.filter((f) => !f.tab_id || !owingTabs.has(f.tab_id))
+  const crossTabUsers = new Set(crossTab.map((p) => p.user_id));
+  const squareFriends = friends.filter((f) => (!f.tab_id || !owingTabs.has(f.tab_id)) && !crossTabUsers.has(f.user_id))
     .sort((a, b) => a.first_name.localeCompare(b.first_name));
   // Settled one-on-ones with people who aren't friends: kept below friends, and still swipe away.
   const settledOthers = people.filter((g) => !owing(g) && !friendTabs.has(g.id));
@@ -95,6 +102,26 @@ export default function Friends() {
       toast.show({ text: e instanceof ApiError ? e.message : "Couldn't open it." });
     }
   }
+
+  const personRow = (p: PersonNet, i: number) => {
+    const theyOwe = p.net_cents > 0;
+    const color = theyOwe ? HT.color.owedToYou : HT.color.youOwe;
+    const line = `${theyOwe ? 'Owes you' : 'You owe'} · across ${p.tab_count} tabs`;
+    return (
+      <Pressable key={p.user_id} accessibilityRole="button" accessibilityLabel={`${p.first_name}. ${line}, ${formatCents(Math.abs(p.net_cents))}`}
+        onPress={() => router.push(`/people/${p.user_id}` as Href)}
+        style={({ pressed }) => ({ flexDirection: 'row', alignItems: 'center', gap: 12, minHeight: 72, paddingHorizontal: 4, opacity: pressed ? 0.7 : 1,
+          borderTopWidth: i > 0 ? 1 : 0, borderTopColor: HT.color.hairline })}>
+        <Avatar name={p.first_name} index={(i % 4) + 1} size={44} photo={p.photo_url} />
+        <View style={{ flex: 1 }}>
+          <T v="strong" numberOfLines={1}>{p.first_name}</T>
+          <T v="small" numberOfLines={1}>{line}</T>
+        </View>
+        <Money cents={Math.abs(p.net_cents)} size={16} color={color} />
+        <ChevronIcon size={18} color={HT.color.muted} />
+      </Pressable>
+    );
+  };
 
   const renderRow = (g: HouseholdSummary, i: number, list: HouseholdSummary[], oneOnOne: boolean, friend = false) => {
     const line = balanceLine(g, oneOnOne);
@@ -119,7 +146,7 @@ export default function Friends() {
         <View style={{ alignItems: 'flex-end', gap: 2 }}>
           {g.to_confirm_cents ? (
             <View style={{ backgroundColor: HT.color.brand, borderRadius: 10, paddingHorizontal: 8, paddingVertical: 3 }}>
-              <T v="small" style={{ color: '#FFFFFF', fontFamily: HT.font.bold, fontSize: 12 }}>Confirm {formatCents(g.to_confirm_cents)}</T>
+              <T v="small" style={{ color: HT.color.onBrand, fontFamily: HT.font.bold, fontSize: 12 }}>Confirm {formatCents(g.to_confirm_cents)}</T>
             </View>
           ) : null}
           <T v="small" style={{ color: line.color }}>{line.text}</T>
@@ -135,7 +162,7 @@ export default function Friends() {
         renderRightActions={() => (
           <Pressable accessibilityRole="button" accessibilityLabel={`Clear ${title} from your list`} onPress={() => hide(g, title)}
             style={{ width: 96, alignItems: 'center', justifyContent: 'center', backgroundColor: HT.color.brand, borderRadius: HT.radius.tile, marginVertical: 6, marginLeft: 8 }}>
-            <T v="strong" style={{ color: '#FFFFFF', fontSize: 13 }}>Clear</T>
+            <T v="strong" style={{ color: HT.color.onBrand, fontSize: 13 }}>Clear</T>
           </Pressable>
         )}>
         <View style={{ backgroundColor: HT.color.surface }}>{row}</View>
@@ -152,7 +179,7 @@ export default function Friends() {
         onPress={() => (visibleTab ? router.push(`/group/${visibleTab}` as Href) : openFriend(f))}
         style={({ pressed }) => ({ flexDirection: 'row', alignItems: 'center', gap: 12, minHeight: 64, paddingHorizontal: 4, opacity: pressed ? 0.7 : 1,
           borderTopWidth: i > 0 ? 1 : 0, borderTopColor: HT.color.hairline })}>
-        <Avatar name={f.first_name} index={(i % 4) + 1} size={40} />
+        <Avatar photo={f.photo_url} name={f.first_name} index={(i % 4) + 1} size={40} />
         <View style={{ flex: 1 }}>
           <T v="strong" numberOfLines={1}>{name}</T>
           <T v="small" numberOfLines={1}>{sub}</T>
@@ -202,8 +229,12 @@ export default function Friends() {
               <View style={{ flex: 1, gap: 16 }}>
                 <View style={{ gap: 8 }}>
               <SectionHead title="Balances" />
-              {balances.length > 0 ? (
-                <Card style={{ paddingVertical: 4 }}>{balances.map((g, i) => renderRow(g, i, balances, true, friendTabs.has(g.id)))}</Card>
+              {balances.length + crossTab.length > 0 ? (
+                <Card style={{ paddingVertical: 4 }}>
+                  {crossTab.map(personRow)}
+                  {balances.length && crossTab.length ? <View style={{ height: 1, backgroundColor: HT.color.hairline }} /> : null}
+                  {balances.map((g, i) => renderRow(g, i, balances, true, friendTabs.has(g.id)))}
+                </Card>
               ) : (
                 <Card style={{ flexDirection: 'row', alignItems: 'center', gap: 10, paddingVertical: 16 }}>
                   <CheckIcon size={18} color={HT.color.owedToYou} />
@@ -241,9 +272,13 @@ export default function Friends() {
           ) : (
             <>
               <View style={{ gap: 8 }}>
-              <SectionHead title="Balances" note={balances.length ? undefined : 'Nobody owes anybody'} />
-              {balances.length > 0 ? (
-                <Card style={{ paddingVertical: 4 }}>{balances.map((g, i) => renderRow(g, i, balances, true, friendTabs.has(g.id)))}</Card>
+              <SectionHead title="Balances" />
+              {balances.length + crossTab.length > 0 ? (
+                <Card style={{ paddingVertical: 4 }}>
+                  {crossTab.map(personRow)}
+                  {balances.length && crossTab.length ? <View style={{ height: 1, backgroundColor: HT.color.hairline }} /> : null}
+                  {balances.map((g, i) => renderRow(g, i, balances, true, friendTabs.has(g.id)))}
+                </Card>
               ) : (
                 <Card style={{ flexDirection: 'row', alignItems: 'center', gap: 10, paddingVertical: 16 }}>
                   <CheckIcon size={18} color={HT.color.owedToYou} />

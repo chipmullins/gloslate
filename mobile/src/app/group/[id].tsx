@@ -93,9 +93,9 @@ export default function GroupScreen() {
         onPress={() => openTransfer(t)}
         style={({ pressed }) => ({ flexDirection: 'row', alignItems: 'center', gap: 10, minHeight: 60, opacity: pressed ? 0.7 : 1,
           borderBottomWidth: i < list.length - 1 ? 1 : 0, borderBottomColor: HT.color.hairline })}>
-        <Avatar name={byId.get(t.from_member_id)?.first_name ?? '?'} index={byId.get(t.from_member_id)?.index} size={34} />
+        <Avatar photo={byId.get(t.from_member_id)?.photo_url} name={byId.get(t.from_member_id)?.first_name ?? '?'} index={byId.get(t.from_member_id)?.index} size={34} />
         <ArrowIcon />
-        <Avatar name={byId.get(t.to_member_id)?.first_name ?? '?'} index={byId.get(t.to_member_id)?.index} size={34} />
+        <Avatar photo={byId.get(t.to_member_id)?.photo_url} name={byId.get(t.to_member_id)?.first_name ?? '?'} index={byId.get(t.to_member_id)?.index} size={34} />
         <View style={{ flex: 1 }}>
           <T v="strong" numberOfLines={2}>
             {nameOf(t.from_member_id)} {youPay ? 'pay' : 'pays'} {t.to_member_id === me.id ? 'you' : nameOf(t.to_member_id)}
@@ -148,7 +148,7 @@ export default function GroupScreen() {
       <Card style={{ paddingVertical: 4 }}>
         {group.members.filter((m) => !m.former).map((m, i, list) => (
           <View key={m.id} style={{ flexDirection: 'row', alignItems: 'center', gap: 12, minHeight: 56, borderBottomWidth: i < list.length - 1 ? 1 : 0, borderBottomColor: HT.color.hairline }}>
-            <Avatar name={m.first_name} index={byId.get(m.id)?.index} size={34} />
+            <Avatar photo={m.photo_url} name={m.first_name} index={byId.get(m.id)?.index} size={34} />
             <T v="strong" style={{ flex: 1 }}>{m.you ? `${m.first_name} (you)` : m.display_name}</T>
             {m.placeholder ? (
               <Pressable accessibilityRole="button" accessibilityLabel={`Send ${m.first_name} a link to join`} onPress={() => invite(m.id)}

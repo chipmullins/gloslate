@@ -6,6 +6,9 @@ class ApplicationController < ActionController::API
   rescue_from ActiveRecord::RecordInvalid do |e| render json: { error: e.record.errors.full_messages.first }, status: :unprocessable_content end
   rescue_from ActionController::ParameterMissing do |e| render json: { error: e.message }, status: :bad_request end
 
+  # Profile photo links (Disk service in dev/test needs a host; S3 ignores it).
+  before_action { ActiveStorage::Current.url_options = { host: request.base_url } }
+
   private
 
   def bearer_token = request.authorization.to_s[/\ABearer (.+)\z/, 1]

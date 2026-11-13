@@ -158,7 +158,7 @@ export default function Settle() {
 
   const summary = (
     <Card dark style={{ alignItems: 'center', gap: 8, paddingVertical: 24 }}>
-      <Avatar name={other.first_name} index={otherIndex} />
+      <Avatar photo={other.photo_url} name={other.first_name} index={otherIndex} />
       <T v="strong" style={{ color: HT.color.darkCardMuted }}>{headline}</T>
       <Money cents={Math.abs(net)} size={48} color={net > 0 ? HT.color.onDarkOwed : net < 0 ? HT.color.onDarkOwe : HT.color.onDarkText} />
       {b.credit_cents.theirs > 0 ? <T v="small" style={{ color: HT.color.onDarkOwed }}>{other.first_name} has {formatCents(b.credit_cents.theirs)} credit from overpaying</T> : null}

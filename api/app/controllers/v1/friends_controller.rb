@@ -54,7 +54,7 @@ module V1
     def serialize(f)
       tab = current_user.one_on_one_with(f)
       me = tab&.members&.find_by(user: current_user)
-      { user_id: f.id, first_name: f.first_name, last_initial: f.last_name.to_s[0],
+      { user_id: f.id, first_name: f.first_name, last_initial: f.last_name.to_s[0], photo_url: f.photo_url,
         tab_id: tab&.id, net_cents: me ? tab.balance_for(me)[:net_cents] : 0 }
     end
 

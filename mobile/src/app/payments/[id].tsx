@@ -59,7 +59,7 @@ export default function PaymentDetail() {
         <Card style={{ alignItems: 'center', gap: 6, paddingVertical: 26 }}>
           <T v="muted">{name(p.from_member_id)} paid {name(p.to_member_id) === 'You' ? 'you' : name(p.to_member_id)} · {METHOD[p.method] ?? p.method}</T>
           <Money cents={p.amount_cents} size={44} />
-          <View style={{ backgroundColor: p.status === 'disputed' ? '#FBEBDD' : p.status === 'pending' ? HT.color.segment : HT.color.brandTint, borderRadius: 12, paddingHorizontal: 12, paddingVertical: 6 }}>
+          <View style={{ backgroundColor: p.status === 'disputed' ? HT.color.warnTint : p.status === 'pending' ? HT.color.segment : HT.color.brandTint, borderRadius: 12, paddingHorizontal: 12, paddingVertical: 6 }}>
             <T v="strong" style={{ fontSize: 13.5, color: p.status === 'disputed' ? HT.color.youOwe : p.status === 'pending' ? HT.color.ink : HT.color.brand }}>{status}</T>
           </View>
           <T v="small" style={{ textAlign: 'center' }}>Marked by a person. Gloslate never sees or moves the money.</T>

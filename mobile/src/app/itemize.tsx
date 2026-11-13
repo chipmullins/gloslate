@@ -73,7 +73,7 @@ export default function Itemize() {
               return (
                 <Pressable key={m.id} accessibilityRole="checkbox" accessibilityLabel={`${m.you ? 'You' : m.first_name} had ${r.name || 'this'}`} accessibilityState={{ checked: on }}
                   onPress={() => toggle(i, m.id)} style={{ alignItems: 'center', gap: 2, opacity: on ? 1 : 0.35, minWidth: 44 }}>
-                  <View style={{ borderRadius: 22, padding: 2, borderWidth: 2, borderColor: on ? HT.color.brand : 'transparent' }}><Avatar name={m.first_name} index={mi} size={34} /></View>
+                  <View style={{ borderRadius: 22, padding: 2, borderWidth: 2, borderColor: on ? HT.color.brand : 'transparent' }}><Avatar photo={m.photo_url} name={m.first_name} index={mi} size={34} /></View>
                   <T v="small">{m.you ? 'You' : m.first_name}</T>
                 </Pressable>
               );
@@ -103,7 +103,7 @@ export default function Itemize() {
       <View style={{ height: 1, backgroundColor: HT.color.hairline }} />
       {members.map((m, mi) => (split[m.id] ? (
         <View key={m.id} style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
-          <Avatar name={m.first_name} index={mi} size={28} />
+          <Avatar photo={m.photo_url} name={m.first_name} index={mi} size={28} />
           <T v="strong" style={{ flex: 1 }}>{m.you ? 'You' : m.first_name}</T>
           <Money cents={split[m.id]} />
         </View>

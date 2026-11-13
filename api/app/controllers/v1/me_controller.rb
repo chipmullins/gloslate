@@ -2,6 +2,29 @@ module V1
   class MeController < BaseController
     def show = render(json: current_user.as_api_json)
 
+    # POST /v1/me/photo multipart { file }   — a photo from the camera or library
+    # POST /v1/me/photo { from: "glofly" }    — the photo from the person's Glofly account
+    def upload_photo
+      if params[:from] == "glofly"
+        url = current_user.glofly_picture_url or raise Hometab::Error, "Sign in with Glofly first to use your Glofly photo"
+        io, type = fetch_image(url)
+        current_user.photo.attach(io:, filename: "glofly.#{type.split('/').last}", content_type: type)
+      else
+        file = params.require(:file)
+        raise Hometab::Error, "Profile photos can be a JPEG, PNG, WebP or HEIC" unless User::PHOTO_TYPES.include?(file.content_type)
+        raise Hometab::Error, "That photo is too big (8 MB max)" if file.size > User::PHOTO_MAX
+        current_user.photo.attach(file)
+      end
+      current_user.touch
+      render json: current_user.as_api_json
+    end
+
+    def remove_photo
+      current_user.photo.purge_later if current_user.photo.attached?
+      current_user.touch
+      render json: current_user.reload.as_api_json
+    end
+
     # GET /v1/me/export — all my data as JSON
     def export
       send_data Accounts::Export.call(current_user).to_json, type: "application/json", filename: "gloslate-my-data.json"
@@ -61,6 +84,23 @@ module V1
                               data: { before:, after: m.slice(*attrs.keys) })
         end
       end
+    end
+
+
+    # Downloads Glofly's photo (https only, image types only, 8 MB cap, short timeouts).
+    def fetch_image(url)
+      uri = URI(url)
+      raise Hometab::Error, "Couldn't get your Glofly photo" unless uri.is_a?(URI::HTTPS)
+
+      res = Net::HTTP.start(uri.host, uri.port, use_ssl: true, open_timeout: 5, read_timeout: 10) { |h| h.get(uri.request_uri) }
+      type = res["Content-Type"].to_s.split(";").first
+      unless res.is_a?(Net::HTTPSuccess) && User::PHOTO_TYPES.include?(type) && res.body.bytesize <= User::PHOTO_MAX
+        raise Hometab::Error, "Couldn't get your Glofly photo"
+      end
+
+      [StringIO.new(res.body), type]
+    rescue SocketError, Timeout::Error, OpenSSL::SSL::SSLError, Errno::ECONNREFUSED
+      raise Hometab::Error, "Couldn't reach Glofly. Try again in a bit."
     end
   end
 end
