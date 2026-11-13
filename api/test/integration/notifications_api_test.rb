@@ -45,6 +45,7 @@ class NotificationsApiTest < ActionDispatch::IntegrationTest
     t = sign_in_by_phone["token"]
     patch "/v1/session", params: { push_token: "ExponentPushToken[x]" }, headers: auth(t), as: :json
     Notifications::Deliver.fake_tickets = ->(_m) { { "status" => "error", "message" => "bad key", "details" => { "error" => "InvalidCredentials" } } }
+    User.last.update!(quiet_start_hour: 0, quiet_end_hour: 0) # no quiet hours, whatever time CI runs
     n = Notification.create!(user: User.last, kind: "bill_posted", title: "Rent posted", body: "x", deliver_after: 1.minute.ago)
     Notifications::Deliver.run
     assert_match(/InvalidCredentials/, n.reload.push_error)
