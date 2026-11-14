@@ -4,6 +4,7 @@ import { View } from 'react-native';
 
 import { CloseIcon, PlusIcon, TrashIcon } from '@/components/icons';
 import { Button, Card, ErrorNote, Field, IconButton, Money, Screen, T } from '@/components/ui';
+import { LoadState } from '@/components/load-state';
 import { HT } from '@/constants/theme';
 import { useHousehold } from '@/hooks/use-household';
 import { useLayout } from '@/hooks/use-layout';
@@ -71,7 +72,7 @@ export default function Counter() {
     }
   }
 
-  if (!home || !other || !me) return <Screen><ErrorNote message={error} /></Screen>;
+  if (!home || !other || !me) return <LoadState error={error} />;
 
   const summary = (
     <Card dark style={{ gap: 14, paddingVertical: 22 }}>

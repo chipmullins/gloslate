@@ -5,6 +5,7 @@ import { Pressable, View } from 'react-native';
 import { shortDate } from '@/components/expense-row';
 import { BackIcon, DownloadIcon } from '@/components/icons';
 import { Button, Card, ErrorNote, IconButton, Money, Screen, T } from '@/components/ui';
+import { LoadState } from '@/components/load-state';
 import { HT } from '@/constants/theme';
 import { useLayout } from '@/hooks/use-layout';
 import { api, type Statement } from '@/lib/api';
@@ -21,7 +22,7 @@ export default function StatementScreen() {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => { api<{ data: Statement }>(`/v1/statements/${id}`).then((r) => setS(r.data)).catch(() => setError("Couldn't load this statement.")); }, [id]);
-  if (!s) return <Screen><ErrorNote message={error} /></Screen>;
+  if (!s) return <LoadState error={error} back="/activity" />;
 
   const d = s.data;
   const me = s.you;

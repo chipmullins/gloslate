@@ -6,6 +6,7 @@ import { shortDate } from '@/components/expense-row';
 import { CloseIcon } from '@/components/icons';
 import { applyKey, Keypad } from '@/components/keypad';
 import { Button, ErrorNote, IconButton, Money, Screen, T } from '@/components/ui';
+import { LoadState } from '@/components/load-state';
 import { HT } from '@/constants/theme';
 import { useHousehold } from '@/hooks/use-household';
 import { api, ApiError, type BillCycle } from '@/lib/api';
@@ -33,7 +34,7 @@ export default function BillCycleScreen() {
     try { await fn(); goBack(); toast.show({ text: done }); } catch (e) { setError(e instanceof ApiError ? e.message : 'Something went wrong.'); } finally { setBusy(false); }
   }
 
-  if (!c) return <Screen><ErrorNote message={error} /></Screen>;
+  if (!c) return <LoadState error={error} back="/bills" />;
   const variableWaiting = c.kind === 'variable' && c.status !== 'posted' && c.status !== 'skipped';
   const done = c.status === 'posted' || c.status === 'skipped';
   const payerName = home?.members.find((m) => m.id === c.payer_id)?.first_name ?? 'The payer';

@@ -17,6 +17,7 @@ import { celebrateIfSettled } from '@/lib/celebrate';
 import { toast } from '@/lib/toast';
 import { sendRequest } from '@/app/(tabs)/home';
 import { TonePicker, type ToneKey } from '@/components/tone-picker';
+import { LoadState } from '@/components/load-state';
 import { goBack } from '@/lib/nav';
 
 const METHODS = [
@@ -147,7 +148,7 @@ export default function Settle() {
   }
 
   if ((!home || (other && !b)) && !error && !loadError) return <FullScreenLoader />;
-  if (!home || !other || !b) return <Screen><ErrorNote message={error ?? loadError} /></Screen>;
+  if (!home || !other || !b) return <LoadState error={error ?? loadError ?? "Couldn't find this balance."} />;
 
   const net = b.net_cents;
   const theyOwe = net > 0;

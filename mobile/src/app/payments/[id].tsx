@@ -2,9 +2,9 @@ import { useLocalSearchParams } from 'expo-router';
 import { useCallback, useEffect, useState } from 'react';
 import { View } from 'react-native';
 
-import { FullScreenLoader } from '@/components/bunny-loader';
 import { BackIcon } from '@/components/icons';
 import { Button, Card, ErrorNote, Field, IconButton, Money, Screen, T } from '@/components/ui';
+import { LoadState } from '@/components/load-state';
 import { HT } from '@/constants/theme';
 import { useHousehold } from '@/hooks/use-household';
 import { api, ApiError, type Balance, type Payment } from '@/lib/api';
@@ -48,8 +48,7 @@ export default function PaymentDetail() {
     }
   }
 
-  if (!p && !error) return <FullScreenLoader />;
-  if (!p) return <Screen><ErrorNote message={error} /></Screen>;
+  if (!p) return <LoadState error={error} />;
   const status = p.status === 'pending' ? `Pending · waiting on ${p.you_received ? 'you' : name(p.to_member_id)}` : p.status === 'disputed' ? 'Questioned · back to owed' : p.auto_confirmed ? 'Confirmed automatically after 3 days' : `Confirmed by ${name(p.to_member_id)}`;
 
   return (

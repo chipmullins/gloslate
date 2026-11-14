@@ -161,7 +161,7 @@ export default function GroupScreen() {
         ))}
         {adding ? (
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, paddingVertical: 8 }}>
-            <TextInput value={newName} onChangeText={setNewName} placeholder="Their name" placeholderTextColor={HT.color.faint} autoFocus maxLength={40}
+            <TextInput keyboardAppearance={HT.scheme} value={newName} onChangeText={setNewName} placeholder="Their name" placeholderTextColor={HT.color.faint} autoFocus maxLength={40}
               accessibilityLabel="New person's name" onSubmitEditing={addPerson} returnKeyType="done" autoCapitalize="words"
               style={{ flex: 1, height: 48, paddingVertical: 0, paddingHorizontal: 14, borderRadius: 12, borderWidth: 1, borderColor: HT.color.chipBorder,
                 fontFamily: HT.font.semibold, fontSize: 15, color: HT.color.ink }} />

@@ -72,7 +72,7 @@ export default function Code() {
             );
           })}
         </Pressable>
-        <TextInput
+        <TextInput keyboardAppearance={HT.scheme}
           ref={input}
           value={code}
           onChangeText={(t) => {
