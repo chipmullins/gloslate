@@ -36,7 +36,7 @@ def check(d, stroke, width):
 def glyph(small=False, mono=False, halo=True):
     """Bunny on the slate (with a check) + sparkle in the 100x100 icon space.
 
-    small=True  -> the canvas's 36px simplification (one ear, plain slate), for tiny sizes.
+    small=True  -> heavier drawing for tiny sizes (favicon); still both ears and the check.
     mono=True   -> Android themed icon: only alpha counts, so the slate is an outline with
                    its check, and the bunny and sparkle are solid silhouettes on top
                    (the 64px drawing's heavier shapes).
@@ -49,10 +49,13 @@ def glyph(small=False, mono=False, halo=True):
                 + ellipse(47, 17, 3.8, 10.5, w, -8) + ellipse(55, 18, 3.8, 10, w, 14)
                 + f'<path d="M79 17 Q80 29 92 30 Q80 31 79 43 Q78 31 66 30 Q78 29 79 17 Z" fill="{w}"/>')
     if small:
-        return (f'<rect x="14" y="52" width="72" height="38" rx="10" fill="{SLATE}" stroke="{FUR}" stroke-width="6"/>'
-                + ellipse(40, 44, 14, 11, FUR) + circle(51, 33, 9.5, FUR) + ellipse(50, 15, 5, 12, FUR, 4)
-                + circle(55, 32, 3.2, SLATE)
-                + f'<path d="M80 14 Q81 28 95 29 Q81 30 80 44 Q79 30 65 29 Q79 28 80 14 Z" fill="{GLOW}"/>')
+        # Tiny sizes keep the check on the slate and both ears (Chip, Nov 8), just heavier.
+        return (f'<rect x="16" y="50" width="68" height="38" rx="9" fill="{SLATE}" stroke="{FUR}" stroke-width="5"/>'
+                + check("M36 69 L45 78 L64 59", FUR, 7)
+                + ellipse(40, 43, 13, 10, FUR) + circle(29, 45, 4, FUR) + circle(50, 33, 8.5, FUR)
+                + ellipse(47, 17, 3.8, 10.5, FUR, -8) + ellipse(55, 18, 3.8, 10, FUR, 14)
+                + circle(53, 32, 2.6, SLATE)
+                + f'<path d="M79 17 Q80 29 92 30 Q80 31 79 43 Q78 31 66 30 Q78 29 79 17 Z" fill="{GLOW}"/>')
     h = '<circle cx="78" cy="30" r="16" fill="url(#halo)"/>' if halo else ""
     return (f'<rect x="16" y="50" width="68" height="38" rx="9" fill="{SLATE}" stroke="{FUR}" stroke-width="3.5"/>'
             + check("M36 69 L45 78 L64 59", FUR, 5)
