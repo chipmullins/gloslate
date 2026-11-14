@@ -10,7 +10,7 @@ module.exports = function withAppShortcuts(config) {
   config = withDangerousMod(config, ['ios', (cfg) => {
     const name = IOSConfig.XcodeUtils.getProjectName(cfg.modRequest.projectRoot);
     const dest = path.join(cfg.modRequest.platformProjectRoot, name, FILE);
-    fs.copyFileSync(path.join(__dirname, 'app-shortcuts', FILE), dest);
+    fs.copyFileSync(path.join(cfg.modRequest.projectRoot, 'plugins', 'app-shortcuts', FILE), dest);
     return cfg;
   }]);
   return withXcodeProject(config, (cfg) => {
