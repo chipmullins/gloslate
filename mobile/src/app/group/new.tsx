@@ -61,7 +61,7 @@ export default function NewGroup() {
               <T v="label">Who's in it, besides you?</T>
               {people.map((p, i) => (
                 <View key={p.key} style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
-                  <TextInput value={p.name} onChangeText={(t) => setPeople((cur) => cur.map((x) => (x.key === p.key ? { ...x, name: t } : x)))}
+                  <TextInput keyboardAppearance={HT.scheme} value={p.name} onChangeText={(t) => setPeople((cur) => cur.map((x) => (x.key === p.key ? { ...x, name: t } : x)))}
                     placeholder={i === 0 ? 'First name' : 'Another person'} placeholderTextColor={HT.color.faint} maxLength={40}
                     accessibilityLabel={`Person ${i + 1}`} returnKeyType="next" autoCapitalize="words"
                     style={{ flex: 1, height: 52, paddingVertical: 0, paddingHorizontal: 16, borderRadius: HT.radius.tile, borderWidth: 1, borderColor: HT.color.chipBorder,

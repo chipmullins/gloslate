@@ -59,10 +59,10 @@ export default function Itemize() {
       {rows.map((r, i) => (
         <Card key={i} style={{ gap: 10, padding: 14 }}>
           <View style={{ flexDirection: 'row', gap: 8, alignItems: 'center' }}>
-            <TextInput value={r.name} onChangeText={(t) => setRows((cur) => cur.map((x, j) => (j === i ? { ...x, name: t } : x)))} placeholder="Item"
+            <TextInput keyboardAppearance={HT.scheme} value={r.name} onChangeText={(t) => setRows((cur) => cur.map((x, j) => (j === i ? { ...x, name: t } : x)))} placeholder="Item"
               placeholderTextColor={HT.color.faint} accessibilityLabel={`Item ${i + 1} name`} maxLength={60}
               style={{ flex: 1, height: 48, paddingVertical: 0, fontFamily: HT.font.bold, fontSize: 15.5, color: HT.color.ink }} />
-            <TextInput value={r.amount} onChangeText={(t) => setRows((cur) => cur.map((x, j) => (j === i ? { ...x, amount: centsFirst(t) } : x)))} placeholder="0.00"
+            <TextInput keyboardAppearance={HT.scheme} value={r.amount} onChangeText={(t) => setRows((cur) => cur.map((x, j) => (j === i ? { ...x, amount: centsFirst(t) } : x)))} placeholder="0.00"
               placeholderTextColor={HT.color.faint} keyboardType="number-pad" accessibilityLabel={`Item ${i + 1} amount`}
               style={{ width: 104, height: 48, paddingVertical: 0, borderRadius: 12, borderWidth: 1, borderColor: HT.color.chipBorder, paddingHorizontal: 10, textAlign: 'right', fontFamily: HT.font.mono, fontSize: 16, color: HT.color.ink }} />
             <IconButton label={`Remove item ${i + 1}`} onPress={() => setRows((cur) => cur.filter((_, j) => j !== i))}><TrashIcon size={18} color={HT.color.muted} /></IconButton>
@@ -90,12 +90,12 @@ export default function Itemize() {
       <View style={{ flexDirection: 'row', gap: 10 }}>
         <View style={{ flex: 1, gap: 4 }}>
           <T v="label">Tax</T>
-          <TextInput value={tax} onChangeText={(t) => setTax(centsFirst(t))} keyboardType="number-pad" placeholder="0.00" placeholderTextColor={HT.color.faint} accessibilityLabel="Tax"
+          <TextInput keyboardAppearance={HT.scheme} value={tax} onChangeText={(t) => setTax(centsFirst(t))} keyboardType="number-pad" placeholder="0.00" placeholderTextColor={HT.color.faint} accessibilityLabel="Tax"
             style={{ height: 52, paddingVertical: 0, borderRadius: 12, borderWidth: 1, borderColor: HT.color.chipBorder, paddingHorizontal: 12, fontFamily: HT.font.mono, fontSize: 16, color: HT.color.ink }} />
         </View>
         <View style={{ flex: 1, gap: 4 }}>
           <T v="label">Tip</T>
-          <TextInput value={tip} onChangeText={(t) => setTip(centsFirst(t))} keyboardType="number-pad" placeholder="0.00" placeholderTextColor={HT.color.faint} accessibilityLabel="Tip"
+          <TextInput keyboardAppearance={HT.scheme} value={tip} onChangeText={(t) => setTip(centsFirst(t))} keyboardType="number-pad" placeholder="0.00" placeholderTextColor={HT.color.faint} accessibilityLabel="Tip"
             style={{ height: 52, paddingVertical: 0, borderRadius: 12, borderWidth: 1, borderColor: HT.color.chipBorder, paddingHorizontal: 12, fontFamily: HT.font.mono, fontSize: 16, color: HT.color.ink }} />
         </View>
       </View>
