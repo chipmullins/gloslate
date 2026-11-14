@@ -207,7 +207,7 @@ export const Field = forwardRef<TextInputInstance, TextInputProps & { label: str
     return (
       <View style={{ gap: 6 }}>
         {hideLabel ? null : <T v="label" nativeID={`${label}-label`}>{label}</T>}
-        <TextInput
+        <TextInput keyboardAppearance={HT.scheme}
           ref={ref}
           accessibilityLabel={label}
           accessibilityLabelledBy={hideLabel ? undefined : `${label}-label`}

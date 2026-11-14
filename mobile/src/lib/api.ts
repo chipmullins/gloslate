@@ -151,7 +151,11 @@ export type User = {
 /** Where you stand with one person across every tab you share (positive: they owe you). */
 export type PersonNet = {
   user_id: string; first_name: string; last_initial?: string | null; photo_url?: string | null; net_cents: number; tab_count: number;
-  tabs: { household_id: string; name: string; kind: string; member_id: string; cents: number }[];
+  /** You marked this much paid; waiting on them to confirm (already left out of net_cents). */
+  waiting_cents?: number;
+  /** They marked this much paid; waiting on you to confirm (already left out of net_cents). */
+  to_confirm_cents?: number;
+  tabs: { household_id: string; name: string; kind: string; member_id: string; cents: number; waiting_cents?: number; to_confirm_cents?: number }[];
 };
 export type Friend = { user_id: string; first_name: string; last_initial?: string; photo_url?: string | null; tab_id: string | null; net_cents: number };
 

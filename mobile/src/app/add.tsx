@@ -3,10 +3,10 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Pressable, ScrollView, Text, TextInput, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-import { FullScreenLoader } from '@/components/bunny-loader';
-import { CameraIcon, CheckIcon, CloseIcon, PencilIcon } from '@/components/icons';
+import { BackIcon, CameraIcon, CheckIcon, CloseIcon, PencilIcon } from '@/components/icons';
 import { applyKey, Keypad } from '@/components/keypad';
-import { Avatar, Button, ErrorNote, IconButton, T } from '@/components/ui';
+import { Avatar, Button, ErrorNote, IconButton, Screen, T } from '@/components/ui';
+import { LoadState } from '@/components/load-state';
 import { HT } from '@/constants/theme';
 import { useHousehold } from '@/hooks/use-household';
 import { useLayout } from '@/hooks/use-layout';
@@ -18,6 +18,7 @@ import { centsFirst, formatCents, parseCents } from '@/lib/money';
 import { effectFor, equalSplit, newClientId } from '@/lib/split';
 import { toast } from '@/lib/toast';
 import { goBack } from '@/lib/nav';
+import { useSession } from '@/lib/session';
 
 type Kind = 'equal' | 'percent' | 'exact' | 'shares';
 const KIND_LABEL: Record<Kind, string> = { equal: 'Equal', percent: '%', exact: '$', shares: 'Shares' };
@@ -46,7 +47,8 @@ const QUICK_PICKS = [
 export default function Add() {
   const { id, hid } = useLocalSearchParams<{ id?: string; hid?: string }>();
   const editing = !!id;
-  const { home } = useHousehold(hid);
+  const { home, error: loadError, reload } = useHousehold(hid);
+  const { households } = useSession();
   const { wide } = useLayout();
 
   const [amount, setAmount] = useState('');
@@ -247,7 +249,9 @@ export default function Add() {
     });
   }
 
-  if (!home || !me) return <FullScreenLoader />;
+  // Opened with nowhere to add it (Siri, a widget, or a friends-only account): send them to pick a tab.
+  if (!hid && !households.some((h) => h.kind !== 'group')) return <NoTabToAdd />;
+  if (!home || !me) return <LoadState error={loadError} onRetry={reload} />;
 
   const chip = (on: boolean) => ({
     minHeight: 40, paddingHorizontal: 14, borderRadius: 20, justifyContent: 'center' as const,
@@ -291,7 +295,7 @@ export default function Add() {
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10, minHeight: 52, paddingHorizontal: 14, borderRadius: HT.radius.tile,
           backgroundColor: HT.color.surface, borderWidth: 1.5, borderColor: description ? HT.color.brand : HT.color.chipBorder }}>
           <PencilIcon size={18} color={HT.color.muted} />
-          <TextInput value={description} onChangeText={setDescription} placeholder="Add a name, like Costco run" placeholderTextColor={HT.color.faint}
+          <TextInput keyboardAppearance={HT.scheme} value={description} onChangeText={setDescription} placeholder="Add a name, like Costco run" placeholderTextColor={HT.color.faint}
             accessibilityLabel="What was it" accessibilityLabelledBy="whatLabel" maxLength={60} returnKeyType="done"
             style={{ flex: 1, height: 50, paddingVertical: 0, fontFamily: HT.font.medium, fontSize: 16, color: HT.color.ink }} />
         </View>
@@ -319,7 +323,7 @@ export default function Add() {
           <Avatar photo={m.photo_url} name={m.first_name} index={m.index} size={32} />
           <T v="strong" style={{ flex: 1 }}>{m.you ? 'You' : m.first_name}</T>
           <T v="muted">$</T>
-          <TextInput value={paid[m.id] ?? ''} onChangeText={(t) => setPaid((cur) => ({ ...cur, [m.id]: centsFirst(t) }))}
+          <TextInput keyboardAppearance={HT.scheme} value={paid[m.id] ?? ''} onChangeText={(t) => setPaid((cur) => ({ ...cur, [m.id]: centsFirst(t) }))}
             keyboardType="number-pad" placeholder="0.00" placeholderTextColor={HT.color.faint}
             accessibilityLabel={`What ${m.you ? 'you' : m.first_name} paid`}
             style={{ width: 110, height: 48, paddingVertical: 0, borderRadius: 12, borderWidth: 1, borderColor: HT.color.chipBorder, paddingHorizontal: 10,
@@ -425,7 +429,7 @@ export default function Add() {
             {kind !== 'equal' && on ? (
               <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
                 {kind === 'exact' ? <T v="muted">$</T> : null}
-                <TextInput value={inputs[m.id] ?? ''} onChangeText={(t) => setInputs((cur) => ({ ...cur, [m.id]: kind === 'exact' ? centsFirst(t) : t }))}
+                <TextInput keyboardAppearance={HT.scheme} value={inputs[m.id] ?? ''} onChangeText={(t) => setInputs((cur) => ({ ...cur, [m.id]: kind === 'exact' ? centsFirst(t) : t }))}
                   keyboardType={kind === 'exact' ? 'number-pad' : 'decimal-pad'} placeholder={kind === 'shares' ? '1' : '0'} placeholderTextColor={HT.color.faint}
                   accessibilityLabel={`${m.you ? 'Your' : `${m.first_name}'s`} ${kind === 'percent' ? 'percentage' : kind === 'exact' ? 'amount' : 'shares'}`}
                   style={{ width: 92, height: 48, paddingVertical: 0, borderRadius: 12, borderWidth: 1, borderColor: HT.color.chipBorder, paddingHorizontal: 10,
@@ -491,5 +495,18 @@ export default function Add() {
         )}
       </View>
     </SafeAreaView>
+  );
+}
+
+function NoTabToAdd() {
+  return (
+    <Screen maxWidth={HT.maxWidth.form}>
+      <View style={{ gap: 16 }}>
+        <IconButton label="Back" onPress={() => goBack('/groups' as Href)}><BackIcon /></IconButton>
+        <T v="title">Add it to a tab</T>
+        <T v="muted">You don't have a home set up. Open a friend or group in Friends and add the expense there.</T>
+        <Button title="Go to Friends" onPress={() => router.replace('/groups' as Href)} />
+      </View>
+    </Screen>
   );
 }
