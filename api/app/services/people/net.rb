@@ -5,7 +5,8 @@ module People
   module Net
     module_function
 
-    # [{ user:, net_cents:, tabs: [{ household:, me:, them:, cents: }] }] for everyone you share a tab with.
+    # [{ user:, net_cents:, waiting_cents:, to_confirm_cents:, tabs: [{ household:, me:, them:, cents:, … }] }]
+    # for everyone you share a tab with.
     def all(user)
       mine = user.members.current.includes(:household).to_a
       by_user = Hash.new { |h, k| h[k] = [] }
@@ -15,13 +16,23 @@ module People
         next if others.empty?
 
         pairs = h.balance_for(me)[:with].to_h { [_1[:member_id], _1[:cents]] }
-        others.each { |o| by_user[o.user_id] << { household: h, me:, them: o, cents: pairs.fetch(o.id, 0) } }
+        # "I paid"s waiting to be confirmed already cover that much (as Payments::Mark
+        # treats them), so the net is what's left once they're confirmed.
+        pending = h.payments.pending.where("from_member_id = :id OR to_member_id = :id", id: me.id)
+                   .group(:from_member_id, :to_member_id).sum(:amount_cents)
+        others.each do |o|
+          out = pending.fetch([me.id, o.id], 0) # I marked paid, they haven't confirmed
+          inn = pending.fetch([o.id, me.id], 0) # they marked paid, I haven't confirmed
+          by_user[o.user_id] << { household: h, me:, them: o, cents: pairs.fetch(o.id, 0) + out - inn,
+                                  waiting_cents: out, to_confirm_cents: inn }
+        end
       end
       users = User.where(id: by_user.keys).index_by(&:id)
       by_user.filter_map do |uid, tabs|
         next unless users[uid]
 
-        { user: users[uid], net_cents: tabs.sum { _1[:cents] }, tabs: }
+        { user: users[uid], net_cents: tabs.sum { _1[:cents] }, tabs:,
+          waiting_cents: tabs.sum { _1[:waiting_cents] }, to_confirm_cents: tabs.sum { _1[:to_confirm_cents] } }
       end
     end
 
@@ -37,8 +48,10 @@ module People
       { user_id: u.id, first_name: name(row), last_initial: u.last_name.to_s.first.presence,
         photo_url: u.photo_url,
         net_cents: row[:net_cents], tab_count: row[:tabs].size,
+        waiting_cents: row[:waiting_cents], to_confirm_cents: row[:to_confirm_cents],
         tabs: row[:tabs].map { |t| { household_id: t[:household].id, name: t[:household].name, kind: t[:household].kind,
-                                     member_id: t[:them].id, cents: t[:cents] } } }
+                                     member_id: t[:them].id, cents: t[:cents],
+                                     waiting_cents: t[:waiting_cents], to_confirm_cents: t[:to_confirm_cents] } } }
     end
   end
 
@@ -52,7 +65,12 @@ module People
     def call(user:, other_id:, method: "other")
       row = Net.with(user, other_id)
       owing = row[:tabs].reject { _1[:cents].zero? }
-      raise Hometab::Error, "You and #{Net.name(row)} are already square" if owing.empty?
+      if owing.empty?
+        raise Hometab::Error, "Already marked. Waiting on #{Net.name(row)} to confirm." if row[:waiting_cents].positive?
+        raise Hometab::Error, "#{Net.name(row)} marked it paid. Confirm it in your tabs." if row[:to_confirm_cents].positive?
+
+        raise Hometab::Error, "You and #{Net.name(row)} are already square"
+      end
 
       note = owing.size > 1 ? "Settled up across #{owing.size} tabs (#{Hometab::Money.format(row[:net_cents].abs)} net)" : nil
       Payment.transaction do

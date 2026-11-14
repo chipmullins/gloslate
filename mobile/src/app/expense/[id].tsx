@@ -3,9 +3,9 @@ import { useCallback, useEffect, useState } from 'react';
 import { Alert, Platform, View } from 'react-native';
 
 import { shortDate } from '@/components/expense-row';
-import { FullScreenLoader } from '@/components/bunny-loader';
 import { BackIcon, FlagIcon, PencilIcon, TrashIcon } from '@/components/icons';
 import { Avatar, Button, Card, ErrorNote, Field, IconButton, Money, Screen, T } from '@/components/ui';
+import { LoadState } from '@/components/load-state';
 import { HT } from '@/constants/theme';
 import { useHousehold } from '@/hooks/use-household';
 import { useLayout } from '@/hooks/use-layout';
@@ -66,8 +66,7 @@ export default function ExpenseDetail() {
     }
   }
 
-  if (!e && !error) return <FullScreenLoader />;
-  if (!e) return <Screen><ErrorNote message={error} /></Screen>;
+  if (!e) return <LoadState error={error} back="/activity" />;
 
   const title = e.description || categoryLabel(e.category);
   const summary = (

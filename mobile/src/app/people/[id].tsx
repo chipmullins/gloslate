@@ -34,7 +34,15 @@ export default function PersonScreen() {
   useFocusEffect(load);
   useLive(load);
 
-  if (!p) return error ? <Screen><ErrorNote message={error} /></Screen> : <FullScreenLoader />;
+  if (!p) return error ? (
+    <Screen>
+      <View style={{ gap: 18 }}>
+        <IconButton label="Back" onPress={() => goBack('/groups' as Href)}><BackIcon /></IconButton>
+        <ErrorNote message={error} />
+        <Button title="Try again" kind="secondary" onPress={load} />
+      </View>
+    </Screen>
+  ) : <FullScreenLoader />;
   const net = p.net_cents;
   const theyOwe = net > 0;
   const open = p.tabs.filter((t) => t.cents !== 0);
@@ -98,6 +106,20 @@ export default function PersonScreen() {
             </>
           )}
         </Card>
+
+        {p.to_confirm_cents ? (
+          <Card style={{ gap: 10 }}>
+            <T v="strong">{name} marked {formatCents(p.to_confirm_cents)} paid</T>
+            <T v="small">Confirm it once it shows up in your {p.tabs.find((t) => t.to_confirm_cents)?.kind === 'group' ? 'tab' : 'home'}. It's already counted above.</T>
+            <Button title="Review" kind="secondary" onPress={() => {
+              const t = p.tabs.find((x) => x.to_confirm_cents);
+              router.push((t && t.kind === 'group' ? `/group/${t.household_id}` : '/home') as Href);
+            }} />
+          </Card>
+        ) : null}
+        {p.waiting_cents ? (
+          <T v="small" style={{ textAlign: 'center' }}>You marked {formatCents(p.waiting_cents)} paid. Waiting on {name} to confirm.</T>
+        ) : null}
 
         {picking ? (
           <Card style={{ gap: 12 }}>

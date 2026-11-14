@@ -6,7 +6,7 @@
     "orientation": "default",
     "icon": "./assets/images/icon.png",
     "scheme": "tabitat",
-    "userInterfaceStyle": "light",
+    "userInterfaceStyle": "automatic",
     "ios": {
       "bundleIdentifier": "app.tabitat",
       "supportsTablet": true,
@@ -55,6 +55,26 @@
               "scheme": "https",
               "host": "app.gloslate.app",
               "pathPrefix": "/i/"
+            },
+            {
+              "scheme": "https",
+              "host": "tabitat.app",
+              "pathPrefix": "/f/"
+            },
+            {
+              "scheme": "https",
+              "host": "app.tabitat.app",
+              "pathPrefix": "/f/"
+            },
+            {
+              "scheme": "https",
+              "host": "gloslate.app",
+              "pathPrefix": "/f/"
+            },
+            {
+              "scheme": "https",
+              "host": "app.gloslate.app",
+              "pathPrefix": "/f/"
             }
           ],
           "category": [
@@ -75,6 +95,7 @@
     },
     "plugins": [
       "./plugins/with-no-script-sandboxing",
+      "./plugins/with-app-shortcuts",
       "expo-router",
       [
         "expo-splash-screen",

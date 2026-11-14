@@ -15,6 +15,7 @@ import { celebrateIfSettled } from '@/lib/celebrate';
 import { toast } from '@/lib/toast';
 import { sendRequest } from '@/app/(tabs)/home';
 import { TonePicker, type ToneKey } from '@/components/tone-picker';
+import { LoadState } from '@/components/load-state';
 import { goBack } from '@/lib/nav';
 
 const METHODS = [
@@ -64,7 +65,7 @@ export default function GroupSettle() {
   const cents = parseCents(shown) ?? 0;
 
   if (!group && !error && !loadError) return <FullScreenLoader />;
-  if (!group || !from || !to) return <Screen><ErrorNote message={error ?? loadError} /></Screen>;
+  if (!group || !from || !to) return <LoadState error={error ?? loadError ?? "Couldn't find this payment."} back="/groups" />;
   const nameOf = (mid: string) => (mid === meId ? 'You' : group.members.find((m) => m.id === mid)?.first_name ?? 'Former member');
   const other = youPay ? to : from;
   const otherName = nameOf(other);

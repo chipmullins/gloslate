@@ -53,6 +53,15 @@ class NettingTest < ActionDispatch::IntegrationTest
     assert_equal ["confirmed", 2500], [trip_pay.status, trip_pay.amount_cents]
     assert_match(/across 2 tabs/, home_pay.note)
 
+    # Before Chip confirms, the $60 waiting already counts: nobody is asked to pay again.
+    get "/v1/people/#{@chip_user.id}", headers: auth(@alex_t)
+    assert_equal [0, 6000], [json["data"]["net_cents"], json["data"]["waiting_cents"]]
+    post "/v1/people/#{@chip_user.id}/settle", headers: auth(@alex_t), as: :json
+    assert_response :unprocessable_content
+    assert_match(/Waiting on Chip/, json["error"])
+    get "/v1/people/#{@alex_user.id}", headers: auth(@chip_t)
+    assert_equal [0, 6000], [json["data"]["net_cents"], json["data"]["to_confirm_cents"]]
+
     post "/v1/payments/#{home_pay.id}/confirm", headers: auth(@chip_t), as: :json
     get "/v1/people/#{@alex_user.id}", headers: auth(@chip_t)
     assert_equal 0, json["data"]["net_cents"]
