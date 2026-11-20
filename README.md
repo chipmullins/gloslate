@@ -65,7 +65,7 @@ docs/     Decisions log, deploy runbook, security model, admin API, store privac
 
 ## How I built it
 
-I built Gloslate as a solo founder-developer, using **Claude (Anthropic) as an AI pair programmer**. I owned the product: the idea, the feature spec, the money rules, the design direction and every trade-off. I reviewed and tested the work and shipped every release. The process:
+I built Gloslate as a solo founder-developer, using Claude (Anthropic) as an AI pair programmer. I owned the product: the idea, the feature spec, the money rules, the design direction and every trade-off. I reviewed and tested the work and shipped every release. The process:
 
 1. **Spec and rules first.** A written build brief and feature spec, plus a set of non-negotiable engineering rules (integer cents, append-only ledger, frozen statements, no money movement, provider-agnostic auth). These were set before any code.
 2. **The math before the UI.** The split, netting and "simplify debts" engine was written as pure, heavily tested service objects before any screen was built on it.
