@@ -4,6 +4,12 @@
 
 *Gloslate by Glofly* · [gloslate.app](https://gloslate.app) · iOS, Android and web ([app.gloslate.app](https://app.gloslate.app))
 
+![Ruby on Rails 8](https://img.shields.io/badge/Ruby_on_Rails_8-CC0000?style=flat-square&logo=rubyonrails&logoColor=white) ![Ruby 3.3](https://img.shields.io/badge/Ruby_3.3-CC342D?style=flat-square&logo=ruby&logoColor=white) ![PostgreSQL](https://img.shields.io/badge/PostgreSQL-4169E1?style=flat-square&logo=postgresql&logoColor=white) ![React Native](https://img.shields.io/badge/React_Native-20232A?style=flat-square&logo=react&logoColor=61DAFB) ![Expo SDK 58](https://img.shields.io/badge/Expo_SDK_58-000020?style=flat-square&logo=expo&logoColor=white) ![TypeScript](https://img.shields.io/badge/TypeScript-3178C6?style=flat-square&logo=typescript&logoColor=white) ![AWS](https://img.shields.io/badge/AWS-232F3E?style=flat-square&logo=amazonwebservices&logoColor=white) ![Docker](https://img.shields.io/badge/Docker-2496ED?style=flat-square&logo=docker&logoColor=white) ![GitHub Actions](https://img.shields.io/badge/GitHub_Actions-2088FF?style=flat-square&logo=githubactions&logoColor=white)
+
+| Backend | App | Data | Infrastructure |
+| --- | --- | --- | --- |
+| Rails 8 API · Solid Queue · Solid Cache | React Native · Expo · TypeScript · expo-router | PostgreSQL · S3 | AWS EC2 · Docker · Caddy · CloudFormation · GitHub Actions · EAS |
+
 > The repo is still named `hometab` (the project's first name). It was renamed to Tabitat and then to Gloslate in November 2026. Internal names (`Hometab::`, bundle ID `app.tabitat`, AWS `tabitat-*`) keep the older names on purpose, so renames never break installed apps or infrastructure.
 
 ---
