@@ -39,8 +39,8 @@ Not collected: Health, Location, Contacts, Browsing/Search History, Purchases, P
 
 - Does the app collect or share user data? Collects: yes. Shares: no (service providers that process data on our behalf don't count as sharing under Play's definitions).
 - Encrypted in transit: yes.
-- Way to request deletion: yes, in the app (Settings → Delete my account) and by email.
-- Account creation: yes; account deletion URL: https://gloslate.app/support (explains Settings → Delete my account and the email option).
+- Way to request deletion: yes, in the app (You → Delete account) and by email.
+- Account creation: yes; account deletion URL: https://gloslate.app/support#delete-account (explains the in-app steps, the email option, and what's deleted and kept).
 
 | Play category | Data type | Required? | Purposes |
 |---|---|---|---|
@@ -61,5 +61,5 @@ Processed ephemerally: none. Receipt text recognition runs on the device and isn
 - Age rating: answer "no" to all objectionable-content questions; Gloslate is for 18+ per the terms, so pick 17+ on Apple if offered and "Everyone" content on Play with the 18+ terms.
 - Payments wording: Gloslate never takes or moves money; Pay buttons open Venmo/Cash App or show Zelle details. In review notes: "No in-app purchases or payments. Gloslate records who owes whom; payments happen in third-party apps and are marked by users."
 - Sign in with Apple: required because Google and Glofly sign-in are offered; built.
-- Account deletion in the app: built (Settings → Delete my account).
+- Account deletion in the app: built (You → Delete account).
 - Demo account for review: give App Review a phone number or email that can sign in (see `docs/ios.md`).
