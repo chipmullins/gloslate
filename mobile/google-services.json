@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "543994052711",
+    "project_id": "gloslate-3fbb1",
+    "storage_bucket": "gloslate-3fbb1.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:543994052711:android:909e0c4d724313995e14c2",
+        "android_client_info": {
+          "package_name": "app.tabitat"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBUZF-1a6xCjKjGCFdZ1qVjQ9TsRk7TKNU"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

@@ -87,7 +87,8 @@
         "CAMERA",
         "USE_BIOMETRIC",
         "POST_NOTIFICATIONS"
-      ]
+      ],
+      "googleServicesFile": "./google-services.json"
     },
     "web": {
       "output": "single",
