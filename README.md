@@ -10,7 +10,7 @@
 | --- | --- | --- | --- |
 | Rails 8 API · Solid Queue · Solid Cache | React Native · Expo · TypeScript · expo-router | PostgreSQL · S3 | AWS EC2 · Docker · Caddy · CloudFormation · GitHub Actions · EAS |
 
-> The repo is still named `hometab` (the project's first name). It was renamed to Tabitat and then to Gloslate in November 2026. Internal names (`Hometab::`, bundle ID `app.tabitat`, AWS `tabitat-*`) keep the older names on purpose, so renames never break installed apps or infrastructure.
+> The repo has been renamed from `hometab` (the project's first name). It was renamed to Tabitat and then to Gloslate in November 2026 (mostly due to naming conflicts). Internal names (`Hometab::`, bundle ID `app.tabitat`, AWS `tabitat-*`) keep the older names on purpose, so renames never break installed apps or infrastructure.
 
 ---
 
