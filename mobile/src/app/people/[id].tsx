@@ -11,6 +11,7 @@ import { useLive } from '@/lib/live';
 import { formatCents } from '@/lib/money';
 import { goBack } from '@/lib/nav';
 import { useSession } from '@/lib/session';
+import { celebrate } from '@/lib/celebrate';
 import { toast } from '@/lib/toast';
 
 const METHODS = [
@@ -65,6 +66,10 @@ export default function PersonScreen() {
       setP(r.data);
       setPicking(false);
       refresh().catch(() => {});
+      if (theyOwe && r.data.net_cents === 0) {
+        celebrate.show({ title: `Clean slate with ${name}.`, body: `${name}'s ${formatCents(net)} is recorded. Nothing owed either way.`, amountCents: net });
+        return;
+      }
       toast.show({ text: theyOwe
         ? `Recorded. ${name}'s ${formatCents(net)} squares ${r.payments === 1 ? 'your tab' : `all ${r.payments} tabs`}.`
         : `Marked ${formatCents(-net)} paid. ${name} confirms it, then ${r.payments === 1 ? 'your tab is' : 'every tab is'} square.` });

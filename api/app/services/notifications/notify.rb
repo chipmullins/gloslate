@@ -10,7 +10,7 @@ module Notifications
 
     module_function
 
-    def call(member:, kind:, title:, body:, route: nil, household: member&.household, batch: nil, cents: 0, delay: 0)
+    def call(member:, kind:, title:, body:, route: nil, household: member&.household, batch: nil, cents: 0, delay: 0, data: {})
       return unless member&.user_id
       user = member.user
       return if user.deleted?
@@ -38,7 +38,7 @@ module Notifications
                                     group_key: "#{key}:first:#{SecureRandom.hex(4)}", deliver_after:)
       end
 
-      Notification.create!(user:, household:, kind:, title:, body:, data: { route: }, deliver_after:, group_cents: cents)
+      Notification.create!(user:, household:, kind:, title:, body:, data: { route: }.merge(data), deliver_after:, group_cents: cents)
     end
 
     def next_digest_time(user)

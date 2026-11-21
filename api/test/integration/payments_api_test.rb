@@ -43,7 +43,13 @@ class PaymentsApiTest < ActionDispatch::IntegrationTest
     Notifications::Deliver.sent.clear
     User.update_all(quiet_start_hour: 0, quiet_end_hour: 0) # no quiet hours, so the test passes at any time of day
     Notifications::Deliver.run(Time.current + 1.minute)
-    assert(Notifications::Deliver.sent.any? { _1[:title] == "Chip confirmed your $900.00" })
+    sent = Notifications::Deliver.sent.find { _1[:title] == "Chip confirmed your $900.00" }
+    assert sent
+    # Square after this one, so Alex gets the clean slate moment too.
+    assert_equal "Clean slate with Chip. Nothing owed either way.", sent[:body]
+    get "/v1/notifications", headers: auth(@alex)
+    slate = json["data"].find { _1["kind"] == "payment_confirmed" }["data"]["clean_slate"]
+    assert_equal({ "with_name" => "Chip", "amount_cents" => 90000, "payment_id" => pid }, slate)
     assert_equal rent, rent
   end
 
@@ -52,6 +58,8 @@ class PaymentsApiTest < ActionDispatch::IntegrationTest
     b = add(4000, @chip_id, description: "Groceries")
     post "/v1/households/#{@h}/payments", params: { to_member_id: @chip_id, amount_cents: 1500 }, headers: auth(@alex), as: :json
     post "/v1/payments/#{json['data']['id']}/confirm", headers: auth(@chip)
+    # Still owes, so no clean slate for Alex.
+    refute Notification.where(kind: "payment_confirmed").order(:created_at).last.data.key?("clean_slate")
     get "/v1/households/#{@h}/balances/#{@alex_id}", headers: auth(@chip)
     items = json["data"]["items"].to_h { [_1["description"], [_1["paid_cents"], _1["status"]]] }
     assert_equal [1000, "paid"], items["Pizza"]
@@ -65,6 +73,8 @@ class PaymentsApiTest < ActionDispatch::IntegrationTest
     groceries = add(4000, @chip_id, description: "Groceries")
     post "/v1/households/#{@h}/payments", params: { to_member_id: @chip_id, amount_cents: 2000, allocations: { groceries => 2000 } }, headers: auth(@alex), as: :json
     post "/v1/payments/#{json['data']['id']}/confirm", headers: auth(@chip)
+    # Still owes, so no clean slate for Alex.
+    refute Notification.where(kind: "payment_confirmed").order(:created_at).last.data.key?("clean_slate")
     get "/v1/households/#{@h}/balances/#{@alex_id}", headers: auth(@chip)
     items = json["data"]["items"].to_h { [_1["description"], _1["status"]] }
     assert_equal "paid", items["Groceries"]

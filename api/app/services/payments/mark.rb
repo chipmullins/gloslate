@@ -59,8 +59,12 @@ module Payments
       payment.tap do |payment|
         amount = Hometab::Money.format(@amount_cents)
         if by_receiver
+          bal = @household.balance_for(@from)[:with].find { _1[:member_id] == @to.id }&.dig(:cents) || 0
+          square = bal.zero?
           Notifications::Notify.call(member: @from, kind: "payment_confirmed", title: "#{@to.first_name} recorded your #{amount}",
-                                     body: "Marked as paid by #{@to.first_name}.", route: "/payments/#{payment.id}")
+                                     body: square ? "Clean slate with #{@to.first_name}. Nothing owed either way." : "Marked as paid by #{@to.first_name}.",
+                                     route: "/payments/#{payment.id}",
+                                     data: (square ? { clean_slate: { with_name: @to.first_name, amount_cents: @amount_cents, payment_id: payment.id } } : {}))
         else
           Notifications::Notify.call(member: @to, kind: "payment_marked", title: "#{@from.first_name} marked #{amount} paid",
                                      body: "Confirm?", route: "/payments/#{payment.id}")

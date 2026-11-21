@@ -247,7 +247,7 @@ export type Statement = StatementSummary & {
     transfers: { from: string; to: string; cents: number }[];
   };
 };
-export type NotificationItem = { id: string; kind: string; title: string; body: string; data: { route?: string }; created_at: string; read: boolean };
+export type NotificationItem = { id: string; kind: string; title: string; body: string; data: { route?: string; clean_slate?: { with_name: string; amount_cents: number; payment_id: string } }; created_at: string; read: boolean };
 
 export const API_BASE = BASE;
 

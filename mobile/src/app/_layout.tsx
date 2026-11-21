@@ -18,6 +18,7 @@ import { SafeAreaProvider } from 'react-native-safe-area-context';
 
 import { PausedScreen } from '@/components/paused-screen';
 import { OutboxSync } from '@/components/outbox-banner';
+import { CleanSlateWatch } from '@/components/clean-slate-watch';
 import { SettledHost } from '@/components/settled-host';
 import { ToastHost } from '@/components/toast-host';
 import { FullScreenLoader } from '@/components/bunny-loader';
@@ -95,6 +96,7 @@ function Root() {
         </Stack>
         <ToastHost />
         <SettledHost />
+        <CleanSlateWatch />
         <OutboxSync />
         <PausedScreen />
         </Fragment>
