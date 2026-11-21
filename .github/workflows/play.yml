@@ -1,0 +1,39 @@
+name: Android app (Google Play)
+
+# Builds a Google Play app bundle (.aab) in Expo's cloud (EAS). Expo keeps the
+# upload key. Download the .aab from the build link in the run summary and
+# upload it in Play Console (the first upload has to be done by hand).
+on:
+  workflow_dispatch:
+    inputs:
+      server:
+        description: Which server the app talks to
+        type: choice
+        options: [production, staging]
+        default: production
+
+permissions:
+  contents: read
+
+jobs:
+  bundle:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: mobile
+    env:
+      EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: mobile/package-lock.json
+      - run: npm ci
+      - name: Build the app bundle
+        run: npx --yes eas-cli@latest build --platform android --profile ${{ inputs.server }} --non-interactive --wait --json > build.json
+      - name: Link to the .aab
+        if: always()
+        run: |
+          node -e "const b=require('./build.json')[0]; console.log(b.artifacts.buildUrl); require('fs').appendFileSync(process.env.GITHUB_STEP_SUMMARY, 'App bundle (.aab): '+b.artifacts.buildUrl+'\n\nBuild page: https://expo.dev/accounts/chipmullins/projects/tabitat/builds/'+b.id+'\n')" || true
