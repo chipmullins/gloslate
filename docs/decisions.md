@@ -95,7 +95,7 @@ Why things are the way they are, newest first.
 | Logo | B · t-roof monogram: a lowercase t rising into a roof, white on plum. Replaces the receipt house. |
 | Colors | Plum & Sage: brand plum `#6B3A63`, owed-to-you sage `#3A7457`, you-owe `#A8441C`, ground `#F6F2F4`, ink `#241A23` |
 | Hosting | Lean: one Tabitat-only EC2 server (`t3.micro`) runs staging + production with Docker Compose + Caddy, Postgres on its own disk with nightly S3 backups (RDS later). The server pulls new images from ghcr.io itself: an SCP above the Glofly account blocks GitHub OIDC, so GitHub never gets AWS access. Isolated from Glofly (own VPC, scoped IAM). See `docs/deploy.md` |
-| Kept internal | Repo `chipmullins/hometab`, Ruby namespace `Hometab::`, dev/test database names |
+| Kept internal | Repo name (renamed to `chipmullins/gloslate` on Nov 21, 2026), Ruby namespace `Hometab::`, dev/test database names |
 
 ## Nov 4, 2026: first build
 

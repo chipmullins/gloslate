@@ -11,8 +11,8 @@ TestFlight upload all happen in Xcode with your Apple account.
 ## Each time you want a new build
 
 ```bash
-git clone https://github.com/chipmullins/hometab.git   # first time only; afterwards: git pull
-cd hometab/mobile
+git clone https://github.com/chipmullins/gloslate.git  # first time only; afterwards: git pull
+cd gloslate/mobile
 npm install
 npx expo prebuild --platform ios --clean               # writes ios/ (never edit it by hand)
 open ios/Gloslate.xcworkspace

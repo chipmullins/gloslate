@@ -10,7 +10,7 @@ It runs on iPhone, Android and the web: [gloslate.app](https://gloslate.app) · 
 | --- | --- | --- | --- |
 | Rails 8 API · Solid Queue · Solid Cache | React Native · Expo · TypeScript · expo-router | PostgreSQL · S3 | AWS EC2 · Docker · Caddy · CloudFormation · GitHub Actions · EAS |
 
-> Why is the repo called `hometab`? That was the first name. It became Tabitat and then Gloslate in November 2026. I left internal names (`Hometab::`, the bundle ID `app.tabitat`, the AWS `tabitat-*` resources) alone on purpose, since renaming them would break installed apps and infrastructure for no real gain.
+> Gloslate started out as HomeTab, then became Tabitat, and then Gloslate in November 2026 (mostly because of naming conflicts). This repo used to be `hometab`. I left internal names (`Hometab::`, the bundle ID `app.tabitat`, the AWS `tabitat-*` resources) alone on purpose, since renaming them would break installed apps and infrastructure for no real gain.
 
 ## What it does
 
