@@ -6,3 +6,8 @@ node_modules/
 
 # Built by the Release workflow from mobile/ (expo export --platform web)
 api/public/webapp/
+
+# Local notes for AI tools (kept off GitHub)
+CLAUDE.md
+AGENTS.md
+.claude/

@@ -1,11 +1,11 @@
 # Building the iPhone app yourself with Xcode
 
-On the Mac mini. You only need Expo's tools to generate the Xcode project; the build, signing and
+I build on my Mac mini. You only need Expo's tools to generate the Xcode project; the build, signing and
 TestFlight upload all happen in Xcode with your Apple account.
 
 ## Once: tools
 
-- Xcode from the App Store. Open it once and sign in at **Xcode → Settings → Accounts → +**.
+- Xcode from the App Store. Open it once and sign in at Xcode → Settings → Accounts → +.
 - Homebrew, then: `brew install node@22 cocoapods git`
 
 ## Each time you want a new build
@@ -19,14 +19,14 @@ open ios/Gloslate.xcworkspace
 ```
 
 In Xcode:
-1. Select the **Gloslate** project, then for each target (**Gloslate** and **ExpoWidgetsTarget**) open
-   **Signing & Capabilities**, tick **Automatically manage signing**, and choose your team
+1. Select the Gloslate project, then for each target (Gloslate and ExpoWidgetsTarget) open
+   Signing & Capabilities, tick Automatically manage signing, and choose your team
    (`4XK3F69URN`).
-2. **Gloslate** target → **General** → raise **Build** by 1 for every upload (1, 2, 3…).
+2. Gloslate target → General → raise Build by 1 for every upload (1, 2, 3…).
 3. Run it on your own iPhone: plug it in, pick it at the top, and press ▶. The first time, the
    iPhone asks you to turn on Developer Mode.
-4. Or send it to TestFlight: pick **Any iOS Device (arm64)**, then **Product → Archive** →
-   **Distribute App → App Store Connect → Distribute**. In App Store Connect → TestFlight, add
+4. Or send it to TestFlight: pick Any iOS Device (arm64), then Product → Archive →
+   Distribute App → App Store Connect → Distribute. In App Store Connect → TestFlight, add
    yourself to an internal testing group. The build shows up in the TestFlight app about 10–30
    minutes later.
 

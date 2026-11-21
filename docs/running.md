@@ -13,7 +13,7 @@ bin/rails s               # http://localhost:3000  (codes print in log/developme
 bin/rails test            # full suite
 
 # First admin for the admin API
-bin/rails staff:create EMAIL=you@example.com NAME="Chip"
+bin/rails staff:create EMAIL=you@example.com NAME="Your Name"
 
 # App
 cd ../mobile
@@ -22,18 +22,18 @@ EXPO_PUBLIC_API_URL=http://<your-mac-ip>:3000 npx expo start
 npm run typecheck && npm run lint && npm test
 ```
 
-Expo Go runs most of the app. These need a **development build** (`npx eas-cli build --profile development`):
+Expo Go runs most of the app. These need a development build (`npx eas-cli build --profile development`):
 Sign in with Apple, push notifications, Face ID lock, home screen widgets, on-device receipt scanning.
 In Expo Go, receipt scanning falls back to attaching the photo and typing the total.
 
-## What step 13 needs from Chip
+## Accounts needed for launch
 
-- **AWS** (us-east-1): one EC2 server (staging + production, Postgres on its own disk), S3 bucket for receipts and PDFs (private), SES (verify tabitat.app, request production access), SNS for SMS sign-in codes, Route 53 for tabitat.app.
-- **Apple**: Team ID, App ID `app.tabitat` with Sign in with Apple, Associated Domains, Push; App Group `group.app.tabitat` (widgets).
-- **Google Play**: developer account ($25), upload key SHA-256 for `assetlinks.json`.
-- **Expo/EAS**: `npx eas-cli init` (sets `extra.eas.projectId`, required for push tokens).
-- **Google sign-in**: OAuth client IDs (iOS, Android, web) → `GOOGLE_CLIENT_IDS`.
-- **Glofly sign-in**: Gloslate's `gfa_…` client ID from Glofly → `GLOFLY_CLIENT_IDS` (see docs/glofly-integration.md).
+- AWS (us-east-1): one EC2 server (staging + production, Postgres on its own disk), S3 bucket for receipts and PDFs (private), SES (verify tabitat.app, request production access), SNS for SMS sign-in codes, Route 53 for tabitat.app.
+- Apple: Team ID, App ID `app.tabitat` with Sign in with Apple, Associated Domains, Push; App Group `group.app.tabitat` (widgets).
+- Google Play: developer account ($25), upload key SHA-256 for `assetlinks.json`.
+- Expo/EAS: `npx eas-cli init` (sets `extra.eas.projectId`, required for push tokens).
+- Google sign-in: OAuth client IDs (iOS, Android, web) → `GOOGLE_CLIENT_IDS`.
+- Glofly sign-in: Gloslate's `gfa_…` client ID from Glofly → `GLOFLY_CLIENT_IDS` (see docs/glofly-integration.md).
 
 ## Production environment variables (api)
 
@@ -56,5 +56,5 @@ In Expo Go, receipt scanning falls back to attaching the photo and typing the to
 ## Before launch (not code)
 
 - Privacy policy and terms pages (App Store requires a privacy policy URL).
-- One hour with a fintech attorney to confirm the link-out payment model (spec open question).
+- An hour with a fintech attorney to confirm the link-out payment model.
 - Gloslate trademark and the tabitat.app domain.

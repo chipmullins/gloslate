@@ -4,8 +4,8 @@ module Requests
   # the share text, the request page and the app's preview never drift apart.
   #
   # House rules for every variant: kind, never shaming, no "debt" or
-  # "overdue" language, and Gloslate never claims to check or move money
-  # (CLAUDE.md rule 5). "Owe" is fine; it's what the balance screens say.
+  # "overdue" language, and Gloslate never claims to check or move money.
+  # "Owe" is fine; it's what the balance screens say.
   module Tone
     KEYS = %w[gentle plain cheeky].freeze
     DEFAULT = "plain".freeze

@@ -1,24 +1,34 @@
-# README
+# Gloslate API
 
-This README would normally document whatever steps are necessary to get the
-application up and running.
+The Rails 8 side of Gloslate. It serves:
 
-Things you may want to cover:
+- the JSON API the app uses (`/v1`)
+- the staff API (`/admin/v1`) and Gloslate Control (`/control`)
+- the public pages: the landing site, request pages (`/r/:token`), invites, privacy and terms
 
-* Ruby version
+## Setup
 
-* System dependencies
+You'll need Ruby 3.3.6, PostgreSQL 16 and libvips (`brew install vips`).
 
-* Configuration
+```bash
+bundle install        # gems come from vendor/cache
+bin/rails db:prepare
+bin/rails s           # http://localhost:3000, sign-in codes show up in log/development.log
+bin/rails test
+```
 
-* Database creation
+Make yourself a staff account for Control:
 
-* Database initialization
+```bash
+bin/rails staff:create EMAIL=you@example.com NAME="Your Name"
+```
 
-* How to run the test suite
+## Where things are
 
-* Services (job queues, cache servers, search engines, etc.)
+- `app/services/`: the real logic (splits, netting, payments, statements, requests, recaps). Controllers stay thin.
+- `app/controllers/v1/`: the app API
+- `app/controllers/admin/` and `control/`: staff API and console
+- `db/structure.sql`: the schema, including the triggers that keep the ledger append-only
+- `deploy/`: Compose file, Caddyfile and non-secret env for staging and production
 
-* Deployment instructions
-
-* ...
+More in [`../docs`](../docs).

@@ -8,18 +8,18 @@ Checked against the code on Nov 11, 2026: no third-party analytics, ads, crash-r
 
 | Field | Value |
 |---|---|
-| Seller / developer name | **Chip Mullins** (individual) until the LLC exists; then change the account to the LLC and set `LEGAL_OWNER` on the server |
+| Seller / developer name | Chip Mullins (individual) until the LLC exists; then change the account to the LLC and set `LEGAL_OWNER` on the server |
 | Support URL | https://gloslate.app/support |
 | Privacy policy URL | https://gloslate.app/privacy |
 | Contact email | support@gloslate.app |
 
-As an individual seller, your legal name is shown publicly on the store listing.
+As an individual seller, my legal name shows publicly on the store listing.
 
 ## Apple: App Privacy
 
-**Tracking:** No. Gloslate doesn't track people across other companies' apps or websites (no App Tracking Transparency prompt needed).
+Tracking: No. Gloslate doesn't track people across other companies' apps or websites (no App Tracking Transparency prompt needed).
 
-**Data linked to the user** (all collected, none used for tracking):
+Data linked to the user (all collected, none used for tracking):
 
 | Apple category | Data type | Why (Apple purpose) |
 |---|---|---|
@@ -37,10 +37,10 @@ Not collected: Health, Location, Contacts, Browsing/Search History, Purchases, P
 
 ## Google Play: Data safety
 
-- **Does the app collect or share user data?** Collects: yes. Shares: no (service providers that process data on our behalf don't count as sharing under Play's definitions).
-- **Encrypted in transit:** yes.
-- **Way to request deletion:** yes, in the app (Settings → Delete my account) and by email.
-- **Account creation:** yes; account deletion URL: https://gloslate.app/support (explains Settings → Delete my account and the email option).
+- Does the app collect or share user data? Collects: yes. Shares: no (service providers that process data on our behalf don't count as sharing under Play's definitions).
+- Encrypted in transit: yes.
+- Way to request deletion: yes, in the app (Settings → Delete my account) and by email.
+- Account creation: yes; account deletion URL: https://gloslate.app/support (explains Settings → Delete my account and the email option).
 
 | Play category | Data type | Required? | Purposes |
 |---|---|---|---|
@@ -58,8 +58,8 @@ Processed ephemerally: none. Receipt text recognition runs on the device and isn
 
 ## Other store items
 
-- **Age rating:** answer "no" to all objectionable-content questions; Gloslate is for 18+ per the terms, so pick 17+ on Apple if offered and "Everyone" content on Play with the 18+ terms.
-- **Payments wording:** Gloslate never takes or moves money; Pay buttons open Venmo/Cash App or show Zelle details. In review notes: "No in-app purchases or payments. Gloslate records who owes whom; payments happen in third-party apps and are marked by users."
-- **Sign in with Apple:** required because Google and Glofly sign-in are offered; built.
-- **Account deletion in the app:** built (Settings → Delete my account).
-- **Demo account for review:** give App Review a phone number or email that can sign in (see `docs/ios.md`).
+- Age rating: answer "no" to all objectionable-content questions; Gloslate is for 18+ per the terms, so pick 17+ on Apple if offered and "Everyone" content on Play with the 18+ terms.
+- Payments wording: Gloslate never takes or moves money; Pay buttons open Venmo/Cash App or show Zelle details. In review notes: "No in-app purchases or payments. Gloslate records who owes whom; payments happen in third-party apps and are marked by users."
+- Sign in with Apple: required because Google and Glofly sign-in are offered; built.
+- Account deletion in the app: built (Settings → Delete my account).
+- Demo account for review: give App Review a phone number or email that can sign in (see `docs/ios.md`).
