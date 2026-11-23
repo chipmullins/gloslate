@@ -8,6 +8,7 @@ import { ChevronIcon, PlusIcon } from '@/components/icons';
 import { SetUpHomeCard } from '@/components/no-home';
 import { ordinal } from '@/components/stepper';
 import { Button, Card, T } from '@/components/ui';
+import { WebTopNav } from '@/components/web-top-nav';
 import { HT } from '@/constants/theme';
 import { useLayout } from '@/hooks/use-layout';
 import { api, type Bill, type BillCycle, type Household } from '@/lib/api';
@@ -16,7 +17,7 @@ import { useSession } from '@/lib/session';
 
 export default function Bills() {
   const { households } = useSession();
-  const { wide, gutter } = useLayout();
+  const { wide, gutter, desktop } = useLayout();
   const id = households.find((h) => h.kind !== 'group')?.id;
   const [bills, setBills] = useState<Bill[] | null>(null);
   const [coming, setComing] = useState<BillCycle[]>([]);
@@ -105,6 +106,7 @@ export default function Bills() {
     // Bills belong to a home (rent, utilities that repeat monthly).
     return (
       <SafeAreaView style={{ flex: 1, backgroundColor: HT.color.ground }} edges={['top', 'left', 'right']}>
+        {desktop ? <WebTopNav /> : null}
         <ScrollView contentContainerStyle={{ paddingBottom: 32 }}>
           <View style={{ width: '100%', maxWidth: HT.maxWidth.form, alignSelf: 'center', paddingHorizontal: gutter, paddingTop: 16, gap: 18 }}>
             <T v="display" accessibilityRole="header">Bills</T>
@@ -117,6 +119,7 @@ export default function Bills() {
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: HT.color.ground }} edges={['top', 'left', 'right']}>
+      {desktop ? <WebTopNav /> : null}
       <ScrollView contentContainerStyle={{ paddingBottom: 32 }}
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={async () => { setRefreshing(true); await load().catch(() => {}); setRefreshing(false); }} tintColor={HT.color.brand} />}>
         <View style={{ width: '100%', maxWidth: HT.maxWidth.content, alignSelf: 'center', paddingHorizontal: gutter, paddingTop: 16, gap: 18 }}>

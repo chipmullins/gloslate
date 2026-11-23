@@ -10,7 +10,7 @@ import { useSession } from '@/lib/session';
 
 /** Home for the people you live with, Friends for one-on-one tabs and groups, then Activity, Bills, You. */
 export default function TabsLayout() {
-  const { wide } = useLayout();
+  const { wide, desktop } = useLayout();
   const { households } = useSession();
   // A badge on Friends while someone's payment is waiting for you to confirm it.
   const toConfirm = households.filter((h) => h.kind === 'group' && (h.to_confirm_cents ?? 0) > 0).length;
@@ -29,6 +29,8 @@ export default function TabsLayout() {
   ); };
   return (
     <Tabs
+      // The website on a computer: each tab draws the top navigation (WebTopNav) instead of this bar.
+      tabBar={desktop ? () => null : undefined}
       screenOptions={{
         headerShown: false,
         tabBarActiveTintColor: HT.color.brand,

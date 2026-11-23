@@ -6,6 +6,7 @@ import { CameraIcon } from '@/components/icons';
 import { SetUpHomeCard } from '@/components/no-home';
 import { RowGroup, useMySettings, type RowItem } from '@/components/settings';
 import { Avatar, Button, Card, ErrorNote, T } from '@/components/ui';
+import { WebTopNav } from '@/components/web-top-nav';
 import { HT } from '@/constants/theme';
 import { useLayout } from '@/hooks/use-layout';
 import { api } from '@/lib/api';
@@ -19,7 +20,7 @@ const TONE_NAMES: Record<string, string> = { gentle: 'Gentle', plain: 'Plain', c
 export default function You() {
   const { signOut } = useSession();
   const { user, home, homeId, me, error, run } = useMySettings();
-  const { wide, gutter } = useLayout();
+  const { wide, gutter, desktop } = useLayout();
   if (!user) return <SafeAreaView style={{ flex: 1, backgroundColor: HT.color.ground }} />;
 
   const handles = me ? [me.handles.venmo && `Venmo ${me.handles.venmo}`, me.handles.cashapp && `Cash App ${me.handles.cashapp}`, me.handles.zelle && 'Zelle'].filter(Boolean).join(' · ') : '';
@@ -75,6 +76,7 @@ export default function You() {
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: HT.color.ground }} edges={['top', 'left', 'right']}>
+      {desktop ? <WebTopNav /> : null}
       <ScrollView contentContainerStyle={{ paddingBottom: 40 }}>
         <View style={{ width: '100%', maxWidth: wide ? HT.maxWidth.content : HT.maxWidth.form, alignSelf: 'center', paddingHorizontal: gutter, paddingTop: 16, gap: 16 }}>
           <T v="display" accessibilityRole="header">You</T>

@@ -5,16 +5,17 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { ConfirmPayments, LatestNotice, NotificationBell } from '@/components/confirm-payments';
 import { ExpenseRow, shortDate } from '@/components/expense-row';
-import { ChevronIcon, HouseMark, PlusIcon, SendIcon, ShareIcon, SparkleIcon } from '@/components/icons';
+import { DESKTOP_MAX, WebTopNav } from '@/components/web-top-nav';
+import { CameraIcon, ChevronIcon, HouseMark, PlusIcon, SendIcon, ShareIcon, SparkleIcon } from '@/components/icons';
 import { FullScreenLoader } from '@/components/bunny-loader';
 import { FriendsSummaryCard, SetUpHomeCard } from '@/components/no-home';
 import { OutboxBanner } from '@/components/outbox-banner';
 import { RecapBanner } from '@/components/recap-banner';
-import { Avatar, Button, Card, Money, T } from '@/components/ui';
+import { Avatar, Button, Card, Money, NightSurface, T } from '@/components/ui';
 import { HT } from '@/constants/theme';
 import { useLayout } from '@/hooks/use-layout';
 import { useLive } from '@/lib/live';
-import { api, ApiError, type BillCycle, type Expense, type Household, type Member, type NotificationItem, type Payment } from '@/lib/api';
+import { api, ApiError, categoryLabel, type BillCycle, type Expense, type Household, type Member, type NotificationItem, type Payment } from '@/lib/api';
 import { formatCents } from '@/lib/money';
 import { useSession } from '@/lib/session';
 import { toast } from '@/lib/toast';
@@ -46,7 +47,9 @@ const homeCache = new Map<string, HomeSnapshot>(); // per home, so another accou
 
 export default function Home() {
   const { households } = useSession();
-  const { wide, gutter } = useLayout();
+  const { wide, gutter, desktop } = useLayout();
+  const [month, setMonth] = useState<{ count: number; total_cents: number; my_share_cents: number } | null>(null);
+  const [paidBy, setPaidBy] = useState<'all' | 'me' | 'them'>('all');
   // Start from what we showed last time (instant when switching tabs or reopening), then refresh.
   const [snap] = useState(() => homeCache.get(households.find((h) => h.kind !== 'group')?.id ?? '') ?? EMPTY);
   const [home, setHome] = useState<Household | null>(snap.home);
@@ -77,12 +80,17 @@ export default function Home() {
       setPending(mine);
       setUnread(inbox.unread);
       setLatest(inbox.data.find((n) => !n.read) ?? null);
+      if (desktop) {
+        const ym = new Date().toISOString().slice(0, 7);
+        api<{ meta: { totals?: { count: number; total_cents: number; my_share_cents: number } } }>(`/v1/households/${id}/history?month=${ym}`)
+          .then((m) => setMonth(m.meta.totals ?? null)).catch(() => {});
+      }
       setError(null);
       updateBalanceWidget(h.data);
     } catch (e) {
       setError(e instanceof ApiError ? e.message : 'Something went wrong.');
     }
-  }, [id]);
+  }, [id, desktop]);
 
   useFocusEffect(useCallback(() => { load(); }, [load]));
   // Someone confirms, pays or adds something: show it without pull-to-refresh.
@@ -231,6 +239,183 @@ export default function Home() {
       )}
     </View>
   );
+
+  if (desktop) {
+    // The website on a computer (canvas "Web app redesign", B): the nav and balance share the
+    // night sky (fireflies included), cards overlap its edge, then Recent as a table.
+    const meName = home.me?.id;
+    const rows = (recent ?? []).filter((e) => paidBy === 'all' || (paidBy === 'me' ? e.payer_id === meName : e.payer_id !== meName));
+    const monthName = new Date().toLocaleString('en-US', { month: 'long' });
+    const card = (title: string, body: React.ReactNode) => (
+      <View style={{ flexGrow: 1, flexShrink: 1, flexBasis: 280, backgroundColor: HT.color.surface, borderRadius: HT.radius.card, paddingVertical: 22, paddingHorizontal: 24, gap: 12,
+        shadowColor: '#140C18', shadowOpacity: 0.18, shadowRadius: 24, shadowOffset: { width: 0, height: 14 } }}>
+        <T v="label" accessibilityRole="header" style={{ textTransform: 'uppercase', letterSpacing: 0.6, fontFamily: HT.font.bold }}>{title}</T>
+        {body}
+      </View>
+    );
+    const chip = (key: 'all' | 'me' | 'them', label: string) => (
+      <Pressable key={key} accessibilityRole="button" accessibilityState={{ selected: paidBy === key }} onPress={() => setPaidBy(key)}
+        style={{ minHeight: 40, paddingHorizontal: 14, borderRadius: 12, justifyContent: 'center', backgroundColor: paidBy === key ? HT.color.brandTint : HT.color.surface,
+          borderWidth: paidBy === key ? 0 : 1, borderColor: HT.color.hairline }}>
+        <T style={{ fontFamily: paidBy === key ? HT.font.bold : HT.font.semibold, fontSize: 14, color: paidBy === key ? HT.color.brand : HT.color.ink }}>{label}</T>
+      </Pressable>
+    );
+    const col = { paddingVertical: 14, paddingHorizontal: 8 };
+    return (
+      <View style={{ flex: 1, backgroundColor: HT.color.ground }}>
+        <ScrollView contentContainerStyle={{ paddingBottom: 56 }}>
+          <NightSurface fireflies style={{ paddingBottom: 124 }}>
+            <WebTopNav bare unread={unread} />
+            <View style={{ width: '100%', maxWidth: DESKTOP_MAX, alignSelf: 'center', paddingHorizontal: 32, paddingTop: 36, flexDirection: 'row', flexWrap: 'wrap', alignItems: 'flex-end', gap: 32 }}>
+              <Pressable accessibilityRole="button" accessibilityLabel={`${headline} ${formatCents(Math.abs(net))}. See the details.`}
+                disabled={!couple || !partner} onPress={() => partner && router.push(`/settle/${partner.id}` as Href)} style={{ flexGrow: 1, flexShrink: 1, flexBasis: 420, gap: 6 }}>
+                <View style={{ alignSelf: 'flex-start', flexDirection: 'row', alignItems: 'center', gap: 10, paddingVertical: 6, paddingLeft: 6, paddingRight: 14, borderRadius: 999, backgroundColor: HT.color.onDarkButton }}>
+                  {couple && partner ? <Avatar photo={partner.photo_url} name={partner.first_name} index={byId.get(partner.id)?.index ?? 1} size={26} /> : <HouseMark size={26} inverted />}
+                  <T style={{ fontFamily: HT.font.semibold, fontSize: 14, color: HT.color.darkCardMuted }}>{home.name || 'Home'} · {names(home.members)}</T>
+                </View>
+                <T style={{ fontFamily: HT.font.display, fontSize: 22, color: HT.color.darkCardMuted, marginTop: 12 }}>{headline}</T>
+                <Money cents={Math.abs(net)} size={84} color={net > 0 ? HT.color.onDarkOwed : net < 0 ? HT.color.onDarkOwe : HT.color.onDarkText} />
+                <T style={{ fontFamily: HT.font.medium, fontSize: 15, color: HT.color.darkCardMuted }}>
+                  {net === 0 ? 'Nothing owed either way. Log the next expense and Gloslate does the math.' : 'Everything netted out, both ways.'}
+                </T>
+              </Pressable>
+              <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 12 }}>
+                {couple && partner && net > 0 ? (
+                  <Button kind="onDark" title={`Request ${formatCents(net)}`} icon={<SendIcon size={18} />} style={{ paddingHorizontal: 26 }}
+                    onPress={() => sendRequest(home.id, partner.id).catch((e) => setError(e instanceof ApiError ? e.message : "Couldn't send the request."))} />
+                ) : null}
+                {couple && partner && net > 0 ? (
+                  <Button kind="glass" title={`${partner.first_name} paid me`} style={{ paddingHorizontal: 22 }} onPress={() => router.push(`/settle/${partner.id}` as Href)} />
+                ) : null}
+                {couple && partner && net < 0 ? (
+                  <Button kind="onDark" title={`Pay ${partner.first_name} ${formatCents(-net)}`} style={{ paddingHorizontal: 26 }} onPress={() => router.push(`/settle/${partner.id}` as Href)} />
+                ) : null}
+              </View>
+            </View>
+            {!couple && home.balance.with.length > 0 ? (
+              <View style={{ width: '100%', maxWidth: DESKTOP_MAX, alignSelf: 'center', paddingHorizontal: 32, paddingTop: 18, flexDirection: 'row', flexWrap: 'wrap', columnGap: 28 }}>
+                {home.balance.with.map((w) => {
+                  const m = byId.get(w.member_id);
+                  if (!m) return null;
+                  return (
+                    <Pressable key={w.member_id} accessibilityRole="button" onPress={() => router.push(`/settle/${m.id}` as Href)}
+                      style={({ pressed }) => ({ flexDirection: 'row', alignItems: 'center', gap: 10, minHeight: 48, opacity: pressed ? 0.7 : 1 })}>
+                      <Avatar photo={m.photo_url} name={m.first_name} index={m.index} size={30} />
+                      <T v="strong" style={{ color: HT.color.onDarkText }}>{w.cents > 0 ? `${m.first_name} owes you` : `You owe ${m.first_name}`}</T>
+                      <Money cents={Math.abs(w.cents)} color={w.cents > 0 ? HT.color.onDarkOwed : HT.color.onDarkOwe} />
+                    </Pressable>
+                  );
+                })}
+              </View>
+            ) : null}
+          </NightSurface>
+
+          <View style={{ width: '100%', maxWidth: DESKTOP_MAX, alignSelf: 'center', paddingHorizontal: 32, marginTop: -88, gap: 24 }}>
+            <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 20 }}>
+              {card('Coming up', coming.length > 0 ? (
+                <View style={{ gap: 10 }}>
+                  {coming.slice(0, 2).map((c) => (
+                    <Pressable key={c.id} accessibilityRole="button" onPress={() => router.push(`/bill-cycle/${c.id}` as Href)} style={({ pressed }) => ({ gap: 2, opacity: pressed ? 0.7 : 1 })}>
+                      <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'baseline', gap: 12 }}>
+                        <T style={{ fontFamily: HT.font.displayBold, fontSize: 20 }}>{c.name}</T>
+                        {c.amount_cents ? <Money cents={c.amount_cents} size={20} /> : null}
+                      </View>
+                      <T v="small" style={{ color: c.missing ? HT.color.youOwe : HT.color.muted, fontSize: 14 }}>
+                        {c.missing ? 'Amount missing' : c.status === 'waiting' ? (c.you_pay ? 'Enter the amount' : 'Waiting on the amount') : `Posts ${shortDate(c.due_on)}`}
+                      </T>
+                    </Pressable>
+                  ))}
+                </View>
+              ) : <T v="muted">No bills set up yet.</T>)}
+              {card(`${monthName} so far`, month ? (
+                <View style={{ gap: 8 }}>
+                  <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'baseline', gap: 12 }}>
+                    <T style={{ fontFamily: HT.font.displayBold, fontSize: 20 }}>{month.count} {month.count === 1 ? 'expense' : 'expenses'}</T>
+                    <Money cents={month.total_cents} size={20} />
+                  </View>
+                  <T v="small" style={{ fontSize: 14 }}>Your share {formatCents(month.my_share_cents)}</T>
+                  <View accessibilityElementsHidden importantForAccessibility="no-hide-descendants" style={{ flexDirection: 'row', height: 8, borderRadius: 4, overflow: 'hidden', backgroundColor: HT.color.segment }}>
+                    <View style={{ width: `${month.total_cents ? Math.round((month.my_share_cents / month.total_cents) * 100) : 0}%`, backgroundColor: HT.color.brand }} />
+                  </View>
+                </View>
+              ) : <T v="muted">Nothing logged this month yet.</T>)}
+              {card('Quick add', (
+                <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
+                  {['Groceries', 'Dinner', 'Takeout', 'Household supplies'].map((p) => (
+                    <Pressable key={p} accessibilityRole="button" accessibilityLabel={`Add ${p}`} onPress={() => router.push(`/add?pick=${encodeURIComponent(p)}` as Href)}
+                      style={({ pressed }) => ({ minHeight: 44, paddingHorizontal: 14, borderRadius: 14, borderWidth: 1, borderColor: HT.color.chipBorder,
+                        backgroundColor: HT.color.surface, justifyContent: 'center', opacity: pressed ? 0.7 : 1 })}>
+                      <T style={{ fontFamily: HT.font.semibold, fontSize: 14 }}>{p}</T>
+                    </Pressable>
+                  ))}
+                  <Pressable accessibilityRole="button" accessibilityLabel="Scan a receipt" onPress={() => router.push('/add' as Href)}
+                    style={({ pressed }) => ({ minHeight: 44, paddingHorizontal: 14, borderRadius: 14, borderWidth: 1.5, borderStyle: 'dashed', borderColor: HT.color.chipBorder,
+                      flexDirection: 'row', alignItems: 'center', gap: 6, opacity: pressed ? 0.7 : 1 })}>
+                    <CameraIcon size={16} color={HT.color.brand} />
+                    <T style={{ fontFamily: HT.font.bold, fontSize: 14, color: HT.color.brand }}>Scan a receipt</T>
+                  </Pressable>
+                </View>
+              ))}
+            </View>
+
+            {error ? <T v="small" style={{ color: HT.color.danger }}>{error}</T> : null}
+            <LatestNotice item={latest} />
+            <RecapBanner />
+            {outboxBanner}
+            {pendingBanner}
+            {invitePanel}
+
+            <Card style={{ paddingVertical: 24, paddingHorizontal: 28, gap: 12 }}>
+              <View style={{ flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between', gap: 12 }}>
+                <T v="title" accessibilityRole="header" style={{ fontSize: 22 }}>Recent activity</T>
+                <View style={{ flexDirection: 'row', gap: 8 }}>
+                  {chip('all', 'All')}
+                  {chip('me', 'You paid')}
+                  {chip('them', couple && partner ? `${partner.first_name} paid` : 'Others paid')}
+                </View>
+              </View>
+              {rows.length > 0 ? (
+                <View>
+                  <View style={{ flexDirection: 'row', borderBottomWidth: 1, borderBottomColor: HT.color.hairline }}>
+                    <T v="small" style={{ ...col, width: 90, fontFamily: HT.font.semibold }}>Date</T>
+                    <T v="small" style={{ ...col, flex: 1, fontFamily: HT.font.semibold }}>What</T>
+                    <T v="small" style={{ ...col, width: 180, fontFamily: HT.font.semibold }}>Paid by</T>
+                    <T v="small" style={{ ...col, width: 220, textAlign: 'right', fontFamily: HT.font.semibold }}>Effect on your balance</T>
+                  </View>
+                  {rows.map((e) => {
+                    const payer = byId.get(e.payer_id);
+                    const fx = e.effect_for_me_cents;
+                    const color = fx > 0 ? HT.color.owedToYou : fx < 0 ? HT.color.youOwe : HT.color.muted;
+                    return (
+                      <Pressable key={e.id} accessibilityRole="button" onPress={() => router.push(`/expense/${e.id}` as Href)}
+                        accessibilityLabel={`${e.description || categoryLabel(e.category)}, ${shortDate(e.spent_on)}, paid by ${payer?.you ? 'you' : payer?.first_name ?? 'a former member'}`}
+                        style={({ pressed, hovered }: { pressed: boolean; hovered?: boolean }) => ({ flexDirection: 'row', alignItems: 'center', borderBottomWidth: 1, borderBottomColor: HT.color.hairline,
+                          backgroundColor: hovered ? HT.color.ground : 'transparent', opacity: pressed ? 0.7 : 1 })}>
+                        <T v="muted" style={{ ...col, width: 90, fontSize: 15 }}>{shortDate(e.spent_on)}</T>
+                        <T v="strong" numberOfLines={1} style={{ ...col, flex: 1, fontSize: 15 }}>{e.description || categoryLabel(e.category)}</T>
+                        <View style={{ ...col, width: 180, flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+                          {payer ? <Avatar photo={payer.photo_url} name={payer.first_name} index={payer.index} size={26} /> : null}
+                          <T style={{ fontSize: 15 }}>{payer?.you ? 'You' : payer?.first_name ?? 'Former member'}</T>
+                        </View>
+                        <View style={{ ...col, width: 220, alignItems: 'flex-end' }}>
+                          {fx === 0 ? <T v="small">even</T> : <Money cents={fx} sign color={color} size={15.5} style={{ fontFamily: HT.font.monoBold }} />}
+                        </View>
+                      </Pressable>
+                    );
+                  })}
+                </View>
+              ) : (
+                <T v="muted" style={{ paddingVertical: 16 }}>{recent && recent.length ? 'Nothing here with that filter.' : "Nothing logged yet. Add the rent, tonight's dinner, or the last grocery run."}</T>
+              )}
+              <Pressable accessibilityRole="link" onPress={() => router.push('/activity' as Href)} style={{ minHeight: 44, justifyContent: 'center', alignSelf: 'flex-start' }}>
+                <T v="strong" style={{ color: HT.color.brand, fontSize: 14 }}>See all activity</T>
+              </Pressable>
+            </Card>
+          </View>
+        </ScrollView>
+      </View>
+    );
+  }
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: HT.color.ground }} edges={['top', 'left', 'right']}>

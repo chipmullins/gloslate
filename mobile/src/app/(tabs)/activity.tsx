@@ -6,6 +6,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { ExpenseRow } from '@/components/expense-row';
 import { ChevronIcon, SearchIcon } from '@/components/icons';
 import { Button, Card, Money, T } from '@/components/ui';
+import { WebTopNav } from '@/components/web-top-nav';
 import { formatCents } from '@/lib/money';
 import { HT } from '@/constants/theme';
 import { useLayout } from '@/hooks/use-layout';
@@ -15,7 +16,7 @@ import { useSession } from '@/lib/session';
 /** History (searchable by item, person, category) and monthly statements. */
 export default function Activity() {
   const { households } = useSession();
-  const { wide, gutter } = useLayout();
+  const { wide, gutter, desktop } = useLayout();
   const id = households.find((h) => h.kind !== 'group')?.id;
   const [home, setHome] = useState<Household | null>(null);
   const [q, setQ] = useState('');
@@ -154,6 +155,7 @@ export default function Activity() {
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: HT.color.ground }} edges={['top', 'left', 'right']}>
+      {desktop ? <WebTopNav /> : null}
       <ScrollView contentContainerStyle={{ paddingBottom: 32 }} keyboardShouldPersistTaps="handled">
         <View style={{ width: '100%', maxWidth: HT.maxWidth.content, alignSelf: 'center', paddingHorizontal: gutter, paddingTop: 16, gap: 18 }}>
           <T v="display" accessibilityRole="header">Activity</T>

@@ -121,7 +121,7 @@ export const HT = {
   space: { xs: 4, sm: 8, md: 12, lg: 16, xl: 20, xxl: 28 },
   minTouch: 44,
   /** Layout breakpoints (dp). >= wide: iPad, Android tablets, unfolded foldables. */
-  breakpoint: { wide: 700, xwide: 1024 },
+  breakpoint: { wide: 700, xwide: 1024, desktop: 1024 },
   maxWidth: { form: 520, content: 1120 } as const,
 };
 

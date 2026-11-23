@@ -64,7 +64,7 @@ export function ConfirmPayments({ payments, nameOf, onDone, oneOnOne }: {
 
 /** The bell in a tab's header, with a dot when something's new. */
 /** The bell: a numbered badge and a tinted bell when something's waiting; one small shake when a new one arrives. */
-export function NotificationBell({ unread }: { unread: number }) {
+export function NotificationBell({ unread, onDark }: { unread: number; onDark?: boolean }) {
   const reduce = useReducedMotion();
   const tilt = useSharedValue(0);
   const prev = useRef(unread);
@@ -78,13 +78,14 @@ export function NotificationBell({ unread }: { unread: number }) {
   const on = unread > 0;
   return (
     <Pressable accessibilityRole="button" accessibilityLabel={on ? `Notifications, ${unread} new` : 'Notifications'} onPress={() => router.push('/notifications' as Href)}
-      style={({ pressed }) => ({ width: 44, height: 44, borderRadius: 22, borderWidth: on ? 1.5 : 1, borderColor: on ? HT.color.brand : HT.color.chipBorder,
-        backgroundColor: on ? HT.color.brandTint : HT.color.surface, alignItems: 'center', justifyContent: 'center', opacity: pressed ? 0.7 : 1 })}>
-      <Animated.View style={shake}><BellIcon size={20} color={on ? HT.color.brand : HT.color.ink} /></Animated.View>
+      style={({ pressed }) => ({ width: 44, height: 44, borderRadius: 22, borderWidth: on ? 1.5 : 1,
+        borderColor: onDark ? (on ? HT.color.glow : 'rgba(255,255,255,0.16)') : on ? HT.color.brand : HT.color.chipBorder,
+        backgroundColor: onDark ? HT.color.onDarkButton : on ? HT.color.brandTint : HT.color.surface, alignItems: 'center', justifyContent: 'center', opacity: pressed ? 0.7 : 1 })}>
+      <Animated.View style={shake}><BellIcon size={20} color={onDark ? HT.color.onDarkText : on ? HT.color.brand : HT.color.ink} /></Animated.View>
       {on ? (
-        <View style={{ position: 'absolute', top: -6, right: -6, minWidth: 22, height: 22, paddingHorizontal: 5, borderRadius: 11, backgroundColor: HT.color.youOwe,
-          alignItems: 'center', justifyContent: 'center', borderWidth: 2, borderColor: HT.color.ground }}>
-          <T style={{ fontFamily: HT.font.bold, fontSize: 12, lineHeight: 15, color: HT.color.onBrand }} maxFontSizeMultiplier={1.2}>{unread > 9 ? '9+' : unread}</T>
+        <View style={{ position: 'absolute', top: -6, right: -6, minWidth: 22, height: 22, paddingHorizontal: 5, borderRadius: 11, backgroundColor: onDark ? HT.color.onDarkOwe : HT.color.youOwe,
+          alignItems: 'center', justifyContent: 'center', borderWidth: onDark ? 0 : 2, borderColor: HT.color.ground }}>
+          <T style={{ fontFamily: HT.font.bold, fontSize: 12, lineHeight: 15, color: onDark ? '#241A23' : HT.color.onBrand }} maxFontSizeMultiplier={1.2}>{unread > 9 ? '9+' : unread}</T>
         </View>
       ) : null}
     </Pressable>
