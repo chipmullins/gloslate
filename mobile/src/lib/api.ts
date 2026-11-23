@@ -1,3 +1,4 @@
+import { FileSystemUploadType, uploadAsync } from 'expo-file-system/legacy';
 import * as SecureStore from 'expo-secure-store';
 import { Platform } from 'react-native';
 
@@ -252,26 +253,39 @@ export type NotificationItem = { id: string; kind: string; title: string; body: 
 export const API_BASE = BASE;
 
 /** Attaches a receipt photo to an expense (multipart upload). */
-/** Sets your profile photo from a picked or taken image (multipart, like receipts). */
-export async function uploadPhoto(uri: string, mime?: string | null): Promise<User> {
+/**
+ * Sends a picked or taken image as multipart field `file`. Expo's fetch can't send
+ * React Native's `{ uri }` form parts, so phones use the native uploader instead.
+ */
+async function uploadImage<T>(path: string, uri: string, mime: string | null | undefined, fallback: string): Promise<T> {
   const token = await tokenStore.get();
-  const form = new FormData();
-  const type = mime && /^image\/(jpeg|png|webp|hei[cf])$/.test(mime) ? mime : uri.toLowerCase().endsWith('.png') ? 'image/png' : 'image/jpeg';
-  const name = `photo.${type.split('/')[1]}`;
-  if (Platform.OS === 'web') form.append('file', await (await fetch(uri)).blob(), name);
-  else form.append('file', { uri, name, type } as unknown as Blob);
-  const res = await fetch(`${API_BASE}/v1/me/photo`, { method: 'POST', headers: { Authorization: `Bearer ${token}` }, body: form });
-  const body = await res.json().catch(() => ({}));
-  if (!res.ok) throw new ApiError(res.status, body.error ?? "Couldn't save the photo.");
-  return body as User;
+  const lower = uri.toLowerCase().split('?')[0];
+  const type = mime && /^image\/(jpeg|png|webp|hei[cf])$/.test(mime) ? mime
+    : lower.endsWith('.png') ? 'image/png' : /\.hei[cf]$/.test(lower) ? 'image/heic' : lower.endsWith('.webp') ? 'image/webp' : 'image/jpeg';
+  const url = `${API_BASE}${path}`;
+  if (Platform.OS === 'web') {
+    const form = new FormData();
+    form.append('file', await (await fetch(uri)).blob(), `image.${type.split('/')[1]}`);
+    const res = await fetch(url, { method: 'POST', headers: { Authorization: `Bearer ${token}` }, body: form });
+    const body = await res.json().catch(() => ({}));
+    if (!res.ok) throw new ApiError(res.status, body.error ?? fallback);
+    return body as T;
+  }
+  const res = await uploadAsync(url, uri, {
+    httpMethod: 'POST', uploadType: FileSystemUploadType.MULTIPART, fieldName: 'file', mimeType: type,
+    headers: { Authorization: `Bearer ${token}`, Accept: 'application/json' },
+  });
+  let body: { error?: string } = {};
+  try { body = JSON.parse(res.body); } catch { /* not JSON */ }
+  if (res.status < 200 || res.status >= 300) throw new ApiError(res.status, body.error ?? fallback);
+  return body as T;
+}
+
+/** Sets your profile photo from a picked or taken image. */
+export function uploadPhoto(uri: string, mime?: string | null): Promise<User> {
+  return uploadImage<User>('/v1/me/photo', uri, mime, "Couldn't save the photo.");
 }
 
 export async function uploadReceipt(expenseId: string, uri: string) {
-  const token = await tokenStore.get();
-  const form = new FormData();
-  const name = uri.split('/').pop() || 'receipt.jpg';
-  const type = name.toLowerCase().endsWith('.png') ? 'image/png' : name.toLowerCase().match(/\.hei[cf]$/) ? 'image/heic' : 'image/jpeg';
-  form.append('file', { uri, name, type } as unknown as Blob);
-  const res = await fetch(`${API_BASE}/v1/expenses/${expenseId}/receipt`, { method: 'POST', headers: { Authorization: `Bearer ${token}` }, body: form });
-  if (!res.ok) throw new ApiError(res.status, (await res.json().catch(() => ({}))).error ?? "Couldn't upload the receipt.");
+  await uploadImage(`/v1/expenses/${expenseId}/receipt`, uri, null, "Couldn't upload the receipt.");
 }

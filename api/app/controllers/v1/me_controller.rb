@@ -11,9 +11,13 @@ module V1
         current_user.photo.attach(io:, filename: "glofly.#{type.split('/').last}", content_type: type)
       else
         file = params.require(:file)
-        raise Hometab::Error, "Profile photos can be a JPEG, PNG, WebP or HEIC" unless User::PHOTO_TYPES.include?(file.content_type)
+        raise Hometab::Error, "Choose a photo to upload" unless file.respond_to?(:tempfile)
+
+        # Phones sometimes label a photo application/octet-stream: go by what the file actually is.
+        type = User::PHOTO_TYPES.include?(file.content_type) ? file.content_type : Marcel::MimeType.for(file.tempfile, name: file.original_filename)
+        raise Hometab::Error, "Profile photos can be a JPEG, PNG, WebP or HEIC" unless User::PHOTO_TYPES.include?(type)
         raise Hometab::Error, "That photo is too big (8 MB max)" if file.size > User::PHOTO_MAX
-        current_user.photo.attach(file)
+        current_user.photo.attach(io: file.tempfile, filename: "photo.#{type.split('/').last}", content_type: type)
       end
       current_user.touch
       render json: current_user.as_api_json

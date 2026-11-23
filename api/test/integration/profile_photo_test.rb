@@ -22,6 +22,11 @@ class ProfilePhotoTest < ActionDispatch::IntegrationTest
     me = json["data"]["members"].find { _1["you"] }
     assert me["photo_url"].present?
 
+    # A phone that labels it application/octet-stream still works: the bytes say PNG.
+    blob = Rack::Test::UploadedFile.new(StringIO.new("\x89PNG\r\n\x1a\nfake".b), "application/octet-stream", true, original_filename: "upload")
+    post "/v1/me/photo", params: { file: blob }, headers: auth(@t)
+    assert_response :success
+
     delete "/v1/me/photo", headers: auth(@t)
     assert_response :success
     assert_nil json["photo_url"]
