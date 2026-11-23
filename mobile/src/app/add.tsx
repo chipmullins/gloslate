@@ -45,7 +45,9 @@ const QUICK_PICKS = [
 ];
 
 export default function Add() {
-  const { id, hid } = useLocalSearchParams<{ id?: string; hid?: string }>();
+  const { id, hid, pick } = useLocalSearchParams<{ id?: string; hid?: string; pick?: string }>();
+  // Quick add on the website's Home opens with a pick already chosen.
+  const quick = QUICK_PICKS.find((p) => p.label === pick);
   const editing = !!id;
   const { home, error: loadError, reload } = useHousehold(hid);
   const { households } = useSession();
@@ -57,8 +59,8 @@ export default function Add() {
   const [multi, setMulti] = useState(false);
   const [paid, setPaid] = useState<Record<string, string>>({});
   const [included, setIncluded] = useState<string[] | null>(null);
-  const [category, setCategory] = useState('food');
-  const [description, setDescription] = useState('');
+  const [category, setCategory] = useState(quick?.category ?? 'food');
+  const [description, setDescription] = useState(quick?.label ?? '');
   const [urgency, setUrgency] = useState<'tab' | 'soon'>('tab');
   const [kind, setKind] = useState<Kind>('equal');
   const [inputs, setInputs] = useState<Record<string, string>>({});

@@ -1,11 +1,11 @@
 import { router, useFocusEffect, type Href } from 'expo-router';
 import { useCallback, useEffect, useState } from 'react';
-import { Pressable, RefreshControl, ScrollView, View } from 'react-native';
+import { Pressable, RefreshControl, ScrollView, TextInput, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { ConfirmPayments, LatestNotice, NotificationBell } from '@/components/confirm-payments';
 import { ExpenseRow, shortDate } from '@/components/expense-row';
-import { ChevronIcon, HouseMark, PlusIcon, SendIcon, ShareIcon, SparkleIcon } from '@/components/icons';
+import { CameraIcon, ChevronIcon, HouseMark, PlusIcon, SearchIcon, SendIcon, ShareIcon, SparkleIcon } from '@/components/icons';
 import { FullScreenLoader } from '@/components/bunny-loader';
 import { FriendsSummaryCard, SetUpHomeCard } from '@/components/no-home';
 import { OutboxBanner } from '@/components/outbox-banner';
@@ -45,8 +45,9 @@ const EMPTY: HomeSnapshot = { home: null, recent: null, coming: [], pending: [],
 const homeCache = new Map<string, HomeSnapshot>(); // per home, so another account never sees it
 
 export default function Home() {
-  const { households } = useSession();
-  const { wide, gutter } = useLayout();
+  const { households, user } = useSession();
+  const { wide, gutter, desktop } = useLayout();
+  const [search, setSearch] = useState('');
   // Start from what we showed last time (instant when switching tabs or reopening), then refresh.
   const [snap] = useState(() => homeCache.get(households.find((h) => h.kind !== 'group')?.id ?? '') ?? EMPTY);
   const [home, setHome] = useState<Household | null>(snap.home);
@@ -231,6 +232,149 @@ export default function Home() {
       )}
     </View>
   );
+
+  if (desktop) {
+    // The website on a computer (canvas "Web app redesign", A): the sidebar has the logo and Add,
+    // so this is a greeting, a wide balance strip, then Recent beside Coming up and Quick add.
+    const hour = new Date().getHours();
+    const greeting = hour < 12 ? 'Good morning' : hour < 18 ? 'Good afternoon' : 'Good evening';
+    const runSearch = () => { const q = search.trim(); router.push((q ? `/activity?q=${encodeURIComponent(q)}` : '/activity') as Href); };
+    const hero = (
+      <Card dark fireflies style={{ flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center', gap: 28, paddingVertical: 32, paddingHorizontal: 36 }}>
+        <Pressable accessibilityRole="button" accessibilityLabel={`${headline} ${formatCents(Math.abs(net))}. See the details.`}
+          disabled={!couple || !partner} onPress={() => partner && router.push(`/settle/${partner.id}` as Href)}
+          style={{ flexGrow: 1, flexShrink: 1, flexBasis: 360, flexDirection: 'row', alignItems: 'center', gap: 22 }}>
+          {couple && partner ? <Avatar photo={partner.photo_url} name={partner.first_name} index={byId.get(partner.id)?.index ?? 1} size={64} /> : null}
+          <View style={{ flexShrink: 1 }}>
+            <T v="strong" style={{ color: HT.color.darkCardMuted, fontSize: 16 }}>{headline}</T>
+            <Money cents={Math.abs(net)} size={62} color={net > 0 ? HT.color.onDarkOwed : net < 0 ? HT.color.onDarkOwe : HT.color.onDarkText} />
+            <T v="small" style={{ color: HT.color.darkCardMuted, fontSize: 14 }}>
+              {net === 0 ? 'Nothing owed either way. Log the next expense and Gloslate does the math.' : 'Everything netted out, already subtracted both ways'}
+            </T>
+          </View>
+        </Pressable>
+        <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 12 }}>
+          {couple && partner && net > 0 ? (
+            <Button kind="onDark" title={`Request ${formatCents(net)}`} icon={<SendIcon size={18} />} style={{ paddingHorizontal: 24 }}
+              onPress={() => sendRequest(home.id, partner.id).catch((e) => setError(e instanceof ApiError ? e.message : "Couldn't send the request."))} />
+          ) : null}
+          {couple && partner && net > 0 ? (
+            <Button kind="glass" title={`${partner.first_name} paid me`} style={{ paddingHorizontal: 22 }} onPress={() => router.push(`/settle/${partner.id}` as Href)} />
+          ) : null}
+          {couple && partner && net < 0 ? (
+            <Button kind="onDark" title={`Pay ${partner.first_name} ${formatCents(-net)}`} style={{ paddingHorizontal: 24 }} onPress={() => router.push(`/settle/${partner.id}` as Href)} />
+          ) : null}
+        </View>
+        {!couple && home.balance.with.length > 0 ? (
+          <View style={{ flexBasis: '100%', borderTopWidth: 1, borderTopColor: HT.color.onDarkButton, paddingTop: 4, flexDirection: 'row', flexWrap: 'wrap', columnGap: 28 }}>
+            {home.balance.with.map((w) => {
+              const m = byId.get(w.member_id);
+              if (!m) return null;
+              return (
+                <Pressable key={w.member_id} accessibilityRole="button" onPress={() => router.push(`/settle/${m.id}` as Href)}
+                  style={({ pressed }) => ({ flexDirection: 'row', alignItems: 'center', gap: 10, minHeight: 52, opacity: pressed ? 0.7 : 1 })}>
+                  <Avatar photo={m.photo_url} name={m.first_name} index={m.index} size={32} />
+                  <T v="strong" style={{ color: HT.color.onDarkText }}>{w.cents > 0 ? `${m.first_name} owes you` : `You owe ${m.first_name}`}</T>
+                  <Money cents={Math.abs(w.cents)} color={w.cents > 0 ? HT.color.onDarkOwed : HT.color.onDarkOwe} />
+                </Pressable>
+              );
+            })}
+          </View>
+        ) : null}
+      </Card>
+    );
+    const sideCard = (title: string, body: React.ReactNode) => (
+      <Card style={{ gap: 14 }}><T v="heading" accessibilityRole="header">{title}</T>{body}</Card>
+    );
+    return (
+      <View style={{ flex: 1, backgroundColor: HT.color.ground }}>
+        <ScrollView contentContainerStyle={{ paddingBottom: 48 }}>
+          <View style={{ width: '100%', maxWidth: 1240, alignSelf: 'center', paddingHorizontal: 48, paddingTop: 32, gap: 26 }}>
+            <View style={{ flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center', gap: 14 }}>
+              <View style={{ flexGrow: 1, flexBasis: 280 }}>
+                <T v="display" accessibilityRole="header" style={{ fontSize: 32, lineHeight: 38 }}>{greeting}{user?.first_name ? `, ${user.first_name}` : ''}</T>
+                <T v="muted" style={{ fontSize: 15 }}>{couple && partner ? `Here's where you and ${partner.first_name} stand.` : `Home · ${names(home.members)}`}</T>
+              </View>
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10, height: 46, paddingHorizontal: 14, borderRadius: 15, backgroundColor: HT.color.surface,
+                borderWidth: 1, borderColor: HT.color.hairline, width: 300, maxWidth: '100%' }}>
+                <SearchIcon size={18} color={HT.color.muted} />
+                <TextInput keyboardAppearance={HT.scheme} value={search} onChangeText={setSearch} onSubmitEditing={runSearch} placeholder="Search expenses" accessibilityLabel="Search expenses"
+                  placeholderTextColor={HT.color.faint} returnKeyType="search" style={{ flex: 1, height: 44, fontFamily: HT.font.medium, fontSize: 15, color: HT.color.ink }} />
+              </View>
+              <NotificationBell unread={unread} />
+              {home.members.filter((m) => !m.former).length < 5 ? (
+                <Pressable accessibilityRole="button" accessibilityLabel="Invite a roommate" onPress={() => invite()}
+                  style={({ pressed }) => ({ height: 46, paddingHorizontal: 18, borderRadius: 15, borderWidth: 1, borderColor: HT.color.chipBorder,
+                    backgroundColor: HT.color.surface, flexDirection: 'row', alignItems: 'center', gap: 8, opacity: pressed ? 0.7 : 1 })}>
+                  <PlusIcon size={14} />
+                  <T v="strong" style={{ fontSize: 15 }}>Invite</T>
+                </Pressable>
+              ) : null}
+            </View>
+
+            {error ? <T v="small" style={{ color: HT.color.danger }}>{error}</T> : null}
+            <LatestNotice item={latest} />
+            <RecapBanner />
+            {outboxBanner}
+            {pendingBanner}
+            {hero}
+
+            <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 28, alignItems: 'flex-start' }}>
+              <View style={{ flexGrow: 999, flexShrink: 1, flexBasis: 520, minWidth: 0 }}>{recentBlock}</View>
+              <View style={{ flexGrow: 1, flexShrink: 1, flexBasis: 300, gap: 20 }}>
+                {coming.length > 0 ? sideCard('Coming up', (
+                  <View style={{ gap: 4 }}>
+                    {coming.slice(0, 5).map((c) => {
+                      const d = new Date(`${c.due_on}T12:00:00`);
+                      return (
+                        <Pressable key={c.id} accessibilityRole="button" onPress={() => router.push(`/bill-cycle/${c.id}` as Href)}
+                          style={({ pressed }) => ({ flexDirection: 'row', alignItems: 'center', gap: 14, minHeight: 64, opacity: pressed ? 0.7 : 1 })}>
+                          <View style={{ width: 50, height: 54, borderRadius: HT.radius.tile, backgroundColor: c.missing ? HT.color.warnTint : HT.color.brandTint, alignItems: 'center', justifyContent: 'center' }}>
+                            <T style={{ fontFamily: HT.font.bold, fontSize: 11, letterSpacing: 0.8, color: HT.color.brand }}>{d.toLocaleString('en-US', { month: 'short' }).toUpperCase()}</T>
+                            <T style={{ fontFamily: HT.font.displayBold, fontSize: 21, lineHeight: 23, color: HT.color.brand }}>{d.getDate()}</T>
+                          </View>
+                          <View style={{ flex: 1 }}>
+                            <T v="strong" style={{ fontSize: 15.5 }}>{c.name}</T>
+                            <T v="small" style={{ color: c.missing ? HT.color.youOwe : HT.color.muted }}>
+                              {c.missing ? 'Amount missing' : c.status === 'waiting' ? (c.you_pay ? 'Enter the amount' : 'Waiting on the amount') : 'Posts automatically'}
+                            </T>
+                          </View>
+                          {c.amount_cents ? <Money cents={c.amount_cents} size={15.5} /> : null}
+                        </Pressable>
+                      );
+                    })}
+                    <Pressable accessibilityRole="link" onPress={() => router.push('/bills' as Href)} style={{ minHeight: 40, justifyContent: 'center' }}>
+                      <T v="strong" style={{ color: HT.color.brand, fontSize: 14 }}>Manage bills</T>
+                    </Pressable>
+                  </View>
+                )) : null}
+                {sideCard('Quick add', (
+                  <View style={{ gap: 12 }}>
+                    <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
+                      {['Groceries', 'Dinner', 'Takeout', 'Household supplies'].map((p) => (
+                        <Pressable key={p} accessibilityRole="button" accessibilityLabel={`Add ${p}`} onPress={() => router.push(`/add?pick=${encodeURIComponent(p)}` as Href)}
+                          style={({ pressed }) => ({ minHeight: 44, paddingHorizontal: 16, borderRadius: 14, borderWidth: 1, borderColor: HT.color.chipBorder,
+                            backgroundColor: HT.color.surface, justifyContent: 'center', opacity: pressed ? 0.7 : 1 })}>
+                          <T v="strong" style={{ fontSize: 14, fontFamily: HT.font.semibold }}>{p}</T>
+                        </Pressable>
+                      ))}
+                    </View>
+                    <Pressable accessibilityRole="button" onPress={() => router.push('/add' as Href)}
+                      style={({ pressed }) => ({ minHeight: 46, borderRadius: 14, borderWidth: 1.5, borderStyle: 'dashed', borderColor: HT.color.chipBorder,
+                        flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, opacity: pressed ? 0.7 : 1 })}>
+                      <CameraIcon size={18} color={HT.color.brand} />
+                      <T v="strong" style={{ color: HT.color.brand, fontSize: 14 }}>Scan a receipt</T>
+                    </Pressable>
+                  </View>
+                ))}
+                {invitePanel}
+              </View>
+            </View>
+          </View>
+        </ScrollView>
+      </View>
+    );
+  }
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: HT.color.ground }} edges={['top', 'left', 'right']}>

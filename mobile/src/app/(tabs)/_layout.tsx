@@ -7,10 +7,11 @@ import { ActivityIcon, CalendarIcon, HouseIcon, PersonIcon } from '@/components/
 import { HT } from '@/constants/theme';
 import { useLayout } from '@/hooks/use-layout';
 import { useSession } from '@/lib/session';
+import { WebSidebar } from '@/components/web-sidebar';
 
 /** Home for the people you live with, Friends for one-on-one tabs and groups, then Activity, Bills, You. */
 export default function TabsLayout() {
-  const { wide } = useLayout();
+  const { wide, desktop } = useLayout();
   const { households } = useSession();
   // A badge on Friends while someone's payment is waiting for you to confirm it.
   const toConfirm = households.filter((h) => h.kind === 'group' && (h.to_confirm_cents ?? 0) > 0).length;
@@ -29,7 +30,10 @@ export default function TabsLayout() {
   ); };
   return (
     <Tabs
+      // The website on a computer: a sidebar instead of the bottom bar (canvas "Web app redesign", A).
+      tabBar={desktop ? (props) => <WebSidebar {...props} /> : undefined}
       screenOptions={{
+        tabBarPosition: desktop ? 'left' : 'bottom',
         headerShown: false,
         tabBarActiveTintColor: HT.color.brand,
         tabBarInactiveTintColor: HT.color.muted,

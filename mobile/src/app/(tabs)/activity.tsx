@@ -1,4 +1,4 @@
-import { router, useFocusEffect, type Href } from 'expo-router';
+import { router, useFocusEffect, useLocalSearchParams, type Href } from 'expo-router';
 import { useCallback, useEffect, useState } from 'react';
 import { Pressable, ScrollView, TextInput, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -18,7 +18,12 @@ export default function Activity() {
   const { wide, gutter } = useLayout();
   const id = households.find((h) => h.kind !== 'group')?.id;
   const [home, setHome] = useState<Household | null>(null);
-  const [q, setQ] = useState('');
+  // The website's Home search box opens Activity with ?q=.
+  const params = useLocalSearchParams<{ q?: string }>();
+  const [q, setQ] = useState(params.q ?? '');
+  // Activity stays mounted as a tab, so a new search from Home replaces the box's text.
+  const [seenQ, setSeenQ] = useState(params.q);
+  if (params.q !== seenQ) { setSeenQ(params.q); if (params.q != null) setQ(params.q); }
   const [category, setCategory] = useState<string | null>(null);
   const [person, setPerson] = useState<string | null>(null);
   const [year, setYear] = useState<number | null>(null);
