@@ -101,11 +101,11 @@ export default function PersonScreen() {
               <View style={{ gap: 10, marginTop: 8 }}>
                 {theyOwe ? (
                   <>
-                    <Button kind="onDark" title={`Request ${formatCents(net)}`} loading={busy === 'request'} onPress={request} />
+                    <Button kind="accent" title={`Request ${formatCents(net)}`} loading={busy === 'request'} onPress={request} />
                     <Button kind="glass" title={`${name} paid me ${formatCents(net)}`} onPress={() => setPicking(true)} />
                   </>
                 ) : (
-                  <Button kind="onDark" title={`I paid ${formatCents(-net)}`} onPress={() => setPicking(true)} />
+                  <Button kind="accent" title={`I paid ${formatCents(-net)}`} onPress={() => setPicking(true)} />
                 )}
               </View>
             </>

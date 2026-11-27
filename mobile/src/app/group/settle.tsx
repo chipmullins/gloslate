@@ -167,7 +167,7 @@ export default function GroupSettle() {
             <View style={{ height: 1, backgroundColor: HT.color.hairline }} />
             {opened ? <T v="strong">Sent it? Let {otherName} know.</T> : null}
             {methodChips}
-            <Button title="I paid" icon={<CheckIcon size={18} color="#FFFFFF" />} onPress={() => record(false)} loading={busy} disabled={!cents || cents > left} />
+            <Button kind="accent" title="I paid" icon={<CheckIcon size={18} color={HT.color.onAccent} />} onPress={() => record(false)} loading={busy} disabled={!cents || cents > left} />
             {cents > left ? <T v="small" style={{ color: HT.color.youOwe }}>That's more than the {formatCents(left)} left.</T> : null}
           </Card>
         ) : null}
@@ -175,7 +175,7 @@ export default function GroupSettle() {
         {left > 0 && !youPay ? (
           <Card style={{ gap: 12 }}>
             <TonePicker value={tone} onChange={setTone} preview="share" />
-            <Button title={`Request ${formatCents(left)}`} icon={<SendIcon size={18} color="#FFFFFF" />}
+            <Button kind="accent" title={`Request ${formatCents(left)}`} icon={<SendIcon size={18} color={HT.color.onAccent} />}
               onPress={() => sendRequest(hid, from, undefined, tone).catch((e) => setError(e instanceof ApiError ? e.message : "Couldn't send it."))} />
             <T v="small">Sends {otherName} a link with the amount and how to pay you. They don't need the app.</T>
             <View style={{ height: 1, backgroundColor: HT.color.hairline }} />

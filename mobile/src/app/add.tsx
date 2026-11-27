@@ -451,7 +451,7 @@ export default function Add() {
   const actions = (
     <View style={{ gap: 6 }}>
       <ErrorNote message={error} />
-      <Button title={label} onPress={save} loading={busy} disabled={cents <= 0 || !!splitIssue} />
+      <Button kind="accent" title={label} onPress={save} loading={busy} disabled={cents <= 0 || !!splitIssue} />
       <Button kind="link" title={showSplit ? 'Done splitting' : 'Split differently'} onPress={() => setShowSplit((s) => !s)} />
     </View>
   );

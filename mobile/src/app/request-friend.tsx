@@ -162,7 +162,7 @@ export default function SettleWithSomeone() {
           </ScrollView>
           <View style={{ gap: 6, paddingBottom: 8 }}>
             <ErrorNote message={error} />
-            <Button title={cents > 0 ? (theyOwe ? `Request ${formatCents(owedPart)}` : `Pay ${first || 'them'} ${formatCents(owedPart)}`) : 'Continue'}
+            <Button kind={cents > 0 ? 'accent' : 'primary'} title={cents > 0 ? (theyOwe ? `Request ${formatCents(owedPart)}` : `Pay ${first || 'them'} ${formatCents(owedPart)}`) : 'Continue'}
               icon={theyOwe ? <SendIcon size={18} color="#FFFFFF" /> : undefined} onPress={go} loading={busy} disabled={!ready} />
             <T v="small" style={{ textAlign: 'center' }}>Gloslate never moves money. Payments happen in Venmo, Cash App or Zelle.</T>
           </View>

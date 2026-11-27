@@ -9,6 +9,7 @@ import { SetUpHomeCard } from '@/components/no-home';
 import { ordinal } from '@/components/stepper';
 import { Button, Card, T } from '@/components/ui';
 import { WebTopNav } from '@/components/web-top-nav';
+import { useTabBarInset } from '@/components/pill-tab-bar';
 import { HT } from '@/constants/theme';
 import { useLayout } from '@/hooks/use-layout';
 import { api, type Bill, type BillCycle, type Household } from '@/lib/api';
@@ -18,6 +19,7 @@ import { useSession } from '@/lib/session';
 export default function Bills() {
   const { households } = useSession();
   const { wide, gutter, desktop } = useLayout();
+  const tabInset = useTabBarInset();
   const id = households.find((h) => h.kind !== 'group')?.id;
   const [bills, setBills] = useState<Bill[] | null>(null);
   const [coming, setComing] = useState<BillCycle[]>([]);
@@ -107,9 +109,9 @@ export default function Bills() {
     return (
       <SafeAreaView style={{ flex: 1, backgroundColor: HT.color.ground }} edges={['top', 'left', 'right']}>
         {desktop ? <WebTopNav /> : null}
-        <ScrollView contentContainerStyle={{ paddingBottom: 32 }}>
+        <ScrollView contentContainerStyle={{ paddingBottom: tabInset }}>
           <View style={{ width: '100%', maxWidth: HT.maxWidth.form, alignSelf: 'center', paddingHorizontal: gutter, paddingTop: 16, gap: 18 }}>
-            <T v="display" accessibilityRole="header">Bills</T>
+            <T v="hero" accessibilityRole="header">Bills</T>
             <SetUpHomeCard title="Bills are for a home" body="Rent and utilities you split every month live here. Set up your home and each bill posts itself when it's due. For a one-off with a friend, use Friends." />
           </View>
         </ScrollView>
@@ -120,10 +122,10 @@ export default function Bills() {
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: HT.color.ground }} edges={['top', 'left', 'right']}>
       {desktop ? <WebTopNav /> : null}
-      <ScrollView contentContainerStyle={{ paddingBottom: 32 }}
+      <ScrollView contentContainerStyle={{ paddingBottom: tabInset }}
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={async () => { setRefreshing(true); await load().catch(() => {}); setRefreshing(false); }} tintColor={HT.color.brand} />}>
         <View style={{ width: '100%', maxWidth: HT.maxWidth.content, alignSelf: 'center', paddingHorizontal: gutter, paddingTop: 16, gap: 18 }}>
-          <T v="display" accessibilityRole="header">Bills</T>
+          <T v="hero" accessibilityRole="header">Bills</T>
           {wide ? (
             <View style={{ flexDirection: 'row', gap: 24, alignItems: 'flex-start' }}>
               <View style={{ flex: 1, gap: 18 }}>{needsBlock}{upcoming}</View>

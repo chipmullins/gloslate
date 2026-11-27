@@ -9,6 +9,7 @@ import { GroupIcon } from '@/components/group-icons';
 import { AddPersonIcon, CheckIcon, ChevronIcon, SendIcon } from '@/components/icons';
 import { Avatar, Button, Card, Money, T } from '@/components/ui';
 import { WebTopNav } from '@/components/web-top-nav';
+import { useTabBarInset } from '@/components/pill-tab-bar';
 import { HT } from '@/constants/theme';
 import { useLayout } from '@/hooks/use-layout';
 import { useLive } from '@/lib/live';
@@ -52,6 +53,7 @@ function Action({ icon, title, sub, onPress }: { icon: ReactNode; title: string;
 export default function Friends() {
   const { households, refresh } = useSession();
   const { gutter, wide, desktop } = useLayout();
+  const tabInset = useTabBarInset();
   const all = households.filter((h) => h.kind === 'group');
   const people = all.filter((h) => h.member_count === 2);
   const groups = all.filter((h) => h.member_count !== 2);
@@ -205,10 +207,10 @@ export default function Friends() {
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: HT.color.ground }} edges={['top', 'left', 'right']}>
       {desktop ? <WebTopNav /> : null}
-      <ScrollView contentContainerStyle={{ paddingBottom: 32 }}>
+      <ScrollView contentContainerStyle={{ paddingBottom: tabInset }}>
         <View style={{ width: '100%', maxWidth: wide ? HT.maxWidth.content : HT.maxWidth.form, alignSelf: 'center', paddingHorizontal: gutter, paddingTop: 16, gap: 16 }}>
           <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
-            <T v="display" accessibilityRole="header">Friends</T>
+            <T v="hero" accessibilityRole="header">Friends</T>
             {desktop ? null : <NotificationBell unread={unread} />}
           </View>
           <View style={{ flexDirection: 'row', gap: 10 }}>

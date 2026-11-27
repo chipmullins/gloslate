@@ -1,12 +1,14 @@
 import { router, useFocusEffect, type Href } from 'expo-router';
 import { useCallback, useEffect, useState } from 'react';
 import { Pressable, RefreshControl, ScrollView, View } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
+import { setStatusBarStyle } from 'expo-status-bar';
 
 import { ConfirmPayments, LatestNotice, NotificationBell } from '@/components/confirm-payments';
 import { ExpenseRow, shortDate } from '@/components/expense-row';
 import { DESKTOP_MAX, WebTopNav } from '@/components/web-top-nav';
-import { CameraIcon, ChevronIcon, HouseMark, PlusIcon, SendIcon, ShareIcon, SparkleIcon } from '@/components/icons';
+import { CameraIcon, ChevronIcon, HouseIcon, HouseMark, PlusIcon, SendIcon, ShareIcon } from '@/components/icons';
+import { useTabBarInset } from '@/components/pill-tab-bar';
 import { FullScreenLoader } from '@/components/bunny-loader';
 import { FriendsSummaryCard, SetUpHomeCard } from '@/components/no-home';
 import { OutboxBanner } from '@/components/outbox-banner';
@@ -48,6 +50,8 @@ const homeCache = new Map<string, HomeSnapshot>(); // per home, so another accou
 export default function Home() {
   const { households } = useSession();
   const { wide, gutter, desktop } = useLayout();
+  const tabInset = useTabBarInset();
+  const { top } = useSafeAreaInsets();
   const [month, setMonth] = useState<{ count: number; total_cents: number; my_share_cents: number } | null>(null);
   const [paidBy, setPaidBy] = useState<'all' | 'me' | 'them'>('all');
   // Start from what we showed last time (instant when switching tabs or reopening), then refresh.
@@ -93,6 +97,13 @@ export default function Home() {
   }, [id, desktop]);
 
   useFocusEffect(useCallback(() => { load(); }, [load]));
+  // The phone Home starts on the night sky: light status bar while it's showing, back to the app's own after.
+  const nightTop = !desktop && !!home;
+  useFocusEffect(useCallback(() => {
+    if (!nightTop) return undefined;
+    setStatusBarStyle('light');
+    return () => setStatusBarStyle(HT.scheme === 'dark' ? 'light' : 'dark');
+  }, [nightTop]));
   // Someone confirms, pays or adds something: show it without pull-to-refresh.
   useLive(({ unread: n }) => { setUnread(n); load(); });
   useEffect(() => toast.subscribe((t) => { if (t && !t.action) setTimeout(load, 300); }), [load]);
@@ -112,7 +123,7 @@ export default function Home() {
     // Friends-only (or just groups): where you stand with friends, and a way to set up a home later.
     return (
       <SafeAreaView style={{ flex: 1, backgroundColor: HT.color.ground }} edges={['top', 'left', 'right']}>
-        <ScrollView contentContainerStyle={{ paddingBottom: 32 }}>
+        <ScrollView contentContainerStyle={{ paddingBottom: tabInset }}>
           <View style={{ width: '100%', maxWidth: HT.maxWidth.form + (wide ? 160 : 0), alignSelf: 'center', paddingHorizontal: gutter, paddingTop: 12, gap: 18 }}>
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10, minHeight: 48 }}>
               <HouseMark size={34} />
@@ -142,45 +153,6 @@ export default function Home() {
 
   const outboxBanner = home ? <OutboxBanner householdId={home.id} /> : null;
   const pendingBanner = <ConfirmPayments payments={pending} nameOf={(mid) => byId.get(mid)?.first_name ?? 'Someone'} oneOnOne={couple} onDone={() => { load(); }} />;
-
-  const balanceCard = (
-    <Card dark fireflies style={{ alignItems: 'center', gap: 8, paddingTop: 24, paddingBottom: 20 }}>
-      <Pressable accessibilityRole="button" accessibilityLabel={`${headline} ${formatCents(Math.abs(net))}. See the details.`}
-        disabled={!couple || !partner} onPress={() => partner && router.push(`/settle/${partner.id}` as Href)} style={{ alignItems: 'center', gap: 8 }}>
-        {couple && partner ? <Avatar photo={partner.photo_url} name={partner.first_name} index={byId.get(partner.id)?.index ?? 1} /> : null}
-        <T v="strong" style={{ color: HT.color.darkCardMuted, fontSize: 14 }}>{headline}</T>
-        <Money cents={Math.abs(net)} size={wide ? 56 : 48} color={net > 0 ? HT.color.onDarkOwed : net < 0 ? HT.color.onDarkOwe : HT.color.onDarkText} />
-        <T v="small" style={{ color: HT.color.darkCardMuted, textAlign: 'center' }}>
-          {net === 0 ? 'Nothing owed either way. Log the next expense and Gloslate does the math.' : 'Everything netted out, already subtracted both ways'}
-        </T>
-      </Pressable>
-      {couple && partner && net > 0 ? (
-        <Button kind="onDark" title={`Request ${formatCents(net)}`} icon={<SendIcon size={18} />} style={{ marginTop: 8, alignSelf: 'stretch' }}
-          onPress={() => sendRequest(home.id, partner.id).catch((e) => setError(e instanceof ApiError ? e.message : "Couldn't send the request."))} />
-      ) : null}
-      {couple && partner && net < 0 ? (
-        <Button kind="onDark" title={`Pay ${partner.first_name} ${formatCents(-net)}`} style={{ marginTop: 8, alignSelf: 'stretch' }}
-          onPress={() => router.push(`/settle/${partner.id}` as Href)} />
-      ) : null}
-      {!couple && home.balance.with.length > 0 ? (
-        <View style={{ alignSelf: 'stretch', marginTop: 10, borderTopWidth: 1, borderTopColor: HT.color.onDarkButton, paddingTop: 4 }}>
-          {home.balance.with.map((w) => {
-            const m = byId.get(w.member_id);
-            if (!m) return null;
-            return (
-              <Pressable key={w.member_id} accessibilityRole="button" onPress={() => router.push(`/settle/${m.id}` as Href)}
-                style={({ pressed }) => ({ flexDirection: 'row', alignItems: 'center', gap: 10, minHeight: 52, opacity: pressed ? 0.7 : 1 })}>
-                <Avatar photo={m.photo_url} name={m.first_name} index={m.index} size={32} />
-                <T v="strong" style={{ color: HT.color.onDarkText, flex: 1 }}>{w.cents > 0 ? `${m.first_name} owes you` : `You owe ${m.first_name}`}</T>
-                <Money cents={Math.abs(w.cents)} color={w.cents > 0 ? HT.color.onDarkOwed : HT.color.onDarkOwe} />
-                <ChevronIcon size={16} color={HT.color.darkCardMuted} />
-              </Pressable>
-            );
-          })}
-        </View>
-      ) : null}
-    </Card>
-  );
 
   const comingUp = coming.length > 0 ? (
     <View style={{ gap: 8 }}>
@@ -417,62 +389,104 @@ export default function Home() {
     );
   }
 
+  // Phones and tablets (canvas "Gloslate · Pill bar redesign"): the balance on the night sky (fireflies kept),
+  // a rounded sheet over its edge with square actions and the violet main action, then the rest of Home.
+  const members = home.members.filter((m) => !m.former).length;
+  const square = (label: string, icon: React.ReactNode, onPress: () => void, a11y?: string) => (
+    <Pressable key={label} accessibilityRole="button" accessibilityLabel={a11y ?? label} onPress={onPress}
+      style={({ pressed }) => ({ flex: 1, minHeight: 74, borderRadius: 18, borderWidth: 1, borderColor: HT.color.hairline, backgroundColor: HT.color.surface,
+        alignItems: 'center', justifyContent: 'center', gap: 6, paddingHorizontal: 4, transform: [{ scale: pressed ? 0.96 : 1 }] })}>
+      {icon}
+      <T numberOfLines={1} maxFontSizeMultiplier={1.3} style={{ fontFamily: HT.font.semibold, fontSize: 12.5 }}>{label}</T>
+    </Pressable>
+  );
+  const squares = [
+    square('Add', <PlusIcon size={20} color={HT.color.ink} />, () => router.push('/add' as Href), 'Add an expense'),
+    square('Scan', <CameraIcon size={20} color={HT.color.ink} />, () => router.push('/add' as Href), 'Scan a receipt'),
+    couple && partner ? square('Settle up', <SendIcon size={20} color={HT.color.ink} />, () => router.push(`/settle/${partner.id}` as Href), `Settle up with ${partner.first_name}`) : null,
+    members < 5 ? square('Invite', <ShareIcon size={20} color={HT.color.ink} />, () => invite(), 'Invite a roommate') : null,
+  ].filter(Boolean);
+  const mainAction = couple && partner && net > 0 ? (
+    <Button kind="accent" title={`Request ${formatCents(net)} from ${partner.first_name}`} icon={<SendIcon size={18} color={HT.color.onAccent} />} style={{ minHeight: 58, borderRadius: 18 }}
+      onPress={() => sendRequest(home.id, partner.id).catch((e) => setError(e instanceof ApiError ? e.message : "Couldn't send the request."))} />
+  ) : couple && partner && net < 0 ? (
+    <Button kind="accent" title={`Pay ${partner.first_name} ${formatCents(-net)}`} style={{ minHeight: 58, borderRadius: 18 }}
+      onPress={() => router.push(`/settle/${partner.id}` as Href)} />
+  ) : null;
+  const shell = { width: '100%' as const, maxWidth: HT.maxWidth.content, alignSelf: 'center' as const, paddingHorizontal: gutter };
+
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: HT.color.ground }} edges={['top', 'left', 'right']}>
-      <ScrollView contentContainerStyle={{ paddingBottom: 120 }}
-        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={async () => { setRefreshing(true); await load(); setRefreshing(false); }} tintColor={HT.color.brand} />}>
-        <View style={{ width: '100%', maxWidth: HT.maxWidth.content, alignSelf: 'center', paddingHorizontal: gutter, paddingTop: 12, gap: 18 }}>
-          <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', minHeight: 48 }}>
-            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10, flexShrink: 1 }}>
-              <HouseMark size={34} />
-              <View style={{ flexShrink: 1 }}>
-                <T v="title" style={{ fontSize: 19, lineHeight: 23 }} accessibilityRole="header" accessibilityLabel="Gloslate by Glofly"><T style={{ color: HT.color.glowDeep }}>glo</T>slate<T v="small" style={{ fontSize: 12, fontFamily: HT.font.medium, color: HT.color.muted }}>  by Glofly</T></T>
-                <T v="small" numberOfLines={1}>{names(home.members)}</T>
+    <View style={{ flex: 1, backgroundColor: HT.color.ground }}>
+      <ScrollView contentContainerStyle={{ paddingBottom: tabInset }} style={{ backgroundColor: HT.color.ground }}
+        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={async () => { setRefreshing(true); await load(); setRefreshing(false); }}
+          tintColor={HT.color.onDarkText} colors={[HT.color.brand]} progressViewOffset={top} />}>
+        <NightSurface fireflies style={{ paddingTop: top + 10, paddingBottom: 58 }}>
+          <View style={[shell, { gap: 4 }]}>
+            <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', minHeight: 48 }}>
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10, flexShrink: 1 }}>
+                <HouseMark size={34} inverted />
+                <T v="title" style={{ fontSize: 19, lineHeight: 23, color: HT.color.onDarkText }} accessibilityRole="header" accessibilityLabel="Gloslate by Glofly">
+                  <T style={{ color: HT.color.glow }}>glo</T>slate<T v="small" style={{ fontSize: 12, fontFamily: HT.font.medium, color: HT.color.darkCardMuted }}>  by Glofly</T>
+                </T>
               </View>
+              <NotificationBell unread={unread} onDark />
             </View>
-            <View style={{ flexDirection: 'row', gap: 8 }}>
-              <NotificationBell unread={unread} />
-              {home.members.filter((m) => !m.former).length < 5 ? (
-                <Pressable accessibilityRole="button" accessibilityLabel="Invite a roommate" onPress={() => invite()}
-                  style={({ pressed }) => ({ minHeight: 44, paddingHorizontal: 14, borderRadius: 22, borderWidth: 1, borderColor: HT.color.chipBorder,
-                    backgroundColor: HT.color.surface, flexDirection: 'row', alignItems: 'center', gap: 6, opacity: pressed ? 0.7 : 1 })}>
-                  <PlusIcon size={14} />
-                  <T v="strong" style={{ fontSize: 13 }}>Invite</T>
-                </Pressable>
-              ) : null}
+            <View style={{ alignSelf: 'flex-start', marginTop: 10, flexDirection: 'row', alignItems: 'center', gap: 8, paddingVertical: 5, paddingLeft: 5, paddingRight: 12, borderRadius: 999, backgroundColor: HT.color.onDarkButton }}>
+              {couple && partner ? <Avatar photo={partner.photo_url} name={partner.first_name} index={byId.get(partner.id)?.index ?? 1} size={24} /> : <HouseIcon size={16} color={HT.color.darkCardMuted} />}
+              <T numberOfLines={1} style={{ fontFamily: HT.font.semibold, fontSize: 13, color: HT.color.darkCardMuted, flexShrink: 1 }}>{home.name || 'Home'} · {names(home.members)}</T>
             </View>
+            <Pressable accessibilityRole="button" accessibilityLabel={`${headline} ${formatCents(Math.abs(net))}. See the details.`}
+              disabled={!couple || !partner} onPress={() => partner && router.push(`/settle/${partner.id}` as Href)} style={{ gap: 2, marginTop: 18 }}>
+              <T style={{ fontFamily: HT.font.label, fontSize: 12, letterSpacing: 2.2, color: HT.color.glow, textTransform: 'uppercase' }}>{headline}</T>
+              <Money cents={Math.abs(net)} size={wide ? 76 : 64} color={net > 0 ? HT.color.onDarkOwed : net < 0 ? HT.color.onDarkOwe : HT.color.onDarkText} />
+              <T style={{ fontFamily: HT.font.medium, fontSize: 14, color: HT.color.darkCardMuted }}>
+                {net === 0 ? 'Nothing owed either way. Log the next expense and Gloslate does the math.' : 'Everything netted out, already subtracted both ways'}
+              </T>
+            </Pressable>
+            {!couple && home.balance.with.length > 0 ? (
+              <View style={{ marginTop: 12, borderTopWidth: 1, borderTopColor: HT.color.onDarkButton, paddingTop: 4 }}>
+                {home.balance.with.map((w) => {
+                  const m = byId.get(w.member_id);
+                  if (!m) return null;
+                  return (
+                    <Pressable key={w.member_id} accessibilityRole="button" onPress={() => router.push(`/settle/${m.id}` as Href)}
+                      style={({ pressed }) => ({ flexDirection: 'row', alignItems: 'center', gap: 10, minHeight: 52, opacity: pressed ? 0.7 : 1 })}>
+                      <Avatar photo={m.photo_url} name={m.first_name} index={m.index} size={32} />
+                      <T v="strong" style={{ color: HT.color.onDarkText, flex: 1 }}>{w.cents > 0 ? `${m.first_name} owes you` : `You owe ${m.first_name}`}</T>
+                      <Money cents={Math.abs(w.cents)} color={w.cents > 0 ? HT.color.onDarkOwed : HT.color.onDarkOwe} />
+                      <ChevronIcon size={16} color={HT.color.darkCardMuted} />
+                    </Pressable>
+                  );
+                })}
+              </View>
+            ) : null}
           </View>
+        </NightSurface>
 
-          {error ? <T v="small" style={{ color: HT.color.danger }}>{error}</T> : null}
-          <LatestNotice item={latest} />
-          <RecapBanner />
-          {outboxBanner}
-          {pendingBanner}
-
-          {wide ? (
-            <View style={{ flexDirection: 'row', gap: 24, alignItems: 'flex-start' }}>
-              <View style={{ flex: 5, gap: 18 }}>{balanceCard}{comingUp}{invitePanel}</View>
-              <View style={{ flex: 6, gap: 18 }}>{recentBlock}</View>
-            </View>
-          ) : (
-            <>
-              {balanceCard}
-              {comingUp}
-              {invitePanel}
-              {recentBlock}
-            </>
-          )}
+        <View style={{ marginTop: -30, borderTopLeftRadius: 30, borderTopRightRadius: 30, backgroundColor: HT.color.ground, paddingTop: 22 }}>
+          <View style={[shell, { gap: 18 }]}>
+            <View style={{ flexDirection: 'row', gap: 10 }}>{squares}</View>
+            {mainAction}
+            {error ? <T v="small" style={{ color: HT.color.danger }}>{error}</T> : null}
+            <LatestNotice item={latest} />
+            <RecapBanner />
+            {outboxBanner}
+            {pendingBanner}
+            {wide ? (
+              <View style={{ flexDirection: 'row', gap: 24, alignItems: 'flex-start' }}>
+                <View style={{ flex: 5, gap: 18 }}>{comingUp}{invitePanel}</View>
+                <View style={{ flex: 6, gap: 18 }}>{recentBlock}</View>
+              </View>
+            ) : (
+              <>
+                {comingUp}
+                {invitePanel}
+                {recentBlock}
+              </>
+            )}
+          </View>
         </View>
       </ScrollView>
-      <View pointerEvents="box-none" style={{ position: 'absolute', left: 0, right: 0, bottom: 0, paddingBottom: 16, alignItems: 'center' }}>
-        <Pressable accessibilityRole="button" accessibilityLabel="Add an expense" onPress={() => router.push('/add' as Href)}
-          style={({ pressed }) => ({ minHeight: 58, paddingHorizontal: 36, borderRadius: HT.radius.pill, backgroundColor: HT.color.brand,
-            flexDirection: 'row', alignItems: 'center', gap: 10, transform: [{ scale: pressed ? 0.97 : 1 }],
-            shadowColor: HT.color.brand, shadowOpacity: 0.3, shadowRadius: 18, shadowOffset: { width: 0, height: 6 }, elevation: 6 })}>
-          <SparkleIcon size={20} />
-          <T v="strong" style={{ color: HT.color.onBrand, fontSize: 16, fontFamily: HT.font.extrabold }}>Add</T>
-        </Pressable>
-      </View>
-    </SafeAreaView>
+    </View>
   );
 }

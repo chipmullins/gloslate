@@ -29,6 +29,8 @@ import { formatCents } from '@/lib/money';
 
 const variants = StyleSheet.create({
   display: { fontFamily: HT.font.displayBold, fontSize: 30, lineHeight: 36, letterSpacing: -0.6, color: HT.color.ink },
+  /** The heavy tab-screen titles (pill bar redesign): Friends, Activity, Bills, You. */
+  hero: { fontFamily: HT.font.displayBlack, fontSize: 36, lineHeight: 42, letterSpacing: -1, color: HT.color.ink },
   title: { fontFamily: HT.font.displayBold, fontSize: 22, lineHeight: 28, letterSpacing: -0.4, color: HT.color.ink },
   heading: { fontFamily: HT.font.displayBold, fontSize: 15.5, lineHeight: 20, color: HT.color.ink },
   body: { fontFamily: HT.font.medium, fontSize: 15, lineHeight: 22, color: HT.color.ink },
@@ -134,9 +136,10 @@ export function Card({ children, style, dark, fireflies }: { children: ReactNode
 
 // ---------- Controls ----------
 
-/** onDark = the amber glow action on night surfaces (Request, I paid); glass = the secondary action there.
+/** onDark = the amber glow action on night surfaces; glass = the secondary action there.
+ *  accent = the violet main action (Request, Pay, I paid, Add to the tab), on light or night.
  *  glofly = "Sign in with Glofly" only: Glofly's own purple sky (from its logo), white text. */
-type ButtonKind = 'primary' | 'secondary' | 'onDark' | 'glass' | 'link' | 'glofly';
+type ButtonKind = 'primary' | 'secondary' | 'onDark' | 'glass' | 'link' | 'glofly' | 'accent';
 
 /** Glofly's logo sky (glofly repo site/logo.svg): only for the Glofly sign-in button. */
 const GLOFLY_SKY = ['#3D2775', '#241548', '#140C2C'] as const;
@@ -152,12 +155,15 @@ export function Button({ title, onPress, kind = 'primary', loading, disabled, ic
     glass: { bg: HT.color.onDarkButton, fg: HT.color.onDarkText, border: HT.color.onDarkBorder },
     link: { bg: 'transparent', fg: HT.color.brand, border: 'transparent' },
     glofly: { bg: GLOFLY_SKY[0], fg: '#FFFFFF', border: '#4B3487' },
+    accent: { bg: HT.color.accentDeep, fg: HT.color.onAccent, border: 'transparent' },
   }[kind];
   const glow = kind === 'onDark'
     ? { shadowColor: HT.color.glow, shadowOpacity: 0.4, shadowRadius: 11, shadowOffset: { width: 0, height: 0 } }
     : kind === 'glofly'
       ? { shadowColor: GLOFLY_SKY[0], shadowOpacity: 0.35, shadowRadius: 9, shadowOffset: { width: 0, height: 6 }, elevation: 4 }
-      : null;
+      : kind === 'accent'
+        ? { shadowColor: HT.color.accentDeep, shadowOpacity: 0.34, shadowRadius: 12, shadowOffset: { width: 0, height: 6 }, elevation: 5 }
+        : null;
   const off = disabled || loading;
   return (
     <Pressable
@@ -190,8 +196,14 @@ export function Button({ title, onPress, kind = 'primary', loading, disabled, ic
       {kind === 'glofly' ? (
         <LinearGradient pointerEvents="none" colors={GLOFLY_SKY} locations={[0, 0.6, 1]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}
           style={[StyleSheet.absoluteFill, { borderRadius: HT.radius.button - 1 }]} />
+      ) : kind === 'accent' ? (
+        <LinearGradient pointerEvents="none" colors={[HT.color.accent, HT.color.accentDeep]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}
+          style={[StyleSheet.absoluteFill, { borderRadius: HT.radius.button }]} />
       ) : null}
-      {loading ? <ButtonBunny color={palette.fg} eye={palette.bg === 'transparent' ? undefined : palette.bg} /> : icon}
+      {kind === 'accent' && (loading || icon) ? (
+        // Above the gradient (web paints the absolute fill over the SVG otherwise).
+        <View style={{ zIndex: 1 }}>{loading ? <ButtonBunny color={palette.fg} eye={palette.bg} /> : icon}</View>
+      ) : loading ? <ButtonBunny color={palette.fg} eye={palette.bg === 'transparent' ? undefined : palette.bg} /> : icon}
       <Text
         maxFontSizeMultiplier={1.4}
         style={{ fontFamily: HT.font.extrabold, fontSize: 15.5, color: palette.fg,

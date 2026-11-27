@@ -13,6 +13,14 @@ const LIGHT = {
     brand: '#6B3A63',
     brandDeep: '#552D4F',
     brandTint: '#EFE3EC',
+    /** The violet accent (pill bar redesign, Nov 27): the selected tab and the main actions (Request, Pay, Add).
+     *  A gradient from accent to accentDeep with white text; the same in dark mode. */
+    accent: '#6E4588',
+    accentDeep: '#4A2C5A',
+    onAccent: '#FFFFFF',
+    /** The floating tab bar's pill and its idle icons. */
+    bar: '#1C1220',
+    barIcon: '#D9C9DD',
     onBrandMuted: '#E6D5E2',
     owedToYou: '#3A7457',
     owedTint: '#E4EFE8',
@@ -67,6 +75,9 @@ const DARK: Palette = {
   brand: '#D4A3CA',
   brandDeep: '#E6C3DE',
   brandTint: '#3A2442',
+  accent: '#8A5AA6',
+  accentDeep: '#4A2C5A',
+  bar: '#2A1D32',
   onBrandMuted: '#5B3A55',
   owedToYou: '#A9D9BD',
   owedTint: '#1F3329',
@@ -106,6 +117,8 @@ export const HT = {
     display: 'Outfit_600SemiBold',
     displayBold: 'Outfit_700Bold',
     displayExtra: 'Outfit_800ExtraBold',
+    /** Outfit Black: the big screen titles and hero headlines. */
+    displayBlack: 'Outfit_900Black',
     /**
      * Money: DM Sans with tabular digits. DM Sans ships no `tnum` feature, so fontVariant
      * ['tabular-nums'] alone does nothing; these are DM Sans copies with fixed-width digits

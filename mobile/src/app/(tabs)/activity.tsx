@@ -8,6 +8,7 @@ import { ChevronIcon, SearchIcon } from '@/components/icons';
 import { Button, Card, Money, T } from '@/components/ui';
 import { WebTopNav } from '@/components/web-top-nav';
 import { formatCents } from '@/lib/money';
+import { useTabBarInset } from '@/components/pill-tab-bar';
 import { HT } from '@/constants/theme';
 import { useLayout } from '@/hooks/use-layout';
 import { api, CATEGORIES, type Expense, type Household, type StatementSummary } from '@/lib/api';
@@ -17,6 +18,7 @@ import { useSession } from '@/lib/session';
 export default function Activity() {
   const { households } = useSession();
   const { wide, gutter, desktop } = useLayout();
+  const tabInset = useTabBarInset();
   const id = households.find((h) => h.kind !== 'group')?.id;
   const [home, setHome] = useState<Household | null>(null);
   const [q, setQ] = useState('');
@@ -156,9 +158,9 @@ export default function Activity() {
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: HT.color.ground }} edges={['top', 'left', 'right']}>
       {desktop ? <WebTopNav /> : null}
-      <ScrollView contentContainerStyle={{ paddingBottom: 32 }} keyboardShouldPersistTaps="handled">
+      <ScrollView contentContainerStyle={{ paddingBottom: tabInset }} keyboardShouldPersistTaps="handled">
         <View style={{ width: '100%', maxWidth: HT.maxWidth.content, alignSelf: 'center', paddingHorizontal: gutter, paddingTop: 16, gap: 18 }}>
-          <T v="display" accessibilityRole="header">Activity</T>
+          <T v="hero" accessibilityRole="header">Activity</T>
           {id && hasGroups ? (
             <View accessibilityRole="radiogroup" style={{ flexDirection: 'row', backgroundColor: HT.color.segment, borderRadius: HT.radius.tile, padding: 4, gap: 4, width: '100%', maxWidth: 360, alignSelf: 'center' }}>
               {(['home', 'all'] as const).map((k) => (

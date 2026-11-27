@@ -6,7 +6,7 @@ import {
   useFonts as useDMSansFonts,
 } from '@expo-google-fonts/dm-sans';
 import { IBMPlexMono_500Medium, useFonts as usePlexFonts } from '@expo-google-fonts/ibm-plex-mono';
-import { Outfit_600SemiBold, Outfit_700Bold, Outfit_800ExtraBold, useFonts as useOutfitFonts } from '@expo-google-fonts/outfit';
+import { Outfit_600SemiBold, Outfit_700Bold, Outfit_800ExtraBold, Outfit_900Black, useFonts as useOutfitFonts } from '@expo-google-fonts/outfit';
 import { useFonts } from 'expo-font';
 import { router, Stack, usePathname, type Href } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
@@ -34,7 +34,7 @@ const MODAL = { presentation: 'modal', animation: 'slide_from_bottom' } as const
 
 function Root() {
   const [dmSans] = useDMSansFonts({ DMSans_400Regular, DMSans_500Medium, DMSans_600SemiBold, DMSans_700Bold });
-  const [outfit] = useOutfitFonts({ Outfit_600SemiBold, Outfit_700Bold, Outfit_800ExtraBold });
+  const [outfit] = useOutfitFonts({ Outfit_600SemiBold, Outfit_700Bold, Outfit_800ExtraBold, Outfit_900Black });
   const [plex] = usePlexFonts({ IBMPlexMono_500Medium });
   const [tabular] = useFonts({
     DMSansTabular_500Medium: require('../../assets/fonts/DMSansTabular_500Medium.ttf'),

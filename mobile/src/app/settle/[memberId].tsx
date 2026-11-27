@@ -188,7 +188,7 @@ export default function Settle() {
   const actions = theyOwe ? (
     <Card style={{ gap: 12 }}>
       <TonePicker value={tone} onChange={setTone} preview="share" />
-      <Button title={`Request ${formatCents(net)}`} icon={<SendIcon size={18} color="#fff" />}
+      <Button kind="accent" title={`Request ${formatCents(net)}`} icon={<SendIcon size={18} color={HT.color.onAccent} />}
         onPress={() => sendRequest(home.id, other.id, undefined, tone).catch((e) => setError(e instanceof ApiError ? e.message : "Couldn't send it."))} />
       {recording ? (
         <View style={{ gap: 12 }}>
@@ -229,7 +229,7 @@ export default function Settle() {
       <View style={{ height: 1, backgroundColor: HT.color.hairline }} />
       {opened ? <T v="strong">Sent it? Let {other.first_name} know.</T> : null}
       {methodChips}
-      <Button title="I paid" kind={opened ? 'onDark' : 'secondary'} icon={<CheckIcon size={18} color={opened ? HT.color.onGlow : HT.color.ink} />} onPress={() => markPaid(false)} loading={busy} />
+      <Button title="I paid" kind={opened ? 'accent' : 'secondary'} icon={<CheckIcon size={18} color={opened ? HT.color.onAccent : HT.color.ink} />} onPress={() => markPaid(false)} loading={busy} />
     </Card>
   ) : null;
 
