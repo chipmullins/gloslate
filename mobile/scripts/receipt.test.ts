@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import { itemize, parseReceipt } from '../src/lib/receipt.ts';
+import { itemize, parseReceipt, pickedExtras } from '../src/lib/receipt.ts';
 
 test('parses a restaurant receipt', () => {
   const r = parseReceipt([
@@ -53,4 +53,17 @@ test('itemize: randomized sums always match', () => {
     assert.equal(Object.values(s).reduce((a, b) => a + b, 0), items.reduce((a, i) => a + i.cents, 0) + (items.length ? tax + tip : 0));
     assert.ok(Object.values(s).every((c) => Number.isInteger(c) && c >= 0));
   }
+});
+
+test('pickedExtras scales tax and tip to the picked items', () => {
+  // $40 of a $100 receipt: 40% of $8.00 tax and $15.00 tip.
+  assert.deepEqual(pickedExtras(10000, 4000, 800, 1500), { taxCents: 320, tipCents: 600 });
+  // Everything picked: the receipt's own numbers, untouched.
+  assert.deepEqual(pickedExtras(10000, 10000, 813, 0), { taxCents: 813, tipCents: 0 });
+  // Nothing picked: nothing extra.
+  assert.deepEqual(pickedExtras(10000, 0, 800, 100), { taxCents: 0, tipCents: 0 });
+  // Whole cents, half rounds up: 1/3 of 100 = 33.33 -> 33; 1/2 of 101 = 50.5 -> 51.
+  assert.deepEqual(pickedExtras(300, 100, 100, 0), { taxCents: 33, tipCents: 0 });
+  assert.deepEqual(pickedExtras(200, 100, 101, 0), { taxCents: 51, tipCents: 0 });
+  for (const v of Object.values(pickedExtras(9999, 1234, 777, 333))) assert.ok(Number.isInteger(v));
 });

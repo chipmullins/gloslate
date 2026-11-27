@@ -82,7 +82,7 @@ export default function Add() {
     setKind('exact');
     setIncluded(d.result.participantIds);
     setInputs(Object.fromEntries(Object.entries(d.result.weights).map(([k, v]) => [k, `${Math.floor(v / 100)}.${String(v % 100).padStart(2, '0')}`])));
-    setItemization({ items: d.items.map((i) => ({ name: i.name, cents: i.cents, member_ids: i.memberIds })), tax_cents: d.taxCents, tip_cents: d.tipCents });
+    setItemization({ items: d.result.picked.map((i) => ({ name: i.name, cents: i.cents, member_ids: i.memberIds })), tax_cents: d.result.taxCents, tip_cents: d.result.tipCents });
     setShowSplit(true);
     receiptDraft.patch({ result: undefined });
   }, []));
@@ -101,6 +101,8 @@ export default function Add() {
       }
       setScanItems(r.parsed?.items.length ?? 0);
       if (!r.parsed) toast.show({ text: 'Photo attached. Type the total on the keypad.' });
+      // Items read off the receipt: go straight to picking which ones to split.
+      else if (r.parsed.items.length > 0) router.push(`/itemize?payerId=${payer}${hid ? `&hid=${hid}` : ''}` as Href);
     } catch (e) {
       setError(e instanceof Error ? e.message : "Couldn't scan that receipt.");
     }
@@ -277,11 +279,11 @@ export default function Add() {
             ? ids.length === members.length ? `Split equally${cents ? ` · ${formatCents(perHead)} each` : ''}` : `Split between ${ids.length}${cents ? ` · ${formatCents(perHead)} each` : ''}`
             : `Split by ${kind === 'percent' ? 'percentage' : kind === 'exact' ? 'exact amounts' : 'shares'}`}
         </T>
-        {!editing && photoUri && (scanItems > 1 || members.length > 2) ? (
+        {!editing && photoUri && scanItems > 0 ? (
           <Pressable accessibilityRole="button" onPress={() => router.push(`/itemize?payerId=${payer}${hid ? `&hid=${hid}` : ''}` as Href)}
             style={({ pressed }) => ({ alignSelf: 'flex-start', minHeight: 36, paddingHorizontal: 12, borderRadius: 18, justifyContent: 'center', backgroundColor: HT.color.ground,
               borderWidth: 1, borderColor: HT.color.chipBorder, opacity: pressed ? 0.7 : 1 })}>
-            <T v="strong" style={{ fontSize: 13 }}>{itemization ? 'Edit items' : 'Who had what'}</T>
+            <T v="strong" style={{ fontSize: 13 }}>{itemization ? 'Edit receipt items' : `Pick from ${scanItems} receipt item${scanItems === 1 ? '' : 's'}`}</T>
           </Pressable>
         ) : null}
         {/* What was it: its own labeled field, with quick picks under the card. */}

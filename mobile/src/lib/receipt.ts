@@ -71,3 +71,14 @@ export function itemize(items: AssignedItem[], taxCents: number, tipCents: numbe
   }
   return out;
 }
+
+/**
+ * Tax and tip for just the items you picked off a receipt: each scaled by picked ÷ all items,
+ * in whole cents (rounded half up). Picking everything keeps the receipt's own numbers.
+ */
+export function pickedExtras(allCents: number, pickedCents: number, taxCents: number, tipCents: number): { taxCents: number; tipCents: number } {
+  if (allCents <= 0 || pickedCents >= allCents) return { taxCents, tipCents };
+  if (pickedCents <= 0) return { taxCents: 0, tipCents: 0 };
+  const scale = (c: number) => Math.floor((c * pickedCents * 2 + allCents) / (allCents * 2));
+  return { taxCents: scale(taxCents), tipCents: scale(tipCents) };
+}
