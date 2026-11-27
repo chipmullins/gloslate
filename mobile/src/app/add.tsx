@@ -6,6 +6,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { BackIcon, CameraIcon, CheckIcon, CloseIcon, PencilIcon } from '@/components/icons';
 import { applyKey, Keypad } from '@/components/keypad';
 import { Avatar, Button, ErrorNote, IconButton, Screen, T } from '@/components/ui';
+import { RoundButton } from '@/components/stat-card';
 import { LoadState } from '@/components/load-state';
 import { HT } from '@/constants/theme';
 import { useHousehold } from '@/hooks/use-household';
@@ -257,62 +258,55 @@ export default function Add() {
 
   const chip = (on: boolean) => ({
     minHeight: 40, paddingHorizontal: 14, borderRadius: 20, justifyContent: 'center' as const,
-    borderWidth: on ? 1.5 : 1, borderColor: on ? HT.color.brand : HT.color.chipBorder, backgroundColor: on ? HT.color.brandTint : HT.color.surface,
+    borderWidth: 1, borderColor: on ? HT.color.ink : HT.color.chipBorder, backgroundColor: on ? HT.color.ink : HT.color.surface,
   });
+  const chipText = (on: boolean) => (on ? HT.color.ground : HT.color.ink);
+  const others = members.filter((m) => !m.you).map((m) => m.first_name);
+  const tabLabel = `${home.kind === 'group' ? home.name : home.name || 'Home'} · ${others.length === 1 ? `You & ${others[0]}` : `${members.length} people`}`;
 
   const amountBlock = (
-    <View style={{ alignItems: 'center', paddingTop: wide ? 24 : 4, gap: 4 }}>
-      <Text accessibilityLabel={`Amount ${formatCents(cents)}`} adjustsFontSizeToFit numberOfLines={1} maxFontSizeMultiplier={1.2}
-        style={{ fontFamily: HT.font.monoBold, fontSize: wide ? 64 : 52, letterSpacing: -1.5, color: cents ? HT.color.ink : HT.color.faint }}>
-        {formatCents(cents)}
-      </Text>
-      <T v="muted">
-        {kind === 'equal'
-          ? ids.length === members.length ? `Split equally${cents ? ` · ${formatCents(perHead)} each` : ''}` : `Split between ${ids.length}${cents ? ` · ${formatCents(perHead)} each` : ''}`
-          : `Split by ${kind === 'percent' ? 'percentage' : kind === 'exact' ? 'exact amounts' : 'shares'}`}
-      </T>
-      <View style={{ alignItems: 'center', marginTop: 6 }}>
-        {!editing ? (
-          <View style={{ flexDirection: 'row', gap: 8, flexWrap: 'wrap', justifyContent: 'center' }}>
-            <Pressable accessibilityRole="button" accessibilityLabel={photoUri ? 'Retake receipt photo' : 'Scan a receipt'} onPress={() => scan('camera')}
-              onLongPress={() => scan('library')} accessibilityHint="Hold to pick a photo instead"
-              style={({ pressed }) => ({ minHeight: 36, paddingHorizontal: 12, borderRadius: 18, flexDirection: 'row', alignItems: 'center', gap: 6,
-                backgroundColor: photoUri ? HT.color.brandTint : HT.color.surface, borderWidth: 1, borderColor: photoUri ? HT.color.brand : HT.color.chipBorder, opacity: pressed ? 0.7 : 1 })}>
-              {photoUri ? <CheckIcon size={15} color={HT.color.brand} /> : <CameraIcon size={16} />}
-              <T v="strong" style={{ fontSize: 13, color: photoUri ? HT.color.brand : HT.color.ink }}>{photoUri ? 'Receipt attached' : 'Scan receipt'}</T>
-            </Pressable>
-            {photoUri && (scanItems > 1 || members.length > 2) ? (
-              <Pressable accessibilityRole="button" onPress={() => router.push(`/itemize?payerId=${payer}${hid ? `&hid=${hid}` : ''}` as Href)}
-                style={({ pressed }) => ({ minHeight: 36, paddingHorizontal: 12, borderRadius: 18, justifyContent: 'center', backgroundColor: HT.color.surface,
-                  borderWidth: 1, borderColor: HT.color.chipBorder, opacity: pressed ? 0.7 : 1 })}>
-                <T v="strong" style={{ fontSize: 13 }}>{itemization ? 'Edit items' : 'Who had what'}</T>
-              </Pressable>
-            ) : null}
-          </View>
+    <View style={{ gap: 12, paddingTop: wide ? 24 : 0 }}>
+      <View style={{ backgroundColor: HT.color.surface, borderRadius: HT.radius.card, borderWidth: 1, borderColor: HT.color.hairline, paddingHorizontal: 18, paddingTop: 16, paddingBottom: 14, gap: 6 }}>
+        <T numberOfLines={1} style={{ fontFamily: HT.font.label, fontSize: 11.5, letterSpacing: 2, color: HT.color.muted, textTransform: 'uppercase' }}>{tabLabel}</T>
+        <Text accessibilityLabel={`Amount ${formatCents(cents)}`} adjustsFontSizeToFit numberOfLines={1} maxFontSizeMultiplier={1.2}
+          style={{ fontFamily: HT.font.monoBold, fontSize: wide ? 64 : 54, letterSpacing: -1.6, color: cents ? HT.color.ink : HT.color.faint, fontVariant: ['tabular-nums'] }}>
+          {formatCents(cents)}
+        </Text>
+        <T v="muted">
+          {kind === 'equal'
+            ? ids.length === members.length ? `Split equally${cents ? ` · ${formatCents(perHead)} each` : ''}` : `Split between ${ids.length}${cents ? ` · ${formatCents(perHead)} each` : ''}`
+            : `Split by ${kind === 'percent' ? 'percentage' : kind === 'exact' ? 'exact amounts' : 'shares'}`}
+        </T>
+        {!editing && photoUri && (scanItems > 1 || members.length > 2) ? (
+          <Pressable accessibilityRole="button" onPress={() => router.push(`/itemize?payerId=${payer}${hid ? `&hid=${hid}` : ''}` as Href)}
+            style={({ pressed }) => ({ alignSelf: 'flex-start', minHeight: 36, paddingHorizontal: 12, borderRadius: 18, justifyContent: 'center', backgroundColor: HT.color.ground,
+              borderWidth: 1, borderColor: HT.color.chipBorder, opacity: pressed ? 0.7 : 1 })}>
+            <T v="strong" style={{ fontSize: 13 }}>{itemization ? 'Edit items' : 'Who had what'}</T>
+          </Pressable>
         ) : null}
-      </View>
-      {/* What was it: its own labeled field right under Scan receipt, with quick picks. */}
-      <View style={{ alignSelf: 'stretch', marginTop: 14, gap: 8 }}>
-        <T v="label" nativeID="whatLabel">What was it?</T>
-        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10, minHeight: 52, paddingHorizontal: 14, borderRadius: HT.radius.tile,
-          backgroundColor: HT.color.surface, borderWidth: 1.5, borderColor: description ? HT.color.brand : HT.color.chipBorder }}>
+        {/* What was it: its own labeled field, with quick picks under the card. */}
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10, minHeight: 50, marginTop: 4, paddingHorizontal: 14, borderRadius: HT.radius.tile,
+          backgroundColor: HT.color.ground, borderWidth: 1.5, borderColor: description ? HT.color.ink : 'transparent' }}>
           <PencilIcon size={18} color={HT.color.muted} />
           <TextInput keyboardAppearance={HT.scheme} value={description} onChangeText={setDescription} placeholder="Add a name, like Costco run" placeholderTextColor={HT.color.faint}
             accessibilityLabel="What was it" accessibilityLabelledBy="whatLabel" maxLength={60} returnKeyType="done"
-            style={{ flex: 1, height: 50, paddingVertical: 0, fontFamily: HT.font.medium, fontSize: 16, color: HT.color.ink }} />
+            style={{ flex: 1, height: 48, paddingVertical: 0, fontFamily: HT.font.medium, fontSize: 16, color: HT.color.ink }} />
         </View>
-        {!description ? (
-          <View style={{ flexDirection: 'row', gap: 8, flexWrap: 'wrap' }}>
-            {QUICK_PICKS.map((p) => (
-              <Pressable key={p.label} accessibilityRole="button" accessibilityLabel={`Call it ${p.label}`}
-                onPress={() => { setDescription(p.label); if (!editing) setCategory(p.category); }}
-                style={({ pressed }) => ({ minHeight: 36, paddingHorizontal: 12, borderRadius: 18, justifyContent: 'center', backgroundColor: HT.color.surface,
-                  borderWidth: 1, borderColor: HT.color.chipBorder, opacity: pressed ? 0.7 : 1 })}>
-                <T style={{ fontSize: 13.5 }}>{p.label}</T>
+      </View>
+      <View style={{ gap: 8 }}>
+        <T v="strong" nativeID="whatLabel" style={{ fontSize: 15 }}>What was it?</T>
+        <View style={{ flexDirection: 'row', gap: 8, flexWrap: 'wrap' }}>
+          {QUICK_PICKS.map((p) => {
+            const on = description === p.label;
+            return (
+              <Pressable key={p.label} accessibilityRole="button" accessibilityLabel={`Call it ${p.label}`} accessibilityState={{ selected: on }}
+                onPress={() => { setDescription(on ? '' : p.label); if (!editing && !on) setCategory(p.category); }}
+                style={({ pressed }) => ({ ...chip(on), opacity: pressed ? 0.7 : 1 })}>
+                <T v="strong" style={{ fontSize: 13.5, color: chipText(on) }}>{p.label}</T>
               </Pressable>
-            ))}
-          </View>
-        ) : null}
+            );
+          })}
+        </View>
       </View>
     </View>
   );
@@ -383,7 +377,7 @@ export default function Add() {
 
   const categoryChips = CATEGORIES.map((c) => (
     <Pressable key={c.key} accessibilityRole="radio" accessibilityLabel={c.label} accessibilityState={{ checked: category === c.key }} onPress={() => setCategory(c.key)} style={chip(category === c.key)}>
-      <T v="strong" style={{ fontSize: 13, color: category === c.key ? HT.color.brand : HT.color.ink }}>{c.label}</T>
+      <T v="strong" style={{ fontSize: 13, color: chipText(category === c.key) }}>{c.label}</T>
     </Pressable>
   ));
   // One swipeable row on phones (two wrapped rows pushed the rest under the keypad).
@@ -398,7 +392,7 @@ export default function Add() {
     <View style={{ flexDirection: 'row', gap: 8, justifyContent: 'center' }}>
       {(['tab', 'soon'] as const).map((u) => (
         <Pressable key={u} accessibilityRole="radio" accessibilityLabel={u === 'tab' ? 'Add to tab' : 'Pay me back soon'} accessibilityState={{ checked: urgency === u }} onPress={() => setUrgency(u)} style={chip(urgency === u)}>
-          <T v="strong" style={{ fontSize: 13, color: urgency === u ? HT.color.brand : HT.color.ink }}>{u === 'tab' ? 'Add to tab' : 'Pay me back soon'}</T>
+          <T v="strong" style={{ fontSize: 13, color: chipText(urgency === u) }}>{u === 'tab' ? 'Add to tab' : 'Pay me back soon'}</T>
         </Pressable>
       ))}
     </View>
@@ -461,10 +455,21 @@ export default function Add() {
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: HT.color.ground }} edges={['top', 'left', 'right', 'bottom']}>
       <View style={{ flex: 1, width: '100%', maxWidth: wide ? 1000 : HT.maxWidth.form, alignSelf: 'center', paddingHorizontal: wide ? 32 : 20 }}>
-        <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', minHeight: 52 }}>
-          <IconButton label="Close" onPress={() => goBack((hid ? `/group/${hid}` : '/home') as Href)}><CloseIcon /></IconButton>
-          <T v="heading" accessibilityRole="header" style={{ fontSize: 16 }} numberOfLines={1}>{editing ? 'Edit' : home.kind === 'group' ? `Add to ${home.name}` : 'Add'}</T>
-          <View style={{ width: 44 }} />
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12, minHeight: 60, paddingBottom: 6 }}>
+          <RoundButton label="Close" onPress={() => goBack((hid ? `/group/${hid}` : '/home') as Href)}><CloseIcon size={20} /></RoundButton>
+          <T v="hero" accessibilityRole="header" style={{ flex: 1, fontSize: 30, lineHeight: 36 }} numberOfLines={1} adjustsFontSizeToFit>
+            {editing ? 'Edit expense' : home.kind === 'group' ? `Add to ${home.name}` : 'Add expense'}
+          </T>
+          {!editing ? (
+            <Pressable accessibilityRole="button" accessibilityLabel={photoUri ? 'Retake receipt photo' : 'Scan a receipt'} onPress={() => scan('camera')}
+              onLongPress={() => scan('library')} accessibilityHint="Hold to pick a photo instead" hitSlop={4}
+              style={({ pressed }) => ({ height: 46, paddingHorizontal: photoUri ? 14 : 0, width: photoUri ? undefined : 46, borderRadius: 23, flexDirection: 'row', gap: 6,
+                alignItems: 'center', justifyContent: 'center', backgroundColor: photoUri ? HT.color.ink : HT.color.surface, borderWidth: 1,
+                borderColor: photoUri ? HT.color.ink : HT.color.hairline, opacity: pressed ? 0.7 : 1 })}>
+              {photoUri ? <CheckIcon size={16} color={HT.color.ground} /> : <CameraIcon size={20} color={HT.color.ink} />}
+              {photoUri ? <T v="strong" style={{ fontSize: 13, color: HT.color.ground }}>Receipt</T> : null}
+            </Pressable>
+          ) : null}
         </View>
 
         {wide ? (

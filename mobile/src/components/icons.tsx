@@ -59,8 +59,9 @@ export const TrashIcon = (p: IconProps) => <Stroke {...p} d="M4 7h16M10 11v6M14 
  * `inverted` = glass tile, for night surfaces. Smaller sizes use the canvas's simplified
  * drawings: under 72px the 64px one (heavier strokes, bigger eye; no tail or halo), under 48px
  * the 36px one (one ear, a plain slate).
+ * `bare` = no tile at all: just the bunny, its slate and the sparkle, for the night-sky Home header.
  */
-export function HouseMark({ size = 32, inverted = false }: { size?: number; inverted?: boolean }) {
+export function HouseMark({ size = 32, inverted = false, bare = false }: { size?: number; inverted?: boolean; bare?: boolean }) {
   const n = HT.color.night;
   const fur = HT.color.onDarkText;
   const id = inverted ? 'glMarkG' : 'glMark';
@@ -78,7 +79,7 @@ export function HouseMark({ size = 32, inverted = false }: { size?: number; inve
           <Stop offset="1" stopColor={HT.color.glow} stopOpacity={0} />
         </RadialGradient>
       </Defs>
-      {inverted ? (
+      {bare ? null : inverted ? (
         <Rect x={0.5} y={0.5} width={99} height={99} rx={22.5} fill="#FFFFFF" fillOpacity={0.05} stroke="#FFFFFF" strokeOpacity={0.12} />
       ) : (
         <Rect width={100} height={100} rx={23} fill={`url(#${id}Sky)`} />

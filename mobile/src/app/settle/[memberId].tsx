@@ -6,7 +6,8 @@ import { Linking, Pressable, View } from 'react-native';
 import { FullScreenLoader } from '@/components/bunny-loader';
 import { shortDate } from '@/components/expense-row';
 import { BackIcon, CheckIcon, CopyIcon, PlusIcon, SendIcon } from '@/components/icons';
-import { Avatar, Button, Card, ErrorNote, Field, IconButton, Money, Screen, T } from '@/components/ui';
+import { Button, Card, ErrorNote, Field, Money, Screen, T } from '@/components/ui';
+import { RoundButton, StatCard } from '@/components/stat-card';
 import { HT } from '@/constants/theme';
 import { useHousehold } from '@/hooks/use-household';
 import { useLayout } from '@/hooks/use-layout';
@@ -157,29 +158,28 @@ export default function Settle() {
   const waiting = waitingFrom(b);
   const left = -net - waiting; // what's still unmarked when you owe
 
+  const me = home.members.find((m) => m.you);
   const summary = (
-    <Card dark style={{ alignItems: 'center', gap: 8, paddingVertical: 24 }}>
-      <Avatar photo={other.photo_url} name={other.first_name} index={otherIndex} />
-      <T v="strong" style={{ color: HT.color.darkCardMuted }}>{headline}</T>
-      <Money cents={Math.abs(net)} size={48} color={net > 0 ? HT.color.onDarkOwed : net < 0 ? HT.color.onDarkOwe : HT.color.onDarkText} />
-      {b.credit_cents.theirs > 0 ? <T v="small" style={{ color: HT.color.onDarkOwed }}>{other.first_name} has {formatCents(b.credit_cents.theirs)} credit from overpaying</T> : null}
-      {b.credit_cents.mine > 0 ? <T v="small" style={{ color: HT.color.onDarkOwed }}>You have {formatCents(b.credit_cents.mine)} credit</T> : null}
+    <StatCard net={net} name={other.first_name} sub={home.name || 'Your home'} me={me ? { name: me.first_name, photo: me.photo_url } : undefined}
+      them={{ name: other.first_name, photo: other.photo_url, index: otherIndex }} note={net === 0 ? headline : 'Netted, both ways'}>
+      {b.credit_cents.theirs > 0 ? <T v="small" style={{ color: HT.color.onDarkOwed, marginTop: 8 }}>{other.first_name} has {formatCents(b.credit_cents.theirs)} credit from overpaying</T> : null}
+      {b.credit_cents.mine > 0 ? <T v="small" style={{ color: HT.color.onDarkOwed, marginTop: 8 }}>You have {formatCents(b.credit_cents.mine)} credit</T> : null}
       {pendingPay ? (
         <Pressable accessibilityRole="button" accessibilityHint="Opens the payment" onPress={() => router.push(`/payments/${pendingPay.id}` as Href)}
-          style={{ marginTop: 6, minHeight: 44, justifyContent: 'center', backgroundColor: HT.color.onDarkButton, borderRadius: 12, paddingHorizontal: 12, paddingVertical: 8 }}>
+          style={{ marginTop: 10, minHeight: 44, justifyContent: 'center', backgroundColor: HT.color.onDarkButton, borderRadius: 12, paddingHorizontal: 12, paddingVertical: 8 }}>
           <T v="small" style={{ color: HT.color.onDarkText }}>Pending · {formatCents(pendingPay.amount_cents)} waiting on {pendingPay.you_sent ? other.first_name : 'you'} to confirm</T>
         </Pressable>
       ) : null}
-    </Card>
+    </StatCard>
   );
 
   const methodChips = (
     <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
       {METHODS.map((m) => (
         <Pressable key={m.key} accessibilityRole="radio" accessibilityLabel={m.label} accessibilityState={{ checked: method === m.key }} onPress={() => setMethod(m.key)}
-          style={{ minHeight: 40, paddingHorizontal: 14, borderRadius: 20, justifyContent: 'center', borderWidth: method === m.key ? 1.5 : 1,
-            borderColor: method === m.key ? HT.color.brand : HT.color.chipBorder, backgroundColor: method === m.key ? HT.color.brandTint : HT.color.surface }}>
-          <T v="strong" style={{ fontSize: 13, color: method === m.key ? HT.color.brand : HT.color.ink }}>{m.label}</T>
+          style={{ minHeight: 40, paddingHorizontal: 15, borderRadius: 20, justifyContent: 'center', borderWidth: 1,
+            borderColor: method === m.key ? HT.color.ink : HT.color.chipBorder, backgroundColor: method === m.key ? HT.color.ink : HT.color.surface }}>
+          <T v="strong" style={{ fontSize: 13, color: method === m.key ? HT.color.ground : HT.color.ink }}>{m.label}</T>
         </Pressable>
       ))}
     </View>
@@ -291,7 +291,11 @@ export default function Settle() {
   return (
     <Screen maxWidth={wide ? 1000 : HT.maxWidth.form}>
       <View style={{ gap: 18 }}>
-        <IconButton label="Back" onPress={() => goBack()}><BackIcon /></IconButton>
+        <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
+          <RoundButton label="Back" onPress={() => goBack()}><BackIcon size={20} /></RoundButton>
+          <T accessibilityRole="header" style={{ fontFamily: HT.font.semibold, fontSize: 15, color: HT.color.muted }}>Settle up with {other.first_name}</T>
+          <View style={{ width: 46 }} />
+        </View>
         <ErrorNote message={error} />
         {wide ? (
           <View style={{ flexDirection: 'row', gap: 24, alignItems: 'flex-start' }}>

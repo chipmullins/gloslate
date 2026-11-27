@@ -3,8 +3,9 @@ import { useCallback, useState } from 'react';
 import { Pressable, View } from 'react-native';
 
 import { FullScreenLoader } from '@/components/bunny-loader';
-import { BackIcon, ChevronIcon } from '@/components/icons';
-import { Avatar, Button, Card, ErrorNote, IconButton, Money, Screen, T } from '@/components/ui';
+import { BackIcon, CheckIcon, SendIcon } from '@/components/icons';
+import { RoundButton, StatCard } from '@/components/stat-card';
+import { Button, Card, ErrorNote, IconButton, Screen, T } from '@/components/ui';
 import { HT } from '@/constants/theme';
 import { api, ApiError, type PersonNet } from '@/lib/api';
 import { useLive } from '@/lib/live';
@@ -21,7 +22,7 @@ const METHODS = [
 /** One person, every tab you share: the single amount that squares all of them, and how it nets out. */
 export default function PersonScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
-  const { refresh } = useSession();
+  const { refresh, user } = useSession();
   const [p, setP] = useState<PersonNet | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState<'request' | 'settle' | null>(null);
@@ -78,39 +79,69 @@ export default function PersonScreen() {
     } finally { setBusy(null); }
   }
 
+  const full = `${name}${p.last_initial ? ` ${p.last_initial}.` : ''}`;
+  const biggest = Math.max(1, ...p.tabs.map((t) => Math.abs(t.cents)));
+  const tabWord = `${p.tab_count} ${p.tab_count === 1 ? 'tab' : 'tabs'}`;
   return (
     <Screen maxWidth={HT.maxWidth.form}>
-      <View style={{ gap: 18 }}>
-        <IconButton label="Back" onPress={() => goBack('/groups' as Href)}><BackIcon /></IconButton>
-        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
-          <Avatar name={name} photo={p.photo_url} size={52} />
-          <T v="display" accessibilityRole="header">{name}{p.last_initial ? ` ${p.last_initial}.` : ''}</T>
+      <View style={{ gap: 16 }}>
+        <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
+          <RoundButton label="Back" onPress={() => goBack('/groups' as Href)}><BackIcon size={20} /></RoundButton>
+          <T accessibilityRole="header" style={{ fontFamily: HT.font.semibold, fontSize: 15, color: HT.color.muted }}>{full}</T>
+          <View style={{ width: 46 }} />
         </View>
 
-        <Card dark fireflies style={{ gap: 8, paddingVertical: 22 }}>
-          {net === 0 ? (
-            <>
-              <T v="heading" style={{ color: HT.color.onDarkText, fontSize: 22 }}>You and {name} are square</T>
-              <T style={{ color: HT.color.darkCardMuted }}>Across all {p.tab_count} {p.tab_count === 1 ? 'tab' : 'tabs'} you share.</T>
-            </>
-          ) : (
-            <>
-              <T v="strong" style={{ color: HT.color.darkCardMuted, fontSize: 14 }}>{theyOwe ? `Across everything, ${name} sends you` : `Across everything, you send ${name}`}</T>
-              <Money cents={Math.abs(net)} size={44} color={theyOwe ? HT.color.onDarkOwed : HT.color.onDarkOwe} />
-              {open.length > 1 ? <T style={{ color: HT.color.darkCardMuted }}>One payment settles {open.length === p.tab_count ? 'every tab' : `${open.length} tabs`}.</T> : null}
-              <View style={{ gap: 10, marginTop: 8 }}>
-                {theyOwe ? (
-                  <>
-                    <Button kind="accent" title={`Request ${formatCents(net)}`} loading={busy === 'request'} onPress={request} />
-                    <Button kind="glass" title={`${name} paid me ${formatCents(net)}`} onPress={() => setPicking(true)} />
-                  </>
-                ) : (
-                  <Button kind="accent" title={`I paid ${formatCents(-net)}`} onPress={() => setPicking(true)} />
-                )}
-              </View>
-            </>
-          )}
+        <StatCard net={net} name={name} sub={`${tabWord} together`} me={user ? { name: user.first_name, photo: user.photo_url } : undefined}
+          them={{ name, photo: p.photo_url }} note={net === 0 ? `Square across ${p.tab_count === 1 ? 'your tab' : `all ${tabWord}`}` : open.length > 1 ? 'Netted, both ways' : undefined} />
+
+        <Card style={{ gap: 14, paddingVertical: 18 }}>
+          <View style={{ gap: 2 }}>
+            <T accessibilityRole="header" style={{ fontFamily: HT.font.displayExtra, fontSize: 19 }}>How it nets out</T>
+            {open.length > 1 && net !== 0 ? <T v="small" style={{ fontSize: 13 }}>One payment settles {open.length === p.tab_count ? 'every tab' : `${open.length} tabs`}</T> : null}
+          </View>
+          {p.tabs.map((t) => {
+            const color = t.cents > 0 ? HT.color.owedToYou : t.cents < 0 ? HT.color.youOwe : HT.color.muted;
+            return (
+              <Pressable key={t.household_id} accessibilityRole="button" accessibilityLabel={`${t.name}. ${t.cents > 0 ? `${name} owes you` : t.cents < 0 ? `You owe ${name}` : 'Square'} ${t.cents ? formatCents(Math.abs(t.cents)) : ''}`}
+                onPress={() => router.push((t.kind === 'group' ? `/group/${t.household_id}` : '/home') as Href)}
+                style={({ pressed }) => ({ gap: 8, minHeight: 44, justifyContent: 'center', opacity: pressed ? 0.7 : 1 })}>
+                <View style={{ flexDirection: 'row', alignItems: 'baseline', gap: 10 }}>
+                  <T v="strong" numberOfLines={1} style={{ flex: 1, fontSize: 15.5 }}>{t.name}<T v="small" style={{ fontSize: 13.5, fontFamily: HT.font.medium }}>  · {t.kind === 'group' ? 'group' : 'your home'}</T></T>
+                  <T style={{ fontFamily: HT.font.monoBold, fontSize: 15.5, color, fontVariant: ['tabular-nums'] }}>
+                    {t.cents === 0 ? '$0.00' : `${t.cents > 0 ? '+' : '−'}${formatCents(Math.abs(t.cents))}`}
+                  </T>
+                </View>
+                <View accessibilityElementsHidden importantForAccessibility="no-hide-descendants" style={{ height: 8, borderRadius: 4, backgroundColor: HT.color.segment, overflow: 'hidden' }}>
+                  <View style={{ width: `${Math.round((Math.abs(t.cents) / biggest) * 100)}%`, height: 8, borderRadius: 4, backgroundColor: color }} />
+                </View>
+              </Pressable>
+            );
+          })}
+          {p.tabs.length > 1 ? (
+            <View style={{ flexDirection: 'row', alignItems: 'center', paddingTop: 12, borderTopWidth: 1, borderTopColor: HT.color.hairline }}>
+              <T v="strong" style={{ flex: 1 }}>Net</T>
+              <T style={{ fontFamily: HT.font.monoBold, fontSize: 17, color: net > 0 ? HT.color.owedToYou : net < 0 ? HT.color.youOwe : HT.color.muted, fontVariant: ['tabular-nums'] }}>
+                {net === 0 ? '$0.00' : `${net > 0 ? '+' : '−'}${formatCents(Math.abs(net))}`}
+              </T>
+            </View>
+          ) : null}
         </Card>
+
+        {net !== 0 ? (
+          <View style={{ flexDirection: 'row', gap: 10 }}>
+            {theyOwe ? (
+              <>
+                <Button kind="accent" title={`Request ${formatCents(net)}`} icon={<SendIcon size={18} color={HT.color.onAccent} />} loading={busy === 'request'} onPress={request}
+                  style={{ flex: 1, minHeight: 58, borderRadius: 18 }} />
+                <Button kind="secondary" title="Paid me" accessibilityLabel={`${name} paid me ${formatCents(net)}`} onPress={() => setPicking(true)}
+                  style={{ minHeight: 58, borderRadius: 18, borderColor: HT.color.hairline }} />
+              </>
+            ) : (
+              <Button kind="accent" title={`I paid ${formatCents(-net)}`} icon={<CheckIcon size={18} color={HT.color.onAccent} />} onPress={() => setPicking(true)}
+                style={{ flex: 1, minHeight: 58, borderRadius: 18 }} />
+            )}
+          </View>
+        ) : null}
 
         {p.to_confirm_cents ? (
           <Card style={{ gap: 10 }}>
@@ -132,48 +163,20 @@ export default function PersonScreen() {
             <View accessibilityRole="radiogroup" style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
               {METHODS.map((m) => (
                 <Pressable key={m.key} accessibilityRole="radio" accessibilityState={{ checked: method === m.key }} onPress={() => setMethod(m.key)}
-                  style={{ minHeight: 40, paddingHorizontal: 14, borderRadius: 20, justifyContent: 'center', borderWidth: method === m.key ? 1.5 : 1,
-                    borderColor: method === m.key ? HT.color.brand : HT.color.chipBorder, backgroundColor: method === m.key ? HT.color.brandTint : HT.color.surface }}>
-                  <T v="strong" style={{ fontSize: 13.5, color: method === m.key ? HT.color.brand : HT.color.ink }}>{m.label}</T>
+                  style={{ minHeight: 40, paddingHorizontal: 15, borderRadius: 20, justifyContent: 'center', borderWidth: 1,
+                    borderColor: method === m.key ? HT.color.ink : HT.color.chipBorder, backgroundColor: method === m.key ? HT.color.ink : HT.color.surface }}>
+                  <T v="strong" style={{ fontSize: 13.5, color: method === m.key ? HT.color.ground : HT.color.ink }}>{m.label}</T>
                 </Pressable>
               ))}
             </View>
             <T v="small">{theyOwe
               ? `Gloslate records it in each tab. Any part you owed ${name} waits for ${name} to confirm.`
               : `Gloslate records it in each tab. ${name} confirms it arrived, like any payment.`}</T>
-            <Button title={theyOwe ? 'Record it' : `Mark ${formatCents(-net)} paid`} loading={busy === 'settle'} onPress={settle} />
+            <Button kind="accent" title={theyOwe ? 'Record it' : `Mark ${formatCents(-net)} paid`} loading={busy === 'settle'} onPress={settle} />
           </Card>
         ) : null}
 
-        <View style={{ gap: 8 }}>
-          <T v="label">How it nets out</T>
-          <Card style={{ paddingVertical: 4 }}>
-            {p.tabs.map((t, i) => (
-              <Pressable key={t.household_id} accessibilityRole="button" accessibilityLabel={`${t.name}. ${t.cents > 0 ? `${name} owes you` : t.cents < 0 ? `You owe ${name}` : 'Square'} ${t.cents ? formatCents(Math.abs(t.cents)) : ''}`}
-                onPress={() => router.push((t.kind === 'group' ? `/group/${t.household_id}` : '/home') as Href)}
-                style={({ pressed }) => ({ flexDirection: 'row', alignItems: 'center', gap: 12, minHeight: 60, opacity: pressed ? 0.7 : 1,
-                  borderTopWidth: i ? 1 : 0, borderTopColor: HT.color.hairline })}>
-                <View style={{ flex: 1 }}>
-                  <T v="strong" numberOfLines={1}>{t.name}</T>
-                  <T v="small">{t.kind === 'group' ? 'Group' : 'Your home'} · {t.cents > 0 ? `${name} owes you` : t.cents < 0 ? `you owe ${name}` : 'square'}</T>
-                </View>
-                <T v="strong" style={{ color: t.cents > 0 ? HT.color.owedToYou : t.cents < 0 ? HT.color.youOwe : HT.color.muted }}>
-                  {t.cents === 0 ? '$0.00' : `${t.cents > 0 ? '+' : '−'}${formatCents(Math.abs(t.cents))}`}
-                </T>
-                <ChevronIcon size={16} color={HT.color.muted} />
-              </Pressable>
-            ))}
-            {p.tabs.length > 1 ? (
-              <View style={{ flexDirection: 'row', alignItems: 'center', minHeight: 54, borderTopWidth: 1, borderTopColor: HT.color.hairline }}>
-                <T v="strong" style={{ flex: 1 }}>Net</T>
-                <T v="strong" style={{ color: net > 0 ? HT.color.owedToYou : net < 0 ? HT.color.youOwe : HT.color.muted, marginRight: 28 }}>
-                  {net === 0 ? '$0.00' : `${net > 0 ? '+' : '−'}${formatCents(Math.abs(net))}`}
-                </T>
-              </View>
-            ) : null}
-          </Card>
-          <T v="small">Each tab keeps its own history, so everyone else in a home or group still sees their own numbers.</T>
-        </View>
+        <T v="small">Each tab keeps its own history, so everyone else in a home or group still sees their own numbers.</T>
       </View>
     </Screen>
   );

@@ -423,8 +423,8 @@ export default function Home() {
         <NightSurface fireflies style={{ paddingTop: top + 10, paddingBottom: 58 }}>
           <View style={[shell, { gap: 4 }]}>
             <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', minHeight: 48 }}>
-              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10, flexShrink: 1 }}>
-                <HouseMark size={34} inverted />
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, flexShrink: 1, marginLeft: -6 }}>
+                <HouseMark size={44} bare />
                 <T v="title" style={{ fontSize: 19, lineHeight: 23, color: HT.color.onDarkText }} accessibilityRole="header" accessibilityLabel="Gloslate by Glofly">
                   <T style={{ color: HT.color.glow }}>glo</T>slate<T v="small" style={{ fontSize: 12, fontFamily: HT.font.medium, color: HT.color.darkCardMuted }}>  by Glofly</T>
                 </T>
