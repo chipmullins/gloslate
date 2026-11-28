@@ -67,3 +67,13 @@ test('pickedExtras scales tax and tip to the picked items', () => {
   assert.deepEqual(pickedExtras(200, 100, 101, 0), { taxCents: 51, tipCents: 0 });
   for (const v of Object.values(pickedExtras(9999, 1234, 777, 333))) assert.ok(Number.isInteger(v));
 });
+
+test('an item marked as one person\'s is theirs in full, tax in proportion', () => {
+  // Shared $10 groceries, Coleman's own $20 protein bars, $3 tax on the $30.
+  const split = itemize([
+    { name: 'Groceries', cents: 1000, memberIds: ['me', 'co'] },
+    { name: 'Protein bars', cents: 2000, memberIds: ['co'] },
+  ], 300, 0, 'me');
+  assert.deepEqual(split, { me: 550, co: 2750 });
+  assert.equal(split.me + split.co, 3300);
+});

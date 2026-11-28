@@ -279,11 +279,11 @@ export default function Add() {
             ? ids.length === members.length ? `Split equally${cents ? ` · ${formatCents(perHead)} each` : ''}` : `Split between ${ids.length}${cents ? ` · ${formatCents(perHead)} each` : ''}`
             : `Split by ${kind === 'percent' ? 'percentage' : kind === 'exact' ? 'exact amounts' : 'shares'}`}
         </T>
-        {!editing && photoUri && scanItems > 0 ? (
+        {!editing ? (
           <Pressable accessibilityRole="button" onPress={() => router.push(`/itemize?payerId=${payer}${hid ? `&hid=${hid}` : ''}` as Href)}
             style={({ pressed }) => ({ alignSelf: 'flex-start', minHeight: 36, paddingHorizontal: 12, borderRadius: 18, justifyContent: 'center', backgroundColor: HT.color.ground,
               borderWidth: 1, borderColor: HT.color.chipBorder, opacity: pressed ? 0.7 : 1 })}>
-            <T v="strong" style={{ fontSize: 13 }}>{itemization ? 'Edit receipt items' : `Pick from ${scanItems} receipt item${scanItems === 1 ? '' : 's'}`}</T>
+            <T v="strong" style={{ fontSize: 13 }}>{itemization ? 'Edit items' : photoUri && scanItems > 0 ? `Pick from ${scanItems} receipt item${scanItems === 1 ? '' : 's'}` : 'Split by item'}</T>
           </Pressable>
         ) : null}
         {/* What was it: its own labeled field, with quick picks under the card. */}

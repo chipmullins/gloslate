@@ -50,17 +50,23 @@ export default function Itemize() {
   const pickedCount = rows.filter((r) => r.on).length;
   const allOn = pickedCount === rows.length;
 
-  function toggle(row: number, mid: string) {
+  /** Split = everyone shares it. Tapping a person while it's split makes it theirs in full; in a group,
+   *  tapping more people shares it between just them. Nobody left (or everyone) goes back to Split. */
+  function owe(row: number, mid: string | null) {
     setRows((cur) => cur.map((r, i) => {
       if (i !== row) return r;
-      const list = r.memberIds ?? everyone;
-      return { ...r, memberIds: list.includes(mid) ? list.filter((x) => x !== mid) : [...list, mid] };
+      if (mid === null) return { ...r, memberIds: null };
+      const list = r.memberIds;
+      if (!list || list.length === everyone.length) return { ...r, memberIds: [mid] };
+      const next = list.includes(mid) ? list.filter((x) => x !== mid) : [...list, mid];
+      return { ...r, memberIds: next.length === 0 || next.length === everyone.length ? null : next };
     }));
   }
 
   function done() {
     const participantIds = Object.keys(split).filter((k) => split[k] > 0);
-    receiptDraft.patch({ items, taxCents: receiptTax, tipCents: receiptTip,
+    // set, not patch: "Split by item" opens with no scan behind it.
+    receiptDraft.set({ photoUri: draft?.photoUri ?? null, totalCents: draft?.totalCents ?? null, items, taxCents: receiptTax, tipCents: receiptTip,
       result: { amountCents: total, weights: split, participantIds, picked, taxCents, tipCents } });
     goBack();
   }
@@ -86,18 +92,35 @@ export default function Itemize() {
               style={{ width: 90, flexShrink: 0, height: 48, paddingVertical: 0, borderRadius: 12, borderWidth: 1, borderColor: HT.color.chipBorder, paddingHorizontal: 10, textAlign: 'right', fontFamily: HT.font.mono, fontSize: 16, color: HT.color.ink }} />
             <IconButton label={`Remove item ${i + 1}`} onPress={() => setRows((cur) => cur.filter((_, j) => j !== i))}><TrashIcon size={18} color={HT.color.muted} /></IconButton>
           </View>
-          {r.on && members.length > 1 ? <View style={{ flexDirection: 'row', gap: 10, flexWrap: 'wrap', paddingLeft: 38 }}>
-            {members.map((m, mi) => {
-              const on = (r.memberIds ?? everyone).includes(m.id);
-              return (
-                <Pressable key={m.id} accessibilityRole="checkbox" accessibilityLabel={`${m.you ? 'You' : m.first_name} had ${r.name || 'this'}`} accessibilityState={{ checked: on }}
-                  onPress={() => toggle(i, m.id)} style={{ alignItems: 'center', gap: 2, opacity: on ? 1 : 0.35, minWidth: 44 }}>
-                  <View style={{ borderRadius: 22, padding: 2, borderWidth: 2, borderColor: on ? HT.color.brand : 'transparent' }}><Avatar photo={m.photo_url} name={m.first_name} index={mi} size={34} /></View>
-                  <T v="small">{m.you ? 'You' : m.first_name}</T>
-                </Pressable>
-              );
-            })}
-          </View> : null}
+          {r.on && members.length > 1 ? (() => {
+            const ids = r.memberIds;
+            const split = !ids || ids.length === everyone.length;
+            const solo = !split && ids.length === 1 ? members.find((m) => m.id === ids[0]) : null;
+            const cents = parseCents(r.amount) ?? 0;
+            const pill = (key: string, label: string, on: boolean, onPress: () => void, a11y: string) => (
+              <Pressable key={key} accessibilityRole="radio" accessibilityState={{ checked: on }} accessibilityLabel={a11y} onPress={onPress}
+                style={({ pressed }) => ({ minHeight: 38, paddingHorizontal: 14, borderRadius: 19, justifyContent: 'center', borderWidth: 1,
+                  borderColor: on ? HT.color.ink : HT.color.chipBorder, backgroundColor: on ? HT.color.ink : HT.color.surface, opacity: pressed ? 0.75 : 1 })}>
+                <T v="strong" style={{ fontSize: 13.5, color: on ? HT.color.ground : HT.color.ink }}>{label}</T>
+              </Pressable>
+            );
+            return (
+              <View style={{ gap: 6, paddingLeft: 38 }}>
+                <View accessibilityRole="radiogroup" accessibilityLabel={`Who owes ${r.name || 'this item'}`} style={{ flexDirection: 'row', gap: 8, flexWrap: 'wrap' }}>
+                  {pill('split', 'Split', split, () => owe(i, null), `Split ${r.name || 'this item'} with everyone`)}
+                  {members.map((m) => {
+                    const who = m.you ? 'You' : m.first_name;
+                    return pill(m.id, who, !split && ids.includes(m.id), () => owe(i, m.id), m.you ? `You pay all of ${r.name || 'this'}` : `${m.first_name} owes all of ${r.name || 'this'}`);
+                  })}
+                </View>
+                {solo ? (
+                  <T v="small" style={{ color: solo.you ? HT.color.muted : HT.color.owedToYou }}>
+                    {solo.you ? `All yours${cents ? `, ${formatCents(cents)}` : ''}` : `${solo.first_name} owes all of it${cents ? `, ${formatCents(cents)}` : ''}`}
+                  </T>
+                ) : !split ? <T v="small">Shared by {ids.length}</T> : null}
+              </View>
+            );
+          })() : null}
         </Card>
       ))}
       <Button title="Add an item" kind="secondary" icon={<PlusIcon size={16} />} onPress={() => setRows((cur) => [...cur, { name: '', amount: '', memberIds: null, on: true }])} />
@@ -142,10 +165,10 @@ export default function Itemize() {
       <View style={{ gap: 16 }}>
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
           <RoundButton label="Close" onPress={() => goBack()}><CloseIcon size={20} /></RoundButton>
-          <T v="hero" accessibilityRole="header" style={{ flex: 1, fontSize: 30, lineHeight: 36 }} numberOfLines={1} adjustsFontSizeToFit>Receipt items</T>
+          <T v="hero" accessibilityRole="header" style={{ flex: 1, fontSize: 30, lineHeight: 36 }} numberOfLines={1} adjustsFontSizeToFit>{draft?.photoUri ? 'Receipt items' : 'Split by item'}</T>
         </View>
         <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 12 }}>
-          <T v="muted" style={{ flex: 1 }}>{members.length > 1 ? 'Check what to split, then tap who had each one.' : 'Check what to split.'}</T>
+          <T v="muted" style={{ flex: 1 }}>{members.length > 1 ? 'Check what counts. Split an item, or tap a person to make it theirs in full.' : 'Check what counts.'}</T>
           {rows.length > 1 ? (
             <Pressable accessibilityRole="button" hitSlop={10} onPress={() => setRows((cur) => cur.map((x) => ({ ...x, on: !allOn })))}>
               <T v="strong" style={{ fontSize: 13.5, color: HT.color.brand }}>{allOn ? 'Clear all' : 'Pick all'}</T>
